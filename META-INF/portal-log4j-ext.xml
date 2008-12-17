@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+  <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="[%c{1}:%L] %-5p %m%n" />
+    </layout>
+  </appender>
+
+  <category name="com.celamanzi.liferay.portlets.rails286.Rails286Portlet">
+    <priority value="INFO" />
+  </category>
+
+  <category name="com.celamanzi.liferay.portlets.rails286.Rails286PortletRenderFilter">
+    <priority value="INFO" />
+  </category>
+
+  <category name="com.celamanzi.liferay.portlets.rails286.Rails286PortletFunctions">
+    <priority value="INFO" />
+  </category>
+
+  <category name="com.celamanzi.liferay.portlets.rails286.OnlineUtils">
+    <priority value="INFO" />
+  </category>
+  
+  <category name="com.celamanzi.liferay.portlets.rails286.SessionAuthenticator">
+    <priority value="INFO" />
+  </category>
+  
+  <category name="com.celamanzi.liferay.portlets.rails286.PageProcessor">
+    <priority value="INFO" />
+  </category>
+  
+  <category name="com.celamanzi.liferay.portlets.rails286.HeadProcessor">
+    <priority value="INFO" />
+  </category>
+  
+  <category name="com.celamanzi.liferay.portlets.rails286.BodyTagVisitor">
+    <priority value="INFO" />
+  </category>
+  
+  <category name="com.celamanzi.liferay.portlets.rails286.RouteAnalyzer">
+    <priority value="INFO" />
+  </category>
+  
+  
+  <category name="org.apache.commons.httpclient.HttpClient">
+    <priority value="INFO" />
+  </category>
+  
+  <category name="org.apache.commons.httpclient.HttpMethodBase">
+    <priority value="INFO" />
+  </category>
+  
+  <category name="org.apache.commons.httpclient.HttpMethodDirector">
+    <priority value="INFO" />
+  </category>
+  
+  
+  <category name="org.apache.commons.httpclient.HttpConnection">
+    <priority value="INFO" />
+  </category>
+  
+  <category name="org.apache.commons.httpclient.params.DefaultHttpParams">
+    <priority value="INFO" />
+  </category>
+  
+  <category name="org.apache.commons.httpclient.methods.EntityEnclosingMethod">
+    <priority value="INFO" />
+  </category>
+  
+  
+  <category name="httpclient.wire.header">
+    <priority value="INFO" />
+  </category>
+  
+  <category name="httpclient.wire.content">
+    <priority value="INFO" />
+  </category>
+
+</log4j:configuration>
