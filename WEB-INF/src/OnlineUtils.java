@@ -51,13 +51,12 @@ public class OnlineUtils {
 
 
   /** GETs a web page by HttpClient.executeMethod(GetMethod(url)) */
-  private static String getWebPage( java.net.URL url, Cookie[] authCookies, java.net.URL httpReferer )
+  private static String getWebPage( java.net.URL url, Cookie[] authCookies, java.net.URL httpReferer, java.util.Locale locale )
   throws HttpException, IOException {
 
     // the httpclient request response will be stored in this variable.
     String html = null;
-    String lang = "fi_FI";
-
+  
     // Create an instance of HttpClient.
     HttpClient client = new HttpClient();
 
@@ -69,10 +68,18 @@ public class OnlineUtils {
     if (httpReferer != null ) {
       log.debug("HTTP referer: "+httpReferer.toString());
       method.setRequestHeader("Referer",httpReferer.toString());
-      method.setRequestHeader("Accept-Language",lang);
     }
     else {
-      log.debug("HTTP referer is null!");
+      log.debug("HTTP referer is null");
+    }
+
+    // Insert the Locale
+    if (locale != null ) {
+      log.info("Request's locale language: "+locale.toString());
+      method.setRequestHeader("Accept-Language",locale.toString());
+    }
+    else {
+      log.debug("Locale is null");
     }
 
     // Provide custom retry handler is necessary
@@ -143,17 +150,17 @@ public class OnlineUtils {
 
   protected static String getWebPage( String url, Cookie[] authCookies ) 
   throws HttpException, IOException {
-    return getWebPage( new java.net.URL(url), authCookies, null );
+    return getWebPage( new java.net.URL(url), authCookies, null, null );
   }
 
-  protected static String getWebPage( String url, Cookie[] authCookies, java.net.URL httpReferer )
+  protected static String getWebPage( String url, Cookie[] authCookies, java.net.URL httpReferer, java.util.Locale locale )
   throws HttpException, IOException {
-    return getWebPage( new java.net.URL(url), authCookies, httpReferer );
+    return getWebPage( new java.net.URL(url), authCookies, httpReferer, locale );
   }
 
   private static String getWebPage( java.net.URL url, Cookie[] authCookies ) 
   throws HttpException, IOException {
-    return getWebPage( url, authCookies, null );
+    return getWebPage( url, authCookies, null, null );
   }
 
 
@@ -236,18 +243,8 @@ public class OnlineUtils {
   }
 
 
-
-
-
-
-
-
-
-
-
-
   /** GETs and fixes the Rails' HTTP response body */
-  protected static String getRailsHTML( java.net.URL url, Cookie[] authCookies, java.net.URL httpReferer )
+  protected static String getRailsHTML( java.net.URL url, Cookie[] authCookies, java.net.URL httpReferer, java.util.Locale locale )
   throws HttpException, IOException {
     // TODO: instantiate a Request, inspect the headers, send proper data in the Request (loggable)
     String validHTML = "";
@@ -255,7 +252,7 @@ public class OnlineUtils {
     // this is a simple method to get the page
     log.debug("GET URL: " + url.toString());
     try {
-      String railsResponse = getWebPage(url,authCookies,httpReferer);
+      String railsResponse = getWebPage(url,authCookies,httpReferer,locale);
       // TODO: validate HTML
       validHTML = railsResponse;
     }
@@ -270,7 +267,7 @@ public class OnlineUtils {
   // without reference
   protected static String getRailsHTML( java.net.URL url, Cookie[] authCookies )
   throws HttpException, IOException {
-    return getRailsHTML( url, authCookies, null );
+    return getRailsHTML( url, authCookies, null, null );
   }
 
 

@@ -273,14 +273,12 @@ public class Rails286Portlet extends GenericPortlet {
       }
 
       // Language
-      java.util.Locale lang = request.getLocale();
-      log.info("Request's locale language: "+lang.toString());
-
+      java.util.Locale locale = request.getLocale();
 
 
       /** GET */
       if (requestMethod.equals("get")) {
-        railsResponse = OnlineUtils.getRailsHTML(requestUrl,cookies,httpReferer);
+        railsResponse = OnlineUtils.getRailsHTML(requestUrl,cookies,httpReferer,locale);
       }
 
       /** POST */
@@ -348,7 +346,7 @@ public class Rails286Portlet extends GenericPortlet {
               log.debug("post-POST GET: "+post_get.toString());
 
               /** GET after POST */
-              railsResponse = OnlineUtils.getRailsHTML(post_get,null,httpReferer);
+              railsResponse = OnlineUtils.getRailsHTML(post_get,null,httpReferer,locale);
               // railsResponse = OnlineUtils.getRailsHTML(post_get,cookies,httpReferer);
             } // match!
           } // match!
