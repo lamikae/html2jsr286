@@ -123,7 +123,7 @@ public class HeadProcessor {
     log.debug(css_style.size() + " style tags found");
     if ( (css_link.size() > 0) || (css_style.size() > 0) ) {
       // headString += makeInlineCSS(css_link,css_style);
-      /** Testing just including the original JS.
+      /** Just include the original CSS.
         * @since 0.3.0
         */
       log.debug("StyleTag encountered, including it to body");
@@ -138,19 +138,28 @@ public class HeadProcessor {
       new NodeClassFilter(ScriptTag.class),true);
     log.debug(scriptTags.size() + " script tags found");
     if ( scriptTags.size() > 0 ) {
-      log.debug("Checking JavaScript blacklist");
+
+      log.debug("Parsing <script> tags");
       for (SimpleNodeIterator i = scriptTags.elements(); i.hasMoreNodes();) {
-        ScriptTag tag = JavaScriptBlacklistFilter(
-          (ScriptTag)i.nextNode()
-        );
-        // blacklist check passed
-        if (tag != null) {
+        ScriptTag tag = (ScriptTag)i.nextNode();
+
+        /** Does the tag contain inline code, or a link to src? */
+        if (tag.getScriptCode().length() > 0) {
+          log.debug("Script tag contains inline JavaScript -- note that IT IS NOT PARSED CORRECTLY.");
           headString += tag.toHtml();
         }
-      }
-    }
+        else {
+          log.debug("Link to src - checking JavaScript blacklist");
+          if (JavaScriptBlacklistFilter(tag)) {
+            // blacklist check passed, include the original JS.
+            headString += tag.toHtml();
+          }
+        }
+      } // iterator
+    } // JS tags
 
-    // Close the <namespace>_head Div
+
+    /** Close the <namespace>_head Div. */
     headString += "\n</div>\n";
 
     // Parse the String form to NodeList
@@ -174,11 +183,12 @@ public class HeadProcessor {
   /** Compare the JavaScript src to the blacklist.
     * @since 0.3.0
     */
-  private ScriptTag JavaScriptBlacklistFilter(ScriptTag tag)
+  private boolean JavaScriptBlacklistFilter(ScriptTag tag)
   throws Exception {
     String src = tag.getAttribute("src");
     if (src == null) {
-      return null;
+      // inline script tag has already been catched, so this may mean that the tag is invalid?
+      return false;
     }
     else {
       //log.debug("Checking if "+src+" is in blacklist");
@@ -186,12 +196,12 @@ public class HeadProcessor {
         /** Blacklist match */
         if (src.matches(".*"+javascript_blacklist[j]+".*")) {
           log.debug(src+" is blacklisted!");
-          return null;
+          return false;
         }
       }
       /** Accept JS */
       log.debug(src+" is ok");
-      return tag;
+      return true;
     }
   }
 
