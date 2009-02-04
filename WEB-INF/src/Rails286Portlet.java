@@ -40,7 +40,9 @@ import javax.portlet.PortletContext;
 import javax.portlet.PortletException;
 import javax.portlet.PortletMode;
 import javax.portlet.PortletPreferences;
+import javax.portlet.PortletRequest;
 import javax.portlet.PortletRequestDispatcher;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletSession;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
@@ -58,12 +60,13 @@ import org.apache.commons.logging.LogFactory;
 
 /** Presents a Rails application in a JSR286 portlet.
  * Supports the GET and POST methods.
+ * XHRs do not convey through the portlet. They are sent directly to the Rails server.
  *
  * @author Mikael Lammentausta
  */
 public class Rails286Portlet extends GenericPortlet {
 
-  private final String PORTLET_VERSION    = "0.6.0";
+  private final String PORTLET_VERSION    = "0.6.1";
 
   /** Class variables and the logger.
    * Set in the initializer.
@@ -112,6 +115,9 @@ public class Rails286Portlet extends GenericPortlet {
     *
     * This is a horribly long function that could be split up to several
     * subfunctions for clarity.
+    *
+    * @since 0.6.1
+    *   Changed to use Liferay 5.2.0 API, using deprecated methods.
     *
     */
   protected void doView(RenderRequest request, RenderResponse response)
@@ -282,7 +288,7 @@ public class Rails286Portlet extends GenericPortlet {
       }
 
       /** POST */
-      else if (requestMethod.equals("post")) {
+      else if (requestMethod.equals("post") || requestMethod.equals("put")) {
         // parametersBody for the POST action
         NameValuePair[] parametersBody = (NameValuePair[])request.getAttribute("parametersBody");
         if (parametersBody != null) {
