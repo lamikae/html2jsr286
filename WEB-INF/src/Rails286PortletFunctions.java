@@ -47,7 +47,7 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.Cookie;
 
-/** Liferay classes to get the portlet's group! */
+/** Liferay classes to get the User ID and portlet's Group ID */
 import com.liferay.portal.util.PortalUtil;
 // import com.liferay.portal.theme.ThemeDisplay;
 
@@ -102,12 +102,15 @@ public class Rails286PortletFunctions {
   /** Processes the request path.
     * Replaces variables with runtime user/portlet values.
     */
-  protected static String decipherPath( String path, RenderRequest request )
+  protected static String decipherPath( String path, RenderRequest _request )
   {
     if (path == null) {
       log.debug("Path is null, cannot extract variables");
       return path;
     }
+
+    // for Liferay 5.2.0
+    PortletRequest request = (PortletRequest)_request;
 
     //ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(WebKeys.THEME_DISPLAY);
 
@@ -161,7 +164,7 @@ public class Rails286PortletFunctions {
               if (LIFERAY_HACKS==true) {
                 log.debug("Liferay hacks enabled");
                 gid = new Long(
-                  com.liferay.portal.util.PortalUtil.getPortletGroupId(request)
+                  com.liferay.portal.util.PortalUtil.getPortletGroupId(_request)
                 ).toString();
                 log.debug("Liferay portlet GID: "+gid);
               } // Liferay hacks
