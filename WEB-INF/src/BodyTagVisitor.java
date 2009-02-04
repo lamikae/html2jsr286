@@ -122,6 +122,13 @@ public class BodyTagVisitor extends NodeVisitor
       LinkTag link = (LinkTag)tag;
       PortletURL newHref = portletUrl;
 
+      NodeList children = link.getChildren();
+      if (children.size() > 0) {
+//         log.warn("Link has children tags -- there is a bug in handling them. Expect broken HTML.");
+//         log.warn(tag.getText());
+      }
+
+
       /** HTTP */
       if ( (link.isHTTPLink()) && (!link.getLink().equals(""))) {
         log.debug("Encountered a HTTPLink: " + link.getLink());
@@ -248,8 +255,12 @@ public class BodyTagVisitor extends NodeVisitor
           }
         }
       } // exit portlet?
+/*      else if (link.isEndTag()) {
+        log.debug("Link end tag detected -- where is the begin tag? This is a bug.");
+        log.debug(tag.getText());
+      }*/
       else if (link.isHTTPSLink()) { log.warn("Cannot handle HTTPS links yet"); }
-      else if (link.isJavascriptLink()) { log.warn("Cannot handle JavaScript links yet"); }
+      //else if (link.isJavascriptLink()) { log.warn("Cannot handle JavaScript links yet"); }
       else if (link.isMailLink()) { log.debug("No changes to mail links"); }
       else if (link.isFTPLink())  { log.debug("No changes to FTP links"); }
       else if (link.isIRCLink())  { log.debug("No changes to IRC links"); }
@@ -341,7 +352,7 @@ public class BodyTagVisitor extends NodeVisitor
 
       log.debug("Full action URL: " + formAction);
 
-      if ( method.equals("post") ) {
+      if ( method.equals("post") || method.equals("put") ) {
         // replace the action URL with the portlet actionURL
         String portletAction = actionUrl.toString();
         log.debug("New form action URL: " + portletAction);
