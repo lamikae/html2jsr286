@@ -1,3 +1,14 @@
+= 0.6.1
+- compiles for 5.2.0
+
+= 0.6.0
+- main function cleanup
+- added log4j xml configuration
+- disable cookies (since they didn't work properly)
+- fix <head> inline JavaScript parsing, but HTMLparser cannot handle inline tags in inline code!
+- get the Locale from the request and pass it to Rails
+- compiles for 5.1.1
+
 = 0.5.2
 - %UID% path parameters is now being replaced by the user's ID or doAsUser.
 
@@ -58,3 +69,4 @@ exchanging all Rails <a href urls with PortletURL:
 
 = 0.0.2
 Simple Rails page (any web page, actually) loading and displaying works.
+
