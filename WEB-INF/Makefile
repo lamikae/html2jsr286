@@ -1,4 +1,9 @@
+# I don't know how to write ant tasks. This should be one. - lamikae
+
 jarlib=lib
+
+# version of Liferay's portal-service jar
+#liferay=5.1.1
 liferay=5.2.0
 
 all: clean compile list
