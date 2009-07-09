@@ -171,7 +171,7 @@ public class BodyTagVisitor extends NodeVisitor
           // TODO: use a proper replace regexp, so sanitization is not required.
           href = href.replaceFirst(exit_param,""); // remove the parameter
           href = href.replaceFirst("&amp;$","");   // sanitize
-          href = href.replaceFirst("\\?&amp;",""); // sanitize
+          href = href.replaceFirst("\\?&amp;","?"); // sanitize
           href = href.replaceFirst("\\?$","");     // sanitize
           log.debug("Saving link: "+href);
           link.setLink(href);

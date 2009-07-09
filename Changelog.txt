@@ -1,5 +1,8 @@
+= 0.6.2
+- minor fix for URLs with an empty first parameter: "?&"
+
 = 0.6.1
-- compiles for 5.2.0
+- compatible with Liferay 5.2.0
 
 = 0.6.0
 - main function cleanup
@@ -7,7 +10,7 @@
 - disable cookies (since they didn't work properly)
 - fix <head> inline JavaScript parsing, but HTMLparser cannot handle inline tags in inline code!
 - get the Locale from the request and pass it to Rails
-- compiles for 5.1.1
+- compatible with Liferay 5.1.1
 
 = 0.5.2
 - %UID% path parameters is now being replaced by the user's ID or doAsUser.

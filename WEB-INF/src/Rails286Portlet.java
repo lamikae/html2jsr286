@@ -66,7 +66,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class Rails286Portlet extends GenericPortlet {
 
-  private final String PORTLET_VERSION    = "0.6.1";
+  private final String PORTLET_VERSION    = "0.6.2";
 
   /** Class variables and the logger.
    * Set in the initializer.
