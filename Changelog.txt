@@ -2,18 +2,20 @@
 - minor fix for URLs with an empty first parameter: "?&"
 
 = 0.6.1
-- compatible with Liferay 5.2.0
+- compatible with Liferay 5.2.0 - incompatible with Liferay 5.1.x due to Liferay API change
 
 = 0.6.0
 - main function cleanup
 - added log4j xml configuration
 - disable cookies (since they didn't work properly)
-- fix <head> inline JavaScript parsing, but HTMLparser cannot handle inline tags in inline code!
-- get the Locale from the request and pass it to Rails
+- fix to <head> inline JavaScript parsing, but HTMLparser cannot handle inline tags in inline JavaScript!
+- get Locale from portlet request and pass it to Rails
 - compatible with Liferay 5.1.1
+known bugs:
+* HTMLparser cannot handle inline tags in inline JavaScript
 
 = 0.5.2
-- %UID% path parameters is now being replaced by the user's ID or doAsUser.
+- %UID% path parameters is now being replaced by the user's ID or doAsUserId.
 
 = 0.5.1
 - support for %GID% path parameter, which is replaced by the Liferay group the portlet is in.
@@ -63,13 +65,13 @@ Released 1.7.2008
 - Rails host, base and request url into the portlet.xml
 
 = 0.0.3
-Simple navigation with filtering works. The url is coded into the portlet by
-exchanging all Rails <a href urls with PortletURL:
+- Simple navigation with filtering works. The url is coded into the portlet by
+  exchanging all "<a href..>" urls with PortletURL:
 
           PortletURL pu = response.createRenderURL();
           pu.setParameter("url",path);
           newUrl = new java.net.URL(pu.toString());
 
 = 0.0.2
-Simple Rails page (any web page, actually) loading and displaying works.
+- Simple Rails page (any web page, actually) loading and displaying works.
 
