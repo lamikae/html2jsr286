@@ -42,11 +42,12 @@ list:
 	#
 	tree $(classes)
 
-test: clean compile
+test:
 	#
 	###################### running tests
 	#
 	if [ ! -e test/classes ]; then mkdir -p test/classes; fi
+	echo $(classes)
 	export CLASSPATH="\
 	$(jarlib)/portlet-1.0.jar:\
 	$(jarlib)/portlet-2.0.jar:\
@@ -55,10 +56,12 @@ test: clean compile
 	$(jarlib)/portal-service-$(liferay).jar:\
 	$(jarlib)/servlet-api-2.4.jar:\
 	$(jarlib)/htmlparser-1.6.jar:\
-	$(jarlib)/junit-4.6.jar" ;\
-	javac test/*.java -Xlint:unchecked -Xlint:deprecation -d test/classes ;\
-	export CLASSPATH="${CLASSPATH}:`pwd`/test/classes" ;\
-	java -ea  org.junit.runner.JUnitCore com.youleaf.jsrproxy.test.TestLoader
+	$(jarlib)/log4j-1.2.15.jar:\
+	$(jarlib)/junit-4.6.jar:\
+	$(classes)" ;\
+	javac test/*.java -Xlint:unchecked -Xlint:deprecation -d test/classes && \
+	export CLASSPATH="$${CLASSPATH}:test/classes:test" && \
+	time java -ea  org.junit.runner.JUnitCore com.youleaf.jsrproxy.test.TestLoader
 
 # deploy:
 #cp -r classes/com/celamanzi/liferay/portlets/rails286/*class /usr/local/liferay/webapps/ROOT/WEB-INF/classes/com/celamanzi/liferay/portlets/rails286/
