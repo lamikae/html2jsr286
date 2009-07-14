@@ -1,6 +1,7 @@
 # I don't know how to write ant tasks. This should be one. - lamikae
 
-jarlib=lib
+jarlib=WEB-INF/lib
+classes=WEB-INF/classes
 
 # version of Liferay's portal-service jar
 #liferay=5.1.1
@@ -9,11 +10,7 @@ liferay=5.2.0
 all: clean compile list
 
 clean:
-	if [ ! -e classes ]; then mkdir classes; fi
-	find classes -name *.class -exec rm {} -f \;
-
-	#$(jarlib)/portal-impl.jar:\
-	#$(jarlib)/portal-client.jar:\
+	find $(classes) -name *.class -exec rm {} -f \;
 
 compile:
 	#
@@ -34,14 +31,14 @@ compile:
 	$(jarlib)/portal-service-$(liferay).jar:\
 	$(jarlib)/servlet-api-2.4.jar:\
 	$(jarlib)/htmlparser-1.6.jar;\
-	javac src/*.java -target jsr14 -Xlint:unchecked -Xlint:deprecation -d classes/ 
+	javac WEB-INF/src/*.java -target jsr14 -Xlint:unchecked -Xlint:deprecation -d $(classes)
 	#xargs javac -target jsr14 -d classes/ <<< `find src/ -name *.java`
 
 list:
 	#
-	###################### here is the result
+	###################### bytecode classes
 	#
-	tree classes/com
+	tree $(classes)
 
 # deploy:
 	#cp -r classes/com/celamanzi/liferay/portlets/rails286/*class /usr/local/liferay/webapps/ROOT/WEB-INF/classes/com/celamanzi/liferay/portlets/rails286/
