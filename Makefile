@@ -5,7 +5,7 @@ classes=WEB-INF/classes
 
 # version of Liferay's portal-service jar
 #liferay=5.1.1
-liferay=5.2.0
+liferay=5.2.3
 
 all: clean compile list
 
