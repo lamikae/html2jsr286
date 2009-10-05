@@ -63,7 +63,5 @@ test:
 	export CLASSPATH="$${CLASSPATH}:test/classes:test" && \
 	time java -ea  org.junit.runner.JUnitCore com.youleaf.jsrproxy.test.TestLoader
 
-# deploy:
-#cp -r classes/com/celamanzi/liferay/portlets/rails286/*class /usr/local/liferay/webapps/ROOT/WEB-INF/classes/com/celamanzi/liferay/portlets/rails286/
 
 .PHONY: list deploy test
