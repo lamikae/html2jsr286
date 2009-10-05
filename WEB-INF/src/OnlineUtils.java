@@ -56,7 +56,7 @@ public class OnlineUtils {
 
     // the httpclient request response will be stored in this variable.
     String html = null;
-  
+
     // Create an instance of HttpClient.
     HttpClient client = new HttpClient();
 
@@ -126,22 +126,22 @@ public class OnlineUtils {
       // Deal with the response.
       html = new String(responseBody);
 
-    } catch (HttpException e) {
+    /** FIXME: move the catch handling somewhere else. */
+
+/*    } catch (HttpException e) {
       log.error("Fatal protocol violation: " + e.getMessage());
-      html = "<html><head><title>Protocol violation error</title></head>";
-      html += "<body>" + e.getMessage() + "</body></html>";
       throw e;
       //e.printStackTrace();
     } catch (IOException e) {
       log.error("Fatal transport error: " + e.getMessage());
-      html = "<html><head><title>Transport error</title></head>";
-      html += "<body>" + e.getMessage() + "</body></html>";
       throw e;
-      //e.printStackTrace();
+      //e.printStackTrace();*/
     } finally {
       // Release the connection.
       method.releaseConnection();
     }
+
+    /** This class should not return self-generated HTML */
 
     return html;
   }
@@ -226,18 +226,23 @@ public class OnlineUtils {
       // Deal with the response.
       html = new String(responseBody);
 
+    /** FIXME: This class should not return self-generated HTML */
     } catch (HttpException e) {
       log.error("Fatal protocol violation: " + e.getMessage());
-      html = "<html><body>" + e.getMessage() + "</body></html>";
+      // due to a design mistake, this title is never processed to portlet HTML.
+      html = "<html><head><title>Protocol violation error</title></head>";
+      html += "<body>" + e.getMessage() + "</body></html>";
       //e.printStackTrace();
     } catch (IOException e) {
       log.error("Fatal transport error: " + e.getMessage());
-      html = "<html><body>" + e.getMessage() + "</body></html>";
+      html = "<html><head><title>Transport error</title></head>";
+      html += "<body>" + e.getMessage() + "</body></html>";
       //e.printStackTrace();
     } finally {
       // Release the connection.
       method.releaseConnection();
     }
+    /** This class should not return self-generated HTML */
 
     return html;
   }
@@ -258,6 +263,8 @@ public class OnlineUtils {
     }
     catch (Exception e) {
       log.error(e.getMessage());
+      log.info("Failed to get valid response from " + url.toString());
+      /** FIXME: This class should not return self-generated HTML */
       validHTML = "<html><body>" + e.getMessage() + "</body></html>";
     }
 
