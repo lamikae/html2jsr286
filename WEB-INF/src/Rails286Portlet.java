@@ -381,6 +381,7 @@ public class Rails286Portlet extends GenericPortlet {
           }
           //response.setTitle( title == null ? "rails286-portlet" : title );
         }
+        // p.process throws ParserException is input is invalid. Should it be catched?
         catch (ParserException e) {
           log.error(e.getMessage());
         }

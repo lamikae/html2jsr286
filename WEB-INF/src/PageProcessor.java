@@ -96,8 +96,8 @@ public class PageProcessor {
     * The <body> section's NodeList is iterated over in BodyTagVisitor 
     *
     */
-  protected String process(java.net.URL railsBaseUrl, String railsRoute)
-  throws java.net.MalformedURLException, IllegalStateException, ParserException {
+  public String process(java.net.URL railsBaseUrl, String railsRoute)
+  throws IllegalStateException, ParserException {
 
     /** Check that the input is HTML.
       *
@@ -111,17 +111,9 @@ public class PageProcessor {
 
     /** Parse the HTML String to NodeList.
       *
-      * Try-catch the Parser instantiation - return the error msg.
+      * doView handles exceptions -- this will throw ParserException if input is invalid
       */
-    Parser   parser  = null;
-    try {
-      parser = new Parser(page);
-    }
-    catch (ParserException pe) {
-      String err = pe.getMessage();
-      log.error(err);
-      return err;
-    }
+    Parser   parser  = new Parser(page);
 
 
     /** OK - proceed.
@@ -207,7 +199,7 @@ public class PageProcessor {
 
 
   /** Overload process(), accept String urls. */
-  protected String process(String railsBaseUrl, String railsRoute)
+  public String process(String railsBaseUrl, String railsRoute)
   throws java.net.MalformedURLException, IllegalStateException, ParserException {
     return process( new java.net.URL(railsBaseUrl), railsRoute );
   }
