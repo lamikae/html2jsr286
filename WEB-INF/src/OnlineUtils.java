@@ -75,7 +75,7 @@ public class OnlineUtils {
 
     // Insert the Locale
     if (locale != null ) {
-      log.info("Request's locale language: "+locale.toString());
+      log.debug("Request's locale language: "+locale.toString());
       method.setRequestHeader("Accept-Language",locale.toString());
     }
     else {
