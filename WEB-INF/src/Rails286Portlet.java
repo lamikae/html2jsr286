@@ -66,14 +66,14 @@ import org.apache.commons.logging.LogFactory;
  */
 public class Rails286Portlet extends GenericPortlet {
 
-  private final String PORTLET_VERSION    = "0.6.2";
+  private final String PORTLET_VERSION    = "0.7.0";
 
   /** Class variables and the logger.
    * Set in the initializer.
    */
   private final Log log = LogFactory.getLog(getClass().getName());
 
-  // the EDIT mode is supported since 0.6.0
+  // EDIT or HELP modes are not supported
   private String editUrl;
   private String helpUrl;
   private String errorUrl;
