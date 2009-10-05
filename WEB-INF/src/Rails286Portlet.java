@@ -108,7 +108,7 @@ public class Rails286Portlet extends GenericPortlet {
   }
 
   /**
-    * The view function.
+    * Main method, doView. The other portlet modes are not supported.
     *
     * Downloads the Rails HTML, runs the HTML processor and
     * inserts it into RenderResponse.
@@ -382,6 +382,9 @@ public class Rails286Portlet extends GenericPortlet {
           //response.setTitle( title == null ? "rails286-portlet" : title );
         }
         catch (ParserException e) {
+          log.error(e.getMessage());
+        }
+        catch (IllegalStateException e) {
           log.error(e.getMessage());
         }
       }

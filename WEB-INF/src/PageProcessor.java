@@ -68,17 +68,17 @@ public class PageProcessor {
   protected String         language   = null;
 
 
-  PageProcessor(String html,String s) {
+  public PageProcessor(String html,String s) {
     page      = html;
     servlet   = s;
   }
-  PageProcessor(String html,String s,String ns) {
+  public PageProcessor(String html,String s,String ns) {
     page      = html;
     servlet   = s;
     namespace = ns;
     log.debug("Parsing the page with namespace: " + namespace);
   }
-  PageProcessor(String html,String s,RenderResponse rp) {
+  public PageProcessor(String html,String s,RenderResponse rp) {
     page      = html;
     servlet   = s;
     resp      = rp;

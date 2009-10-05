@@ -62,7 +62,7 @@ public class BodyTagVisitor extends NodeVisitor
 //   }
 
   /** Takes in RenderResponse and extracts portletUrl and actionUrl */
-  BodyTagVisitor( java.net.URL bu, String s, String rp, String ns, RenderResponse resp ) {
+  public BodyTagVisitor( java.net.URL bu, String s, String rp, String ns, RenderResponse resp ) {
     baseUrl      = bu;
     servlet      = s;
     requestPath  = rp;
@@ -75,7 +75,7 @@ public class BodyTagVisitor extends NodeVisitor
   }
 
   /** alternative that takes portletUrl directly */
-  BodyTagVisitor( java.net.URL bu, String s, String rp, String ns, PortletURL pu ) {
+  public BodyTagVisitor( java.net.URL bu, String s, String rp, String ns, PortletURL pu ) {
     baseUrl      = bu;
     servlet      = s;
     requestPath  = rp;
