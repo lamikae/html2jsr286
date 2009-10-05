@@ -375,13 +375,13 @@ public class Rails286Portlet extends GenericPortlet {
 
           /** Set the portlet title to the HTML page title */
           String title = p.title;
-          log.debug("<html><head><title>: "+title);
-          if (title != null) {
-            response.setTitle( title );
+          log.info("<html><head><title>: "+title);
+          if ( title==null || title=="" ) {
+            response.setTitle( " " ); // nbsp, because Liferay post-processes blank strings
           }
-          //response.setTitle( title == null ? "rails286-portlet" : title );
+          else { response.setTitle( title ); }
         }
-        // p.process throws ParserException is input is invalid. Should it be catched?
+        // p.process throws ParserException when input is invalid. Should it be catched?
         catch (ParserException e) {
           log.error(e.getMessage());
         }
