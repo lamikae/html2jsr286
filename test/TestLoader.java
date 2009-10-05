@@ -8,8 +8,12 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-	Test1.class
+	PageProcessorTest.class,
+	BodyTagVisitorTest.class
+// 	HeadProcessorTest.class,
+// 	RouteAnalyzerTest.class
 })
+
 public class TestLoader {
 
 	@BeforeClass
