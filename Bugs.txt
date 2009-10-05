@@ -1,0 +1,2 @@
+Known bugs:
+  * HTMLparser cannot handle inline tags in inline JavaScript
