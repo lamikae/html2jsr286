@@ -83,13 +83,13 @@ public class Rails286Portlet extends GenericPortlet {
   // the servlet is defined in XML
   protected String servlet = null;
 
-  /** Login parameters -- debugging stage -- not used */
+  /* Cookie handling -- not used
   String username = "";
   String userpw = "";
-//   String logonAction = "/"+servlet+"";
   NameValuePair userid   = new NameValuePair("username", username);
   NameValuePair password = new NameValuePair("userpw", userpw);
   NameValuePair[] loginCredentials = new NameValuePair[] {userid, password};
+  */
 
 
   /**** Override the GenericPortlet functions.
