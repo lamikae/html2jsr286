@@ -66,22 +66,15 @@ public class BodyTagVisitorTest {
 		}
 		catch (Exception e) {}
 
-		System.out.println(body.toHtml());
-
+//		System.out.println(body.toHtml());
 // 		assertEquals("<div id=\"namespace_body\"></div>",body.toHtml());
 	}
-
-
-
-// 		System.out.println(body.toHtml());
-
 
 
 	protected NodeList getBody(String html) {
 		try {
 			Parser   parser  = new Parser(html);
 			NodeList pg = parser.parse (null);
-	// 		head = pg.extractAllNodesThatMatch(new NodeClassFilter(HeadTag.class),true);
 			return pg.extractAllNodesThatMatch(new NodeClassFilter(BodyTag.class),true);
 		}
 		catch (Exception e) {}

@@ -82,6 +82,7 @@ public class Rails286PortletRenderFilter implements RenderFilter {
   public void init(final FilterConfig filterConfig) {
     this.filterConfig = filterConfig;
     host    = filterConfig.getInitParameter("host");
+    // consider empty hosts as null
     if ((host != null) && (host.equals(""))) {
       host = null;
     }
@@ -95,7 +96,18 @@ public class Rails286PortletRenderFilter implements RenderFilter {
   public void destroy() {}
 
 
-  /** 1: Request params, 2: request attributes, 3: Session, 4: fallback value */
+  /** Filter the RenderRequest attributes and parameters and fix up PortletSession
+      for the HttpClient request.
+
+  The order of preferences for the view URL:
+    1: Request params
+    2: request attributes
+    3: Session
+    4: fallback value
+
+  TODO: this needs cleanup. Just read/write appropriate values from the session.
+
+  */
   public void doFilter(RenderRequest request,
                        RenderResponse response,
                        FilterChain chain)

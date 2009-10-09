@@ -63,5 +63,12 @@ test:
 	export CLASSPATH="$${CLASSPATH}:test/classes:test" && \
 	time java -ea  org.junit.runner.JUnitCore com.youleaf.jsrproxy.test.TestLoader
 
+help:
+	@echo "To compile classes:"
+	@echo " 	make all"
+	@echo
+	@echo "To run the (very sparse) test suite:"
+	@echo " 	make test"
 
-.PHONY: list deploy test
+
+.PHONY: list deploy test help

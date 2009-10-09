@@ -97,6 +97,8 @@ public class Rails286Portlet extends GenericPortlet {
   @Override
 
 
+  /** Portlet initialization at portal startup.
+    */
   public void init(PortletConfig config) throws PortletException {
     log.info("Initializing Rails-portlet "+PORTLET_VERSION);
     super.init(config);
@@ -108,7 +110,7 @@ public class Rails286Portlet extends GenericPortlet {
   }
 
   /**
-    * Main method, doView. The other portlet modes are not supported.
+    * Main method, doView. Other portlet modes are not supported.
     *
     * Downloads the Rails HTML, runs the HTML processor and
     * inserts it into RenderResponse.
@@ -159,6 +161,12 @@ public class Rails286Portlet extends GenericPortlet {
     railsBaseUrl = (java.net.URL)session.getAttribute("railsBaseUrl");
     railsRoute = (String)session.getAttribute("railsRoute");
 
+    /** TODO: cleanup!
+
+    Move the checks from doView to RenderFilter, which will stop the whole process, and
+    forward to another method altogether.
+      */
+
     // save the new path to session, needed for HTTP_REFERER,
     // which is set in the RENDER FILTER
     // -- breaks when using POST, and render filter should take care of this itself
@@ -166,7 +174,6 @@ public class Rails286Portlet extends GenericPortlet {
     //         "railsRoute",
     //         railsRoute,
     //         PortletSession.PORTLET_SCOPE);
-
 
     // get the host section from the base URL
     String railsHost = null;
@@ -210,6 +217,8 @@ public class Rails286Portlet extends GenericPortlet {
       catch (java.net.MalformedURLException e) {
         log.error(e.getMessage());
       }
+
+      /** nothing between the previous and this comment belongs in this method */
 
 
         /** Cookie handling.

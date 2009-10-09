@@ -2,3 +2,5 @@ Use Caterpillar to deploy Rails-portlet.
 
 Instructions and source code: http://rails-portlet.rubyforge.org/
 
+Type "make help" to see how to use the Makefile.
+
