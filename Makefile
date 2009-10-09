@@ -7,13 +7,13 @@ classes=WEB-INF/classes
 #liferay=5.1.1
 liferay=5.2.3
 
-all: clean compile list
+all: compile list
 
 clean:
 	find $(classes) -name *.class -exec rm {} -f \;
 	rm test/classes/* -rf
 
-compile:
+compile: clean
 	#
 	###################### compiling all Java classes
 	#
@@ -42,7 +42,7 @@ list:
 	#
 	tree $(classes)
 
-test:
+test: compile
 	#
 	###################### running tests
 	#
