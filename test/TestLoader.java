@@ -8,8 +8,10 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
+// 	RenderFilterTest.class,
 	PageProcessorTest.class,
 	BodyTagVisitorTest.class
+// 	PortletFunctionsTest.class
 // 	HeadProcessorTest.class,
 // 	RouteAnalyzerTest.class
 })

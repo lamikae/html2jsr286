@@ -5,11 +5,27 @@ import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
 import com.celamanzi.liferay.portlets.rails286.PageProcessor;
 
+/** Tests PageProcessor.
+
+TODO: test standard HTML4 and HTML5 tags.
+
+*/
 public class PageProcessorTest {
 
 	private java.net.URL baseUrl = null;
+
+	private String servlet = "";
+	private String route = "/";
+
+	private String html = null;
+	private PageProcessor pp = null;
+
+	private String namespace = "__TEST_PORTLET__";
 
 	@Before
 	public void setTestServer() {
@@ -20,33 +36,53 @@ public class PageProcessorTest {
 		}
 	}
 
-	@Test
-	public void process_invalid_url() {
-//       String html    = OnlineUtils.getWebPage( host + servlet + path, null );
-		String html = "<html><head></head></html>";
-		String servlet = "";
-		String path    = "";
-
-		PageProcessor p = new PageProcessor(html,servlet);
-	}
-
-	@Test
-	public void process() {
-		String servlet = "";
-		String route = "/";
-
-//       String html    = OnlineUtils.getWebPage( host + servlet + path, null );
-		String html = "<html><head></head></html>";
-		PageProcessor p = new PageProcessor(html,servlet);
-
-		try {
-			String output = p.process(baseUrl,route);
-
-		} catch (Exception e) {
+// 	@Test
+// 	public void process_invalid_url() {
+// 		try {
+// //       String html    = OnlineUtils.getWebPage( host + servlet + path, null );
+// 		String html = "<html><head></head></html>";
+// 		String servlet = "";
+// 		String path    = "";
+// 
+// 		PageProcessor p = new PageProcessor(html,servlet);
+	/*	} catch (Exception e) {
 			AssertionError ae = new AssertionError("");
 			ae.initCause(e);
 			throw ae;
 		}
+	*/
+// 	}
+
+	@Test
+	public void process_empty_head() throws org.htmlparser.util.ParserException
+	{
+		html = "<html><head></head></html>";
+		pp = new PageProcessor(html,servlet,namespace);
+		String output = pp.process(baseUrl,route);
+		assertPageRegexp(output,"<div id=\""+namespace+"_head\">[\\n ]*</div>");
+	}
+
+	@Test
+	public void process_empty_body() throws org.htmlparser.util.ParserException
+	{
+		html = "<html><body></body></html>";
+		pp = new PageProcessor(html,servlet,namespace);
+		String output = pp.process(baseUrl,route);
+		// assert a new head tag..
+		assertPageRegexp(output,"<div id=\""+namespace+"_head\">[\\n ]*</div>");
+		assertPageRegexp(output,"<div id=\""+namespace+"_body\">[\\n ]*</div>");
+// 		System.out.println(output);
+	}
+
+
+	/** Helpers */
+
+	private void assertPageRegexp(String page, String regexp)
+	{
+		// compile a regexp
+		Pattern p = Pattern.compile(regexp);
+		Matcher match = p.matcher(page);
+		assertTrue("\""+page+"\" did not match \""+regexp+"\"", match.find());
 	}
 
 }
