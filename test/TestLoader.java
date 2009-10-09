@@ -1,4 +1,4 @@
-package com.youleaf.jsrproxy.test;
+package com.celamanzi.liferay.portlets.rails286.test;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
