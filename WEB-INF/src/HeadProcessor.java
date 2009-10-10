@@ -60,11 +60,11 @@ public class HeadProcessor {
 
 
   /** Constructors */
-  HeadProcessor(String s, String ns) {
+  protected HeadProcessor(String s, String ns) {
     servlet   = s;
     namespace = ns;
   }
-  HeadProcessor(String s, java.net.URL bu,String ns) {
+  protected HeadProcessor(String s, java.net.URL bu,String ns) {
     servlet   = s;
     namespace = ns;
     baseUrl   = bu;
@@ -79,7 +79,7 @@ public class HeadProcessor {
     *
     */
   protected NodeList process(NodeList head)
-  throws Exception {
+  throws ParserException, Exception {
     String headString = "\n<div id=\"" + namespace + "_head\">\n";
     Pattern pattern = null;
     Matcher matcher = null;
@@ -166,13 +166,15 @@ public class HeadProcessor {
     NodeList ret = new NodeList();
 
     if (headString != "") {
-      try {
+	  /* @since 0.7.0: does not handle ParserException
+	   */
+      // try {
         Parser parser = new Parser(headString);
         ret = parser.parse(null);
-      }
-      catch (ParserException pe) {
-        log.error( pe.getMessage() );
-      }
+      // }
+      // catch (ParserException pe) {
+      //   log.error( pe.getMessage() );
+      // }
     }
 
     log.debug("Done");
