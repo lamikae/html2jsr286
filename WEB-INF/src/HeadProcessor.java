@@ -168,17 +168,15 @@ public class HeadProcessor {
     // Parse the String form to NodeList
     NodeList ret = new NodeList();
 
-    if (headString != "") {
-      /* @since 0.7.0: does not handle ParserException
-       */
-      // try {
-        Parser parser = new Parser(headString);
-        ret = parser.parse(null);
-      // }
-      // catch (ParserException pe) {
-      //   log.error( pe.getMessage() );
-      // }
-    }
+    /* @since 0.7.0: does not handle ParserException
+     */
+    // try {
+      Parser parser = new Parser(headString);
+      ret = parser.parse(null);
+    // }
+    // catch (ParserException pe) {
+    //   log.error( pe.getMessage() );
+    // }
 
     log.debug("Done");
     return ret;
