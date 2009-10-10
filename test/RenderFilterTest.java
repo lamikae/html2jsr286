@@ -1,4 +1,4 @@
-package com.celamanzi.liferay.portlets.rails286.test;
+package com.celamanzi.liferay.portlets.rails286;
 
 import org.junit.Before;
 import org.junit.Ignore;

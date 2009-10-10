@@ -61,7 +61,7 @@ test: compile
 	$(classes)" ;\
 	javac test/*.java -Xlint:unchecked -Xlint:deprecation -d test/classes && \
 	export CLASSPATH="$${CLASSPATH}:test/classes:test" && \
-	time java -ea  org.junit.runner.JUnitCore com.celamanzi.liferay.portlets.rails286.test.TestLoader
+	time java -ea  org.junit.runner.JUnitCore com.celamanzi.liferay.portlets.rails286.TestLoader
 
 help:
 	@echo "To compile classes:"

@@ -1,4 +1,4 @@
-package com.celamanzi.liferay.portlets.rails286.test;
+package com.celamanzi.liferay.portlets.rails286;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -10,9 +10,9 @@ import org.junit.runners.Suite.SuiteClasses;
 @Suite.SuiteClasses({
 // 	RenderFilterTest.class,
 	PageProcessorTest.class,
-	BodyTagVisitorTest.class
-// 	PortletFunctionsTest.class
-// 	HeadProcessorTest.class,
+	BodyTagVisitorTest.class,
+// 	PortletFunctionsTest.class,
+	HeadProcessorTest.class
 // 	RouteAnalyzerTest.class
 })
 

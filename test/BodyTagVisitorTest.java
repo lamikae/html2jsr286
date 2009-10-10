@@ -1,4 +1,4 @@
-package com.celamanzi.liferay.portlets.rails286.test;
+package com.celamanzi.liferay.portlets.rails286;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -42,15 +42,12 @@ public class BodyTagVisitorTest {
 
 
 	@Test
-	public void testEmptyBody() {
+	public void testEmptyBody()
+	throws Exception {
 		String html = "<html><body></body></html>";
 		NodeList body = getBody(html);
 
-		try {
-			body.visitAllNodesWith(visitor); // visit all nodes
-		}
-		catch (Exception e) {}
-
+		body.visitAllNodesWith(visitor); // visit all nodes
 		assertEquals("<div id=\"namespace_body\"></div>",body.toHtml());
 	}
 

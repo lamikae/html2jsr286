@@ -1,4 +1,4 @@
-package com.celamanzi.liferay.portlets.rails286.test;
+package com.celamanzi.liferay.portlets.rails286;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -28,12 +28,9 @@ public class PageProcessorTest {
 	private String namespace = "__TEST_PORTLET__";
 
 	@Before
-	public void setTestServer() {
-		try {
-			baseUrl = new java.net.URL("http://localhost:3000");
-		}
-		catch (java.net.MalformedURLException e) {
-		}
+	public void setTestServer()
+	throws java.net.MalformedURLException {
+		baseUrl = new java.net.URL("http://localhost:3000");
 	}
 
 // 	@Test
@@ -72,6 +69,15 @@ public class PageProcessorTest {
 		assertPageRegexp(output,"<div id=\""+namespace+"_head\">[\\n ]*</div>");
 		assertPageRegexp(output,"<div id=\""+namespace+"_body\">[\\n ]*</div>");
 // 		System.out.println(output);
+	}
+
+	@Test
+	public void process_not_html() throws org.htmlparser.util.ParserException
+	{
+		html = "this is not HTML";
+		pp = new PageProcessor(html,servlet);
+		String output = pp.process(baseUrl,route);
+		assertEquals(html,output);
 	}
 
 
