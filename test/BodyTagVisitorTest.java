@@ -52,17 +52,59 @@ public class BodyTagVisitorTest {
 		TestHelpers.assertPageRegexp(output,"<div id=\""+namespace+"_body\">[\\n ]*</div>");
 	}
 
-	/** TODO: links cannot be tested without PortletURL. */
-// 	@Test
-// 	public void testLink()
-// 	throws Exception {
-// 		String html = "<html><body>"+
-// 			"<a href=\"/some/action\" alt=\"Action\">Action</a>"+
-// 			"</body></html>";
-// 		NodeList body = TestHelpers.getBody(html);
-// 		body.visitAllNodesWith(visitor); // visit all nodes
-// 		String output = body.toHtml();
-// 	}
+	/** Test links.
+
+	TODO: link formation cannot be tested properly without PortletURL.
+	*/
+
+	public void testLinkExitPortletParameter() {}
+
+	public void testLinkAmpersandAndSlashValidity() {}
+
+	@Test
+	public void testLinkHTTP()
+	throws Exception {
+		String html = "<html><body>"+
+			"<a href=\"http://www.some.url/some/where\" alt=\"¡\">Link text</a>"+
+			"</body></html>";
+		NodeList body = TestHelpers.getBody(html);
+		body.visitAllNodesWith(visitor); // visit all nodes
+		String output = body.toHtml();
+		// assertSelect....
+	}
+
+	// skip Ajax links with href="#"
+	public void testLinkAjax() {}
+
+	// the link might be Ajax '#', or plain "some_file.htm(l)",
+	// that will raise MalformedURLException.
+	public void testLinkProtocolless() {}
+
+	public void testLinkOnclickJavaScript() {}
+
+	public void testLinkOnclickJavaScriptForm() {}
+
+	public void testLinkTarget() {}
+
+
+	/** Test images.
+	*/
+
+	public void testImageAbsolute() {}
+
+	public void testImageRelative() {}
+
+
+	/** Test forms.
+	*/
+
+	public void testFormWithoutActionUrl() {}
+
+	public void testFormPOST() {}
+
+	public void testFormPUT() {}
+
+	public void testFormGET() {}
 
 
 }
