@@ -5,16 +5,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-
 import com.celamanzi.liferay.portlets.rails286.PageProcessor;
 
 /** Tests PageProcessor.
-
-TODO: test standard HTML4 and HTML5 tags.
-
-*/
+ */
 public class PageProcessorTest {
 
 	private java.net.URL baseUrl = null;
@@ -56,7 +50,7 @@ public class PageProcessorTest {
 		html = "<html><head></head></html>";
 		pp = new PageProcessor(html,servlet,namespace);
 		String output = pp.process(baseUrl,route);
-		assertPageRegexp(output,"<div id=\""+namespace+"_head\">[\\n ]*</div>");
+		TestHelpers.assertPageRegexp(output,"<div id=\""+namespace+"_head\">[\\n ]*</div>");
 	}
 
 	@Test
@@ -66,8 +60,8 @@ public class PageProcessorTest {
 		pp = new PageProcessor(html,servlet,namespace);
 		String output = pp.process(baseUrl,route);
 		// assert a new head tag..
-		assertPageRegexp(output,"<div id=\""+namespace+"_head\">[\\n ]*</div>");
-		assertPageRegexp(output,"<div id=\""+namespace+"_body\">[\\n ]*</div>");
+		TestHelpers.assertPageRegexp(output,"<div id=\""+namespace+"_head\">[\\n ]*</div>");
+		TestHelpers.assertPageRegexp(output,"<div id=\""+namespace+"_body\">[\\n ]*</div>");
 // 		System.out.println(output);
 	}
 
@@ -80,15 +74,5 @@ public class PageProcessorTest {
 		assertEquals(html,output);
 	}
 
-
-	/** Helpers */
-
-	private void assertPageRegexp(String page, String regexp)
-	{
-		// compile a regexp
-		Pattern p = Pattern.compile(regexp);
-		Matcher match = p.matcher(page);
-		assertTrue("\""+page+"\" did not match \""+regexp+"\"", match.find());
-	}
 
 }

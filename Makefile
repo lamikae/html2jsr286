@@ -11,7 +11,7 @@ all: compile list
 
 clean:
 	find $(classes) -name *.class -exec rm {} -f \;
-	rm test/classes/* -rf
+	if [ -e test/classes ]; then rm test/classes/* -rf; fi
 
 compile: clean
 	#
@@ -46,7 +46,8 @@ test: compile
 	#
 	###################### running tests
 	#
-	if [ ! -e test/classes ]; then mkdir -p test/classes; fi
+	if [ -e test/classes ]; then rm test/classes/* -rf; fi
+	mkdir -p test/classes
 	echo $(classes)
 	export CLASSPATH="\
 	$(jarlib)/portlet-1.0.jar:\
@@ -58,9 +59,10 @@ test: compile
 	$(jarlib)/htmlparser-1.6.jar:\
 	$(jarlib)/log4j-1.2.15.jar:\
 	$(jarlib)/junit-4.6.jar:\
-	$(classes)" ;\
+	$(classes):\
+	test/classes:\
+	test" ;\
 	javac test/*.java -Xlint:unchecked -Xlint:deprecation -d test/classes && \
-	export CLASSPATH="$${CLASSPATH}:test/classes:test" && \
 	time java -ea  org.junit.runner.JUnitCore com.celamanzi.liferay.portlets.rails286.TestLoader
 
 help:

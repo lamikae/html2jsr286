@@ -8,18 +8,20 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-//   RenderFilterTest.class,
+/*   RenderFilterTest.class, */
   PageProcessorTest.class,
   HeadProcessorTest.class,
   BodyTagVisitorTest.class
-//   PortletFunctionsTest.class,
-//   RouteAnalyzerTest.class
+/*   PortletFunctionsTest.class, */
+/*   RouteAnalyzerTest.class */
 })
 
 public class TestLoader {
 
+
   @BeforeClass
   public static void setUp() {
+	/** TODO: how to set common variables in setUp? */
 //     System.out.println("setting up\n");
   }
 

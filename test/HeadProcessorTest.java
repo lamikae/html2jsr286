@@ -5,11 +5,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import org.htmlparser.Parser;
 import org.htmlparser.tags.*;
-import org.htmlparser.filters.NodeClassFilter;
 import org.htmlparser.util.NodeList;
-// import org.htmlparser.util.ParserException;
+import org.htmlparser.util.ParserException;
 // import org.htmlparser.visitors.NodeVisitor;
 
 import com.celamanzi.liferay.portlets.rails286.HeadProcessor;
@@ -38,9 +36,7 @@ public class HeadProcessorTest {
 			"<title>"+title+"</title>"+
 			"</head></html>";
 
-		Parser   parser  = new Parser(html);
-		NodeList pg = parser.parse (null);
-		NodeList head = pg.extractAllNodesThatMatch(new NodeClassFilter(HeadTag.class),true);
+		NodeList head = TestHelpers.getHead(html);
 
 		assertEquals("",hp.title);
 		NodeList newHead = hp.process(head);
@@ -55,9 +51,7 @@ public class HeadProcessorTest {
 			"<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"></meta>"+
 			"</head></html>";
 
-		Parser   parser  = new Parser(html);
-		NodeList pg = parser.parse (null);
-		NodeList head = pg.extractAllNodesThatMatch(new NodeClassFilter(HeadTag.class),true);
+		NodeList head = TestHelpers.getHead(html);
 
 		assertNull(hp.content_type);
 		assertNull(hp.encoding);
@@ -75,10 +69,8 @@ public class HeadProcessorTest {
 // 		String html = "<html><head>"+
 // 			"</head></html>";
 // 
-// 		Parser   parser  = new Parser(html);
-// 		NodeList pg = parser.parse (null);
-// 		NodeList head = pg.extractAllNodesThatMatch(new NodeClassFilter(HeadTag.class),true);
-// 
+// 		NodeList head = TestHelpers.getHead(html);
+//
 // 		System.out.println("TODO: test_process_css");
 // 	}
 // 
@@ -89,10 +81,8 @@ public class HeadProcessorTest {
 // 		String html = "<html><head>"+
 // 			"</head></html>";
 // 
-// 		Parser   parser  = new Parser(html);
-// 		NodeList pg = parser.parse (null);
-// 		NodeList head = pg.extractAllNodesThatMatch(new NodeClassFilter(HeadTag.class),true);
-// 
+// 		NodeList head = TestHelpers.getHead(html);
+//
 // 		System.out.println("TODO: test_process_js");
 // 	}
 
