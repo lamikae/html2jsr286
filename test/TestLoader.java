@@ -9,15 +9,15 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
 /*   RenderFilterTest.class, */
-  PageProcessorTest.class,
-  HeadProcessorTest.class,
-  BodyTagVisitorTest.class
+	PageProcessorTest.class,
+	HeadProcessorTest.class,
+	BodyTagVisitorTest.class
 /*   PortletFunctionsTest.class, */
 /*   RouteAnalyzerTest.class */
+/* 	PortletTest.class */
 })
 
 public class TestLoader {
-
 
   @BeforeClass
   public static void setUp() {
