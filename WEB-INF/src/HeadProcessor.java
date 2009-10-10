@@ -145,7 +145,10 @@ public class HeadProcessor {
 
         /** Does the tag contain inline code, or a link to src? */
         if (tag.getScriptCode().length() > 0) {
-          log.debug("Script tag contains inline JavaScript -- note that IT IS NOT PARSED CORRECTLY.");
+          log.warn("Script tag contains inline JavaScript -- note that IT IS NOT PARSED CORRECTLY.");
+          /**
+            FIXME: HTMLparser 1.6 cannot handle inline JavaScript that contains HTML tags.
+            */
           headString += tag.toHtml();
         }
         else {
@@ -166,8 +169,8 @@ public class HeadProcessor {
     NodeList ret = new NodeList();
 
     if (headString != "") {
-	  /* @since 0.7.0: does not handle ParserException
-	   */
+      /* @since 0.7.0: does not handle ParserException
+       */
       // try {
         Parser parser = new Parser(headString);
         ret = parser.parse(null);
