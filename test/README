@@ -1,0 +1,6 @@
+To add a new test class, include it to TestLoader.java.
+
+Logger may be set to DEBUG in log4j.properties for debugging while running tests.
+
+Please commit tests that pass, or if a test fails, it should clearly indicate the reason why it fails.
+
