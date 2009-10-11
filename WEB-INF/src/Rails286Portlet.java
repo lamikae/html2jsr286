@@ -125,7 +125,9 @@ public class Rails286Portlet extends GenericPortlet {
   protected void doView(RenderRequest request, RenderResponse response)
   throws PortletException, IOException {
     log.debug("View "+response.getNamespace());
+	/* The preferences are never used.
     PortletPreferences preferences = request.getPreferences();
+	*/
 
     /** Base + Request URLs are set in the RenderFilter and are read from the PortletSession. */
     java.net.URL railsBaseUrl  = null;
