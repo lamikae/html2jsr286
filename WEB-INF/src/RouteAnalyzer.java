@@ -35,43 +35,69 @@ public class RouteAnalyzer {
   private final Log log = LogFactory.getLog(getClass().getName());
 
   private java.net.URL baseUrl;
-//   private String       route;
-  private String       servlet;
+  private String       servlet = null;
 
 
   RouteAnalyzer( java.net.URL bu, String srvl ) {
     baseUrl = bu;
     servlet = srvl;
-    log.debug("Received servlet: "+servlet);
+	log.debug("Configured for servlet: "+servlet);
   }
-//   RouteAnalyzer( java.net.URL bu ) {
-//     baseUrl     = bu;
-//     /** Extracts the Rails servlet, but does not always succeed */
-//     servlet = baseUrl.getPath().replaceFirst("/","");
-//     log.debug("Extracted servlet: "+servlet);
-//   }
+  RouteAnalyzer( java.net.URL bu ) {
+	baseUrl     = bu;
+  }
 
 
   /** Gets the href attribute of a link, and returns the request path */
   public String getRequestRoute( String href )
-  throws java.net.MalformedURLException {
+  throws java.net.MalformedURLException
+  {
+	// without href, return null
+	if ((href == null) || (href == "")) {
+		return null;
+	}
+
     log.debug("Parsing the Rails route from: "+href);
-    String route = ""; // = href - (host+servlet)
+	java.net.URL url = null;
+	String path = null;
+    String route = null;
 
-    // lookout for relative links
-    Pattern rel_link_pattern = Pattern.compile("^/");
-    Matcher rel_link_matcher = rel_link_pattern.matcher(href);
-    if ( ! rel_link_matcher.find() ) {
-      java.net.URL oldUrl = new java.net.URL(href);
-      log.debug(href + " is an absolute route");
-      route = oldUrl.getPath().replaceFirst("/?"+servlet,""); // strip servlet
-    } else {
-      log.debug(href + " is a relative route");
-      route = href.replaceFirst("/?"+servlet,""); // strip servlet
-    }
+	// first extract path component
+	try {
+		url = new java.net.URL(href);
+		path = url.getPath();
+	}
+	catch (java.net.MalformedURLException e) {
+		// URL must be relative or just broken
+		// lookout for relative links
+		Pattern rel_link_pattern = Pattern.compile("^/");
+		Matcher rel_link_matcher = rel_link_pattern.matcher(href);
+		if ( rel_link_matcher.find() ) {
+			path = href;
+		}
+	}
 
-    log.debug("Route: "+route);
-    return route;
+	// without true path definition, return root route (/)
+	// if servlet is defined, and the url contains only 
+	if (
+		(path == null) ||
+		(path == "") ||
+		((servlet != null) && (path.equals("/"+servlet)))
+	) {
+		return "/";
+	}
+
+	// if servlet is defined, strip it from the path
+	if (servlet != null) {
+		route = path.replaceFirst("/?"+servlet,"");
+	}
+	else {
+		route = path;
+	}
+
+	// this route may still hold encoded parameters, so they should be stripped.
+	url = new java.net.URL("http://temp.url"+route);
+	return url.getPath();
   }
 
 

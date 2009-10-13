@@ -8,12 +8,12 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-/*   RenderFilterTest.class, */
 	PageProcessorTest.class,
 	HeadProcessorTest.class,
-	BodyTagVisitorTest.class
+	BodyTagVisitorTest.class,
+	RouteAnalyzerTest.class
+/*   RenderFilterTest.class, */
 /*   PortletFunctionsTest.class, */
-/*   RouteAnalyzerTest.class */
 /* 	PortletTest.class */
 })
 
