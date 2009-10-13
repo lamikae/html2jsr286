@@ -415,11 +415,11 @@ public class Rails286Portlet extends GenericPortlet {
   }
 
 
+  /** Portlet configuration. Not implemented. */
   protected void doEdit(RenderRequest request, RenderResponse response)
   throws PortletException, IOException {
-    log.info("Edit");
-
-    String outputHTML = "This will become the edit view";
+    log.info("EDIT mode is not implemented.");
+    String outputHTML = "Not implemented";
 
     // Catenate the HTML page to the RenderResponse
     response.setContentType("text/html");
@@ -428,6 +428,7 @@ public class Rails286Portlet extends GenericPortlet {
   }
 
 
+  /** Information about the portlet. Not seriously implemented. */
   protected void doHelp(RenderRequest request, RenderResponse response)
   throws PortletException, IOException {
     log.debug("Help: Collecting information about the portlet and the engine.");
@@ -459,8 +460,7 @@ public class Rails286Portlet extends GenericPortlet {
   @SuppressWarnings("unchecked")
 
 
-  /** Processes both internal portlet actions from the doEdit() function, and
-    * handles the actions from the web page from the VIEW mode.
+  /** Handles POST requests.
     */
   public void processAction(ActionRequest request, ActionResponse response)
   throws PortletException, IOException {
