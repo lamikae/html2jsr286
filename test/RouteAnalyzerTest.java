@@ -59,10 +59,24 @@ public class RouteAnalyzerTest {
 		assertNotNull(route);
 		assertEquals("/",route);
 
+		// url:   http://baseUrl/a/b/c
+		// route: /a/b/c
+		href = baseUrl.toString() + "/a/b/c";
+		route = ra.getRequestRoute(href);
+		assertNotNull(route);
+		assertEquals("/a/b/c",route);
+
 		// url:   http://baseUrl/a/b/c?d=e
 		// route: /a/b/c
 		path = "/a/b/c?d=e";
 		href = baseUrl.toString() + path;
+		route = ra.getRequestRoute(href);
+		assertNotNull(route);
+		assertEquals("/a/b/c",route);
+
+		// url:   /a/b/c
+		// route: /a/b/c
+		href = "/a/b/c";
 		route = ra.getRequestRoute(href);
 		assertNotNull(route);
 		assertEquals("/a/b/c",route);
@@ -144,7 +158,14 @@ public class RouteAnalyzerTest {
 		assertNotNull(route);
 		assertEquals("/a/b/c",route);
 
-		// url:   /a/b/c?d=e
+		// url:   http://baseUrl/servlet/a/b/c
+		// route: /a/b/c
+		href = baseUrl.toString() + "/"+servlet + "/a/b/c";
+		route = ra.getRequestRoute(href);
+		assertNotNull(route);
+		assertEquals("/a/b/c",route);
+
+		// url:   /servlet/a/b/c?d=e
 		// route: /a/b/c
 		path = "/a/b/c?d=e";
 		href = "/"+servlet + path;

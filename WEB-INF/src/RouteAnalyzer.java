@@ -52,57 +52,61 @@ public class RouteAnalyzer {
   public String getRequestRoute( String href )
   throws java.net.MalformedURLException
   {
-	// without any valid href, return empty string
-	if ((href == null) || (href == "")) {
-		return "";
-	}
-
     log.debug("Parsing the request route from: "+href);
 	java.net.URL url = null;
 	String path = null;
     String route = null;
+	// needsParamsStrip is for optimization, since this method may well be one of the bottlenecks.
+	Boolean needsParamsStrip = false;
 
 	// first extract path component,
 	// without servlet definition, the path from a valid URL is returned.
 	try {
 		url = new java.net.URL(href);
 		path = url.getPath();
+		needsParamsStrip = false;
 		if (servlet == null) {
 			if (path.equals("")) {
 				return "/";
 			}
 			else {
+				// the most common situation
+				// if the HTML contains absolute URLs
 				return path;
 			}
 		}
 	}
 	catch (java.net.MalformedURLException e) {
 		path = href;
+		needsParamsStrip = true;
 	}
 
-	// without true path definition, return root route (/).
-	// if servlet is defined, and the url contains only the servlet path,
-	// consider returning root route as well.
-	if (
-		(path == null) ||
-		(path ==  "" ) ||
-		((servlet != null) && (path.equals("/"+servlet)))
-	) {
-		return "/";
+	// without any valid href, return empty string
+	if ((path == null) || (path == "")) {
+		return "";
 	}
 
-	// if servlet is defined, strip it from the path
 	if (servlet != null) {
+		// if servlet is defined, and the url contains only the servlet path,
+		// consider returning root route as well.
+		if (path.equals("/"+servlet)) {
+			return "/";
+		}
+
+		// strip servlet from the path
 		route = path.replaceFirst("/?"+servlet,"");
 	}
 	else {
 		route = path;
 	}
 
-	// this route may still hold encoded parameters, so they should be stripped.
-	Matcher url_params = Pattern.compile("([^?]*)").matcher(route);
-	if (url_params.find()) {
-		route = url_params.group(0);
+	if (needsParamsStrip) {
+		// this route may still hold encoded parameters, so they should be stripped.
+		// keep all characters up until "?"
+		Matcher url_params = Pattern.compile("^([^?]*)").matcher(route);
+		if (url_params.find()) {
+			route = url_params.group(0);
+		}
 	}
 
 	log.debug("Route: "+route);
