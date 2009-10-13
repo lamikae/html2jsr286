@@ -465,17 +465,10 @@ public class Rails286Portlet extends GenericPortlet {
   public void processAction(ActionRequest request, ActionResponse response)
   throws PortletException, IOException {
     PortletSession session = request.getPortletSession(true);
-
-    /** Processes an internal portlet action from the doEdit() function. */
-    if(request.getPortletMode().equals(PortletMode.EDIT)) {
-		// not implemented
-    }
-
-
     /** Process an action from the web page.
       * This can be a classic HTML form or a JavaScript-generator form POST.
       */
-    else if(request.getPortletMode().equals(PortletMode.VIEW)) {
+    if(request.getPortletMode().equals(PortletMode.VIEW)) {
       log.debug("Received ActionRequest from the web page.");
 
       String actionUrl    = null;
@@ -513,6 +506,12 @@ public class Rails286Portlet extends GenericPortlet {
       request.setAttribute("requestMethod",actionMethod);
       request.setAttribute("railsRoute",actionUrl);
     }
+	/*
+    // Processes an internal portlet action from the doEdit() function.
+    else if(request.getPortletMode().equals(PortletMode.EDIT)) {
+		// not implemented
+    }
+	*/
   }
 
   @SuppressWarnings("")
