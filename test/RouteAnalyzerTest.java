@@ -33,9 +33,10 @@ public class RouteAnalyzerTest {
 		assertNotNull(ra);
 
 		// url:   (empty)
-		// route: null
+		// route: (empty)
 		route = ra.getRequestRoute("");
-		assertNull(route);
+		assertNotNull(route);
+		assertEquals("",route);
 
 		// url:   http://baseUrl
 		// route: /
@@ -102,9 +103,10 @@ public class RouteAnalyzerTest {
 		assertNotNull(ra);
 
 		// url:   (empty)
-		// route: null
+		// route: (empty)
 		route = ra.getRequestRoute("");
-		assertNull(route);
+		assertNotNull(route);
+		assertEquals("",route);
 
 		// url:   http://baseUrl/servlet
 		// route: /

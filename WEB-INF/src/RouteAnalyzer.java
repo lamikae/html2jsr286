@@ -52,9 +52,9 @@ public class RouteAnalyzer {
   public String getRequestRoute( String href )
   throws java.net.MalformedURLException
   {
-	// without href, return null
+	// without any valid href, return empty string
 	if ((href == null) || (href == "")) {
-		return null;
+		return "";
 	}
 
     log.debug("Parsing the request route from: "+href);
@@ -62,10 +62,19 @@ public class RouteAnalyzer {
 	String path = null;
     String route = null;
 
-	// first extract path component
+	// first extract path component,
+	// without servlet definition, the path from a valid URL is returned.
 	try {
 		url = new java.net.URL(href);
 		path = url.getPath();
+		if (servlet == null) {
+			if (path.equals("")) {
+				return "/";
+			}
+			else {
+				return path;
+			}
+		}
 	}
 	catch (java.net.MalformedURLException e) {
 		path = href;
