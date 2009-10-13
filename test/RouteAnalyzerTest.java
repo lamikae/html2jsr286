@@ -73,10 +73,19 @@ public class RouteAnalyzerTest {
 		assertNotNull(route);
 		assertEquals("/a/b/c",route);
 
-// 		path = "index.html";
-// 		route = ra.getRequestRoute(path);
-// 		assertNotNull(route);
-// 		System.out.println(route);
+		// url:   a/b/c?d=e
+		// route: a/b/c
+		href = "a/b/c?d=e";
+		route = ra.getRequestRoute(href);
+		assertNotNull(route);
+		assertEquals("a/b/c",route);
+
+		// url:   (relative file)
+		// route: index.html
+		path = "index.html";
+		route = ra.getRequestRoute(path);
+		assertNotNull(route);
+		assertEquals(path,route);
 
 	}
 

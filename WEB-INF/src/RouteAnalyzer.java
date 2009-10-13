@@ -57,7 +57,7 @@ public class RouteAnalyzer {
 		return null;
 	}
 
-    log.debug("Parsing the Rails route from: "+href);
+    log.debug("Parsing the request route from: "+href);
 	java.net.URL url = null;
 	String path = null;
     String route = null;
@@ -68,13 +68,7 @@ public class RouteAnalyzer {
 		path = url.getPath();
 	}
 	catch (java.net.MalformedURLException e) {
-		// URL must be relative or just broken
-		// lookout for relative links
-		Pattern rel_link_pattern = Pattern.compile("^/");
-		Matcher rel_link_matcher = rel_link_pattern.matcher(href);
-		if ( rel_link_matcher.find() ) {
-			path = href;
-		}
+		path = href;
 	}
 
 	// without true path definition, return root route (/)
@@ -96,8 +90,12 @@ public class RouteAnalyzer {
 	}
 
 	// this route may still hold encoded parameters, so they should be stripped.
-	url = new java.net.URL("http://temp.url"+route);
-	return url.getPath();
+	Matcher url_params = Pattern.compile("([^?]*)").matcher(route);
+	if (url_params.find()) {
+		route = url_params.group(0);
+	}
+	log.debug("Route: "+route);
+	return route;
   }
 
 
