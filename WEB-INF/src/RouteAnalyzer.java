@@ -38,12 +38,12 @@ public class RouteAnalyzer {
   private String       servlet = null;
 
 
-  RouteAnalyzer( java.net.URL bu, String srvl ) {
+  protected RouteAnalyzer( java.net.URL bu, String srvl ) {
     baseUrl = bu;
     servlet = srvl;
 	log.debug("Configured for servlet: "+servlet);
   }
-  RouteAnalyzer( java.net.URL bu ) {
+  protected RouteAnalyzer( java.net.URL bu ) {
 	baseUrl     = bu;
   }
 
@@ -71,11 +71,12 @@ public class RouteAnalyzer {
 		path = href;
 	}
 
-	// without true path definition, return root route (/)
-	// if servlet is defined, and the url contains only 
+	// without true path definition, return root route (/).
+	// if servlet is defined, and the url contains only the servlet path,
+	// consider returning root route as well.
 	if (
 		(path == null) ||
-		(path == "") ||
+		(path ==  "" ) ||
 		((servlet != null) && (path.equals("/"+servlet)))
 	) {
 		return "/";
@@ -94,6 +95,7 @@ public class RouteAnalyzer {
 	if (url_params.find()) {
 		route = url_params.group(0);
 	}
+
 	log.debug("Route: "+route);
 	return route;
   }
