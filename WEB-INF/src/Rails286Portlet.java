@@ -468,47 +468,7 @@ public class Rails286Portlet extends GenericPortlet {
 
     /** Processes an internal portlet action from the doEdit() function. */
     if(request.getPortletMode().equals(PortletMode.EDIT)) {
-      log.debug("Received ActionRequest from portlet.");
-//       String errorMessage       = null;
-      boolean isValid           = true;
-      java.net.URL railsBaseUrl = null;
-
-      try {
-        railsBaseUrl = new java.net.URL(
-          (String)request.getParameter("railsBaseUrl")
-        );
-      }
-      // TODO: VALIDATE
-      catch (java.net.MalformedURLException mue) {
-        // user entered an invalid URL
-        log.error(mue.getMessage());
-        // do not change the stored value
-        isValid = false;
-      }
-
-      String railsRoute  = (String)request.getParameter("railsRoute");
-
-      // delete cookies?
-      if (request.getParameter("deleteCookies") != null) {
-        log.debug("Asked to delete existing cookies..deleting..");
-        session.setAttribute(
-            "cookies",
-            null,
-            PortletSession.PORTLET_SCOPE);
-      }
-
-      // if entered data is valid, save to session and return to the view mode
-      if (isValid) {
-
-        log.debug("railsBaseUrl: " + railsBaseUrl.toString());
-        log.debug("railsRoute: " + railsRoute);
-
-        request.setAttribute("railsBaseUrl",railsBaseUrl);
-        request.setAttribute("railsRoute",railsRoute);
-        log.debug("Saved to request");
-
-        response.setPortletMode(PortletMode.VIEW);
-      }
+		// not implemented
     }
 
 
