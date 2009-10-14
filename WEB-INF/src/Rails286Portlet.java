@@ -408,47 +408,7 @@ public class Rails286Portlet extends GenericPortlet {
   }
 
 
-  /** Portlet configuration. Not implemented. */
-  protected void doEdit(RenderRequest request, RenderResponse response)
-  throws PortletException, IOException {
-    log.info("EDIT mode is not implemented.");
-    String outputHTML = "Not implemented";
-
-    // Catenate the HTML page to the RenderResponse
-    response.setContentType("text/html");
-    PrintWriter out = response.getWriter();
-    out.println( outputHTML );
-  }
-
-
-  /** Information about the portlet. Not seriously implemented. */
-  protected void doHelp(RenderRequest request, RenderResponse response)
-  throws PortletException, IOException {
-    log.debug("Help: Collecting information about the portlet and the engine.");
-
-    PortletSession session = request.getPortletSession(true);
-    PortletContext cx = session.getPortletContext();
-
-    log.debug( request.getAttribute("javax.portlet.portletc.portletname") );
-    log.debug( request.getAttribute("com.sun.portal.portletcontainer.portlet.title") );
-    log.debug( "context name: " + cx.getPortletContextName() );
-    log.debug( "real path: " + cx.getRealPath("/") );
-    log.debug( "resource . URL: " + cx.getResource(".").toString() );
-    // javax.portlet.portletc.httpServletRequest
-    // javax.portlet.lifecycle_phase
-    //     log.debug( "generic title: " + com.sun.portal.portletcontainer.portlet.generic.title );
-    //     log.debug( "ccpp: " + javax.portlet.ccpp );
-    // javax.portlet.portletc.httpServletResponse
-    log.debug( "server info: " + cx.getServerInfo() );
-    log.debug( cx.getMajorVersion() );
-
-    response.setContentType("text/html");
-    PortletRequestDispatcher dispatcher = getPortletContext().getRequestDispatcher(helpUrl);
-    dispatcher.include(request,response);
-  }
-
-
-  // suppress request.getParameterMap unchecked cast for processAction, 
+  // suppress request.getParameterMap unchecked cast for processAction,
   // since it should always return <String,String[]>
   @SuppressWarnings("unchecked")
 
