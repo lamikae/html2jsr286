@@ -242,36 +242,4 @@ public class Rails286PortletFunctions {
     return path;
   }
 
-
-
-  private void doDebug(RenderRequest request, RenderResponse response)
-  throws PortletException, IOException {
-
-    String session_id = request.getRequestedSessionId();
-    PortletSession session = request.getPortletSession(true);
-    // http://www.bluesunrise.com/portlet-api/javax/portlet/PortletContext.html
-    PortletContext cx = session.getPortletContext();
-  
-    //  for (Enumeration attributes = session.getAttributeNames() ; attributes.hasMoreElements() ;) {
-    //     String attr = (String)attributes.nextElement();
-    //     outputHTML += attr;
-    //     log.info( attr );
-    //   }
-    
-    //   java.net.URL u = cx.getResource("/");
-    //   log.info( u.toString() );
-    //
-    //   pu.setParameter("url","/debug/req");
-    //   log.info( pu.toString() );
-    
-    
-    //log.info(  );
-    
-    //response.setContentType("text/html");
-    //PortletRequestDispatcher dispatcher = getPortletContext().getRequestDispatcher(debugUrl);
-    //dispatcher.include(request,response);
-  }
-  
-
-
 }
