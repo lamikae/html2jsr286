@@ -64,10 +64,7 @@ import org.apache.commons.logging.LogFactory;
  *
  * @author Mikael Lammentausta
  */
-public class Rails286Portlet
-extends GenericPortlet
-implements PortletVersion
-{
+public class Rails286Portlet extends GenericPortlet {
 
   /** Class variables and the logger.
    */
@@ -78,10 +75,6 @@ implements PortletVersion
   private String helpUrl;
   private String errorUrl;
   private String debugUrl;
-//   protected static String host = null;
-
-  // the servlet is defined in XML
-  protected String servlet = null;
 
   /* Cookie handling -- not used
   String username = "";
@@ -100,7 +93,7 @@ implements PortletVersion
   /** Portlet initialization at portal startup.
     */
   public void init(PortletConfig config) throws PortletException {
-    log.info("Initializing Rails-portlet "+PORTLET_VERSION);
+    log.info("Initializing Rails-portlet "+PortletVersion.PORTLET_VERSION);
     super.init(config);
 
 //     editUrl           = config.getInitParameter("edit_url");
@@ -211,7 +204,7 @@ implements PortletVersion
 
 
       /** Form the request URL */
-      servlet = (String)session.getAttribute("servlet");
+      String servlet = (String)session.getAttribute("servlet");
       RouteAnalyzer ra = new RouteAnalyzer(railsBaseUrl,servlet);
       try {
         requestUrl = ra.getFullURL(railsRoute);
