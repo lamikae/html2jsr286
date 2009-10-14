@@ -24,7 +24,6 @@ package com.celamanzi.liferay.portlets.rails286;
 
 public interface PortletVersion
 {
-	public final String PORTLET_VERSION    = "0.7.0";
-	// supported Liferay version
-	public static final int[] LIFERAY_VERSION = { 5,2 };
+	public static final String PORTLET_VERSION = "0.7.1";
+	public static final int[]  LIFERAY_VERSION = { 5,2 }; // supported Liferay version
 }
