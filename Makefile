@@ -2,6 +2,7 @@
 
 jarlib=WEB-INF/lib
 classes=WEB-INF/classes
+liferay_v=`grep 'LIFERAY_VERSION' WEB-INF/src/PortletVersion.java | grep -o .,. | tr ',' '.'`
 
 # version of Liferay's portal-service jar
 #liferay=5.1.1
