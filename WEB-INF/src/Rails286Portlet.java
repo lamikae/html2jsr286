@@ -64,12 +64,12 @@ import org.apache.commons.logging.LogFactory;
  *
  * @author Mikael Lammentausta
  */
-public class Rails286Portlet extends GenericPortlet {
-
-  private final String PORTLET_VERSION    = "0.7.0";
+public class Rails286Portlet
+extends GenericPortlet
+implements PortletVersion
+{
 
   /** Class variables and the logger.
-   * Set in the initializer.
    */
   private final Log log = LogFactory.getLog(getClass().getName());
 
