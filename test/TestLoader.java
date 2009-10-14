@@ -11,9 +11,9 @@ import org.junit.runners.Suite.SuiteClasses;
 	PageProcessorTest.class,
 	HeadProcessorTest.class,
 	BodyTagVisitorTest.class,
-	RouteAnalyzerTest.class
+	RouteAnalyzerTest.class,
+	PortletFunctionsTest.class
 /*   RenderFilterTest.class, */
-/*   PortletFunctionsTest.class, */
 /* 	PortletTest.class */
 })
 
