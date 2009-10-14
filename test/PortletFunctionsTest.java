@@ -12,8 +12,8 @@ public class PortletFunctionsTest {
 	@Test
 	public void test_LiferayVersion() {
 		// version 5.2
-		assertEquals(5,Rails286Portlet.LIFERAY_VERSION[0]);
-		assertEquals(2,Rails286Portlet.LIFERAY_VERSION[1]);
+		assertEquals(5,PortletVersion.LIFERAY_VERSION[0]);
+		assertEquals(2,PortletVersion.LIFERAY_VERSION[1]);
 	}
 
 	@Test
