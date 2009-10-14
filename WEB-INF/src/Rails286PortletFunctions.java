@@ -52,13 +52,16 @@ import com.liferay.portal.util.PortalUtil;
 // import com.liferay.portal.theme.ThemeDisplay;
 
 
+/**
+	Shared static functions.
+	This class includes the only Liferay-specific functionality.
+*/
 public class Rails286PortletFunctions {
 
   private static final Log log = LogFactory.getLog(Rails286PortletFunctions.class);
-  private static final Boolean LIFERAY_HACKS = true;
 
 
-  /** Transform the parameter Map from RenderRequest to NameValuePair[] */
+  /** Transforms parameter Map to NameValuePair. */
   protected static NameValuePair[] paramsToNameValuePairs(Map<String,String[]> params) {
 
     // create a new dynamic ArrayList
@@ -98,6 +101,44 @@ public class Rails286PortletFunctions {
     return ret;
   }
 
+	/** Is the supported Liferay version same or newer than the given parameter.
+
+		For instance, the running version supports version 5.2, and the input version is 5.1.
+		This tests whether running version is new enough for the feature, which in this case yes.
+
+		Compares only two decimals (x.y).
+	  */
+	protected static Boolean isMinimumLiferayVersionMet(int[] version) {
+		// bail out if major version is sufficient
+		if (version[0] < PortletVersion.LIFERAY_VERSION[0]) {
+			return false;
+		}
+		// no not check minor version if major is newer
+		else if (version[0] > PortletVersion.LIFERAY_VERSION[0]) {
+			return true;
+		}
+
+		for (int x=1; x < version.length; x++) {
+			if (version[x] < PortletVersion.LIFERAY_VERSION[x]) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** Is the supported Liferay version same than the given parameter.
+
+		Compares only two decimals (x.y).
+	  */
+	protected static Boolean isLiferayVersionEqual(int[] version) {
+		if (
+			(PortletVersion.LIFERAY_VERSION[0] == version[0]) &&
+			(PortletVersion.LIFERAY_VERSION[1] == version[1])
+		) {
+			return true;
+		}
+		return false;
+	}
 
   /** Processes the request path.
     * Replaces variables with runtime user/portlet values.
@@ -109,9 +150,6 @@ public class Rails286PortletFunctions {
       return path;
     }
 
-    // for Liferay 5.2.0
-    PortletRequest request = (PortletRequest)_request;
-
     //ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(WebKeys.THEME_DISPLAY);
 
     log.debug("Deciphering portlet directive variables from path: "+path);
@@ -119,9 +157,11 @@ public class Rails286PortletFunctions {
     Pattern pattern = null;
     Matcher matcher = null;
 
+//	log.debug("Compiled for Liferay version "+LIFERAY_VERSION[0]);
+
     for (int i=0; i<pathParameters.length; i++) {
       String var = pathParameters[i];
-      log.debug("Matching: "+var);
+      //log.debug("Matching: "+var);
       pattern = Pattern.compile(var);
       matcher = pattern.matcher(path);
 
@@ -135,23 +175,33 @@ public class Rails286PortletFunctions {
             try {
               //Map userInfo = (Map)request.getAttribute(PortletRequest.USER_INFO);
 
-              if (LIFERAY_HACKS==true) {
-                log.debug("Liferay hacks enabled");
-                //String old_uid = (userInfo != null) ? (String)userInfo.get("liferay.user.id") : "0";
-                uid = new Long(
-                  com.liferay.portal.util.PortalUtil.getUserId(request)
-                ).toString();
-                log.debug("Liferay UID: " + uid);
-              }
-              else {
-                log.debug("UID is only supported on Liferay");
-                uid = "0";
-              }
+				// Liferay 5.2 +
+				/* comment out version checking, since conditional compiling may not be nice. */
+				/*if (isMinimumLiferayVersionMet(new int[] {5,2})) { */
+					PortletRequest request = (PortletRequest)_request;
+					uid = new Long(
+						com.liferay.portal.util.PortalUtil.getUserId(request)
+					).toString();
+				/*}
+
+				// Liferay 5.1.x
+				else if (isLiferayVersionEqual(new int[] {5,1})) {
+					//String old_uid = (userInfo != null) ? (String)userInfo.get("liferay.user.id") : "0";
+					uid = new Long(
+						com.liferay.portal.util.PortalUtil.getUserId(_request)
+					).toString();
+				}
+
+				else {
+					throw new NullPointerException("Cannot get "+var+" on this version of Liferay");
+				}
+				*/
             }
             catch (NullPointerException e) {
               log.error(e.getMessage());
               uid = "0";
             }
+			log.debug("Liferay UID: " + uid);
             path = path.replaceAll(var,uid);
           } // UID
 
@@ -161,18 +211,24 @@ public class Rails286PortletFunctions {
             String gid = null;
 
             try {
-              if (LIFERAY_HACKS==true) {
-                log.debug("Liferay hacks enabled");
-                gid = new Long(
-                  com.liferay.portal.util.PortalUtil.getPortletGroupId(_request)
-                ).toString();
-                log.debug("Liferay portlet GID: "+gid);
-              } // Liferay hacks
+
+				// Liferay 5 +
+				/*if (isMinimumLiferayVersionMet(new int[] {5})) { */
+					gid = new Long(
+						com.liferay.portal.util.PortalUtil.getPortletGroupId(_request)
+					).toString();
+				/*}
+
+				else {
+					throw new NullPointerException("Cannot get "+var+" on this version of Liferay");
+				}
+    */
             }
             catch (NullPointerException e) {
               log.error(e.getMessage());
               gid = "0";
             }
+			log.debug("Liferay portlet GID: "+gid);
             path = path.replaceAll(var,gid);
           } // GID
           // ------------------------------------------------------------
