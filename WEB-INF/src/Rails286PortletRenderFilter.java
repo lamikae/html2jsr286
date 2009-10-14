@@ -63,6 +63,8 @@ public class Rails286PortletRenderFilter implements RenderFilter {
   private String servlet = null;
   private String route   = null;
 
+  /** Constructors */
+  public Rails286PortletRenderFilter() {}
 
   @Override
 
@@ -106,6 +108,8 @@ public class Rails286PortletRenderFilter implements RenderFilter {
     4: fallback value
 
   TODO: this needs cleanup. Just read/write appropriate values from the session.
+
+  The doFilter() method of a portlet filter may create customized request and response objects by using *RequestWrapper and *ResponseWrapper classes and passing these wrappers to the doFilter() method of FilterChain. 
 
   */
   public void doFilter(RenderRequest request,
