@@ -111,7 +111,7 @@ public class PageProcessor {
 
     /** Parse the HTML String to NodeList.
       *
-      * doView handles exceptions -- this will throw ParserException if input is invalid
+      * render() handles exceptions -- this will throw ParserException if input is invalid
       */
     Parser   parser  = new Parser(page);
 

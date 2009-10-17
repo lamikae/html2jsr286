@@ -10,7 +10,7 @@ import com.celamanzi.liferay.portlets.rails286.Rails286Portlet;
 public class PortletTest {
 
 	@Test
-	public void test_doView() {
+	public void test_render() {
 		fail( "Needs a proper JSR286 testing framework..." );
 	}
 

@@ -103,7 +103,7 @@ public class Rails286Portlet extends GenericPortlet {
   }
 
   /**
-    * Main method, doView. Other portlet modes are not supported.
+    * Main method, render(). Other portlet modes are not supported.
     *
     * Downloads the Rails HTML, runs the HTML processor and
     * inserts it into RenderResponse.
@@ -115,7 +115,7 @@ public class Rails286Portlet extends GenericPortlet {
     *   Changed to use Liferay 5.2.0 API, using deprecated methods.
     *
     */
-  protected void doView(RenderRequest request, RenderResponse response)
+  public void render(RenderRequest request, RenderResponse response)
   throws PortletException, IOException {
     log.debug("View "+response.getNamespace());
 	/* The preferences are never used.
@@ -158,7 +158,7 @@ public class Rails286Portlet extends GenericPortlet {
 
     /** TODO: cleanup!
 
-    Move the checks from doView to RenderFilter, which will stop the whole process, and
+    Move the checks from render() to RenderFilter, which will stop the whole process, and
     forward to another method altogether.
       */
 
