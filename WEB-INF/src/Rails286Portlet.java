@@ -356,8 +356,7 @@ public class Rails286Portlet extends GenericPortlet {
               log.debug("post-POST GET: "+post_get.toString());
 
               /** GET after POST */
-              railsResponse = OnlineUtils.getRailsHTML(post_get,null,httpReferer,locale);
-              // railsResponse = OnlineUtils.getRailsHTML(post_get,cookies,httpReferer);
+              railsResponse = OnlineUtils.getRailsHTML(post_get,cookies,httpReferer,locale);
             } // match!
           } // match!
         } // response 302
@@ -377,9 +376,9 @@ public class Rails286Portlet extends GenericPortlet {
           PageProcessor p = new PageProcessor(railsResponse,servlet,response);
           outputHTML   = p.process(railsBaseUrl,railsRoute);
 
-          /** Set the portlet title to the HTML page title */
+          /** Set the portlet title by HTML title */
           String title = p.title;
-          log.info("<html><head><title>: "+title);
+          log.info("Page title: "+title);
           if ( title==null || title=="" ) {
             response.setTitle( " " ); // nbsp, because Liferay post-processes blank strings
           }
