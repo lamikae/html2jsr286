@@ -44,7 +44,6 @@ public class RouteAnalyzerTest {
 
 		for(int i=0;i<paths.length;i++){
 			path  = paths[i]; // includes query parameters
-			System.out.println("Path: "+path);
 
 			// TODO: both tests with and without baseUrl
 
