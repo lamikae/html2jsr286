@@ -9,7 +9,6 @@ import com.celamanzi.liferay.portlets.rails286.RouteAnalyzer;
 
 public class RouteAnalyzerTest {
 
-	private RouteAnalyzer ra = null;
 	private java.net.URL baseUrl = null;
 	private String servlet = null;
 
@@ -18,6 +17,7 @@ public class RouteAnalyzerTest {
 	throws java.net.MalformedURLException
 	{
 		baseUrl = new java.net.URL("http://localhost:3000");
+		servlet = "__servlet__";
 	}
 
 
@@ -25,75 +25,68 @@ public class RouteAnalyzerTest {
 	public void test_getRequestRoute()
 	throws java.net.MalformedURLException
 	{
-		String path = null;
-		String href = null;
+		String path  = null;
+		String url   = null;
 		String route = null;
 
-		ra = new RouteAnalyzer(baseUrl,null); // no servlet
+		// RouteAnalyzer without servlet
+		RouteAnalyzer ra = new RouteAnalyzer(baseUrl); // no servlet
 		assertNotNull(ra);
+		//  -"- with servlet
+		RouteAnalyzer ra_srvl = new RouteAnalyzer(baseUrl,servlet);
+		assertNotNull(ra_srvl);
 
-		// url:   (empty)
-		// route: (empty)
+		String[] paths = {
+			"/",
+			"/a/b/c",
+			"/a/b/c?d=e"
+		};
+
+		for(int i=0;i<paths.length;i++){
+			path  = paths[i]; // includes query parameters
+			System.out.println("Path: "+path);
+
+			// TODO: both tests with and without baseUrl
+
+			// test without servlet
+			// url:   http://baseUrl/path
+			url = baseUrl.toString() + path;
+			route = ra.getRequestRoute(url);
+			assertNotNull(route);
+			assertEquals(path,route);
+
+			route = null;
+
+			// test with servlet
+			// url:   http://baseUrl/servlet/path
+			url = baseUrl.toString() + "/" + servlet + path;
+			route = ra_srvl.getRequestRoute(url);
+			assertNotNull(route);
+			assertEquals(path,route);
+
+			route = null;
+
+		}
+
+		/* special cases */
+
+		// test empty
 		route = ra.getRequestRoute("");
 		assertNotNull(route);
 		assertEquals("",route);
 
-		// url:   http://baseUrl
-		// route: /
-		href = baseUrl.toString();
-		route = ra.getRequestRoute(href);
+		route = ra_srvl.getRequestRoute("");
+		assertNotNull(route);
+		assertEquals("",route);
+
+		// plain baseurl (no slash)
+		route = ra.getRequestRoute(baseUrl.toString());
 		assertNotNull(route);
 		assertEquals("/",route);
 
-		// url:   http://baseUrl/
-		// route: /
-		href = baseUrl.toString() + "/";
-		route = ra.getRequestRoute(href);
+		route = ra_srvl.getRequestRoute(baseUrl.toString()+"/"+servlet);
 		assertNotNull(route);
 		assertEquals("/",route);
-
-		// url:   /
-		// route: /
-		href = "/";
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("/",route);
-
-		// url:   http://baseUrl/a/b/c
-		// route: /a/b/c
-		href = baseUrl.toString() + "/a/b/c";
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("/a/b/c",route);
-
-		// url:   http://baseUrl/a/b/c?d=e
-		// route: /a/b/c
-		path = "/a/b/c?d=e";
-		href = baseUrl.toString() + path;
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("/a/b/c",route);
-
-		// url:   /a/b/c
-		// route: /a/b/c
-		href = "/a/b/c";
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("/a/b/c",route);
-
-		// url:   /a/b/c?d=e
-		// route: /a/b/c
-		href = "/a/b/c?d=e";
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("/a/b/c",route);
-
-		// url:   a/b/c?d=e
-		// route: a/b/c
-		href = "a/b/c?d=e";
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("a/b/c",route);
 
 		// url:   (relative file)
 		// route: index.html
@@ -102,76 +95,8 @@ public class RouteAnalyzerTest {
 		assertNotNull(route);
 		assertEquals(path,route);
 
-	}
-
-	@Test
-	public void test_getRequestRouteWithServlet()
-	throws java.net.MalformedURLException
-	{
-		String path = null;
-		String href = null;
-		String route = null;
-
-		servlet = "__servlet__";
-		ra = new RouteAnalyzer(baseUrl,servlet);
-		assertNotNull(ra);
-
-		// url:   (empty)
-		// route: (empty)
-		route = ra.getRequestRoute("");
-		assertNotNull(route);
-		assertEquals("",route);
-
-		// url:   http://baseUrl/servlet
-		// route: /
-		href = baseUrl.toString() + "/"+servlet;
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("/",route);
-
-		// url:   http://baseUrl/servlet/
-		// route: /
-		href = baseUrl.toString() + "/"+servlet+"/";
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("/",route);
-
-		// url:   /servlet
-		// route: /
-		href = "/"+servlet;
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("/",route);
-
-		// url:   /servlet/
-		// route: /
-		href = "/"+servlet+"/";
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("/",route);
-
-		// url:   http://baseUrl/servlet/a/b/c?d=e
-		// route: /a/b/c
-		path = "/a/b/c?d=e";
-		href = baseUrl.toString() + "/"+servlet + path;
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("/a/b/c",route);
-
-		// url:   http://baseUrl/servlet/a/b/c
-		// route: /a/b/c
-		href = baseUrl.toString() + "/"+servlet + "/a/b/c";
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("/a/b/c",route);
-
-		// url:   /servlet/a/b/c?d=e
-		// route: /a/b/c
-		path = "/a/b/c?d=e";
-		href = "/"+servlet + path;
-		route = ra.getRequestRoute(href);
-		assertNotNull(route);
-		assertEquals("/a/b/c",route);
+		// how does relative file behave in servlet?
+		// -- how is the link used?
 
 	}
 
