@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2008 Mikael Lammentausta
+ * Copyright (c) 2008,2009 Mikael Lammentausta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -168,7 +168,7 @@ public class Rails286PortletFunctions {
       try {
         /** UID *************************************/
         if (matcher.find()) {
-          if (var == "%UID%") {
+          if (var.equals("%UID%")) {
             log.debug("Matched variable: "+var);
             String uid = null;
 
@@ -206,7 +206,7 @@ public class Rails286PortletFunctions {
           } // UID
 
           /** Portlet's group ID **********************/
-          if (var == "%GID%") {
+          if (var.equals("%GID%")) {
             log.debug("Matched variable: "+var);
             String gid = null;
 

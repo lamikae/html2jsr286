@@ -193,7 +193,7 @@ public class Rails286PortletRenderFilter implements RenderFilter {
 
     /** Set the HTTP Referer from session for GET requests */
     java.net.URL httpReferer = null;
-    if ((session.getAttribute("railsRoute") != null) && (session.getAttribute("requestMethod") == "get")) {
+    if ((session.getAttribute("railsRoute") != null) && (session.getAttribute("requestMethod").equals("get"))) {
       try {
         String redirectRoute = (String)session.getAttribute("railsRoute");
         RouteAnalyzer ra = new RouteAnalyzer(railsBaseUrl,servlet);
