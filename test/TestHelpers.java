@@ -13,6 +13,21 @@ import org.htmlparser.filters.NodeClassFilter;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
+import org.w3c.dom.Document;
+
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathConstants;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import java.io.IOException;
+import org.xml.sax.SAXException;
+
+import org.xml.sax.InputSource;
+import java.io.StringReader;
+
 /** Helpers */
 public class TestHelpers {
 
@@ -39,5 +54,30 @@ public class TestHelpers {
 		NodeList pg = parser.parse (null);
 		return pg.extractAllNodesThatMatch(new NodeClassFilter(BodyTag.class),true);
 	}
+
+	/**
+	  */
+	protected static Document html2doc(String input)
+	throws SAXException, IOException, ParserConfigurationException
+	{
+		DocumentBuilder builder = null;
+		DocumentBuilderFactory domFactory =
+			DocumentBuilderFactory.newInstance();
+		domFactory.setNamespaceAware(true);
+		builder = domFactory.newDocumentBuilder();
+		return builder.parse(
+			new InputSource(new StringReader(input))
+		);
+	}
+
+	/**
+	  */
+	protected static org.w3c.dom.NodeList evalExpr(XPathExpression expr, Document doc)
+	throws Exception
+	{
+		Object result = expr.evaluate(doc, XPathConstants.NODESET);
+		return (org.w3c.dom.NodeList) result;
+	}
+
 
 }

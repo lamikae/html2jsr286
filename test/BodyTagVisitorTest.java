@@ -13,6 +13,12 @@ import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.tags.*;
 
+import org.w3c.dom.Document;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+
 import com.celamanzi.liferay.portlets.rails286.BodyTagVisitor;
 
 
@@ -31,6 +37,10 @@ public class BodyTagVisitorTest {
 	private String namespace = "__TEST_PORTLET__";
 	PortletURL portletUrl   = null; // TODO: instantiate PortletURL
 	NodeVisitor visitor = null;
+	XPath xpath = null;
+	XPathExpression expr = null;
+	org.w3c.dom.NodeList nodes = null;
+
 
 	@Before
 	public void setTestServer()
@@ -39,6 +49,8 @@ public class BodyTagVisitorTest {
 		baseUrl = new java.net.URL("http://localhost:3000");
 		visitor = new BodyTagVisitor(baseUrl, servlet, requestPath, namespace, portletUrl);
 		assertNotNull(visitor);
+		xpath = XPathFactory.newInstance().newXPath();
+		nodes = null;
 	}
 
 
@@ -49,7 +61,13 @@ public class BodyTagVisitorTest {
 		NodeList body = TestHelpers.getBody(html);
 		body.visitAllNodesWith(visitor); // visit all nodes
 		String output = body.toHtml();
-		TestHelpers.assertPageRegexp(output,"<div id=\""+namespace+"_body\">[\\n ]*</div>");
+
+		Document doc = TestHelpers.html2doc(body.toHtml());
+
+		expr = xpath.compile("/div/@id");
+		nodes = TestHelpers.evalExpr(expr, doc);
+		assertEquals(1,nodes.getLength());
+		assertEquals(namespace+"_body",nodes.item(0).getNodeValue());
 	}
 
 	/** Test links.
@@ -63,14 +81,33 @@ public class BodyTagVisitorTest {
 
 	@Test
 	public void testLinkHTTP()
-	throws Exception {
+	throws Exception,
+		XPathExpressionException
+	{
+		String url = baseUrl.toString()+"/"+requestPath;
 		String html = "<html><body>"+
-			"<a href=\"http://www.some.url/some/where\" alt=\"¡\">Link text</a>"+
+			"<a href=\""+url+"\" alt=\"alt_txt\">Link text</a>"+
 			"</body></html>";
 		NodeList body = TestHelpers.getBody(html);
 		body.visitAllNodesWith(visitor); // visit all nodes
+
 		String output = body.toHtml();
-		// assertSelect....
+		Document doc = TestHelpers.html2doc(body.toHtml());
+
+		expr = xpath.compile("/div/a/@href");
+		nodes = TestHelpers.evalExpr(expr, doc);
+		assertEquals(1,nodes.getLength());
+		//System.out.println(nodes.item(0).getNodeValue());
+
+		expr = xpath.compile("/div/a/@alt");
+		nodes = TestHelpers.evalExpr(expr, doc);
+		assertEquals(1,nodes.getLength());
+		assertEquals("alt_txt",nodes.item(0).getNodeValue());
+
+
+// 		for (int i = 0; i < nodes.getLength(); i++) {
+// 			System.out.println(nodes.item(i).getNodeValue());
+// 		}
 	}
 
 	// skip Ajax links with href="#"
