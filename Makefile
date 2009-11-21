@@ -11,8 +11,8 @@ liferay=5.2.3
 all: compile list
 
 clean:
-	find $(classes) -name *.class -exec rm {} -f \;
-	if [ -e test/classes ]; then rm test/classes/* -rf; fi
+	find $(classes) -name *.class -exec rm -f {} \;
+	if [ -e test/classes ]; then rm -rf test/classes/* ; fi
 
 compile: clean
 	#
@@ -47,7 +47,7 @@ test: compile
 	#
 	###################### running tests
 	#
-	if [ -e test/classes ]; then rm test/classes/* -rf; fi
+	if [ -e test/classes ]; then rm -rf test/classes/* ; fi
 	mkdir -p test/classes
 	echo $(classes)
 	export CLASSPATH="\
