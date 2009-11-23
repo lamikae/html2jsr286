@@ -3,6 +3,7 @@
 jarlib=WEB-INF/lib
 classes=WEB-INF/classes
 liferay_v=`grep 'LIFERAY_VERSION' WEB-INF/src/PortletVersion.java | grep -o .,. | tr ',' '.'`
+hotdeploydir='/usr/local/liferay/tomcat/webapps/ROOT/WEB-INF/classes'
 
 # version of Liferay's portal-service jar
 #liferay=5.1.1
@@ -43,7 +44,7 @@ list:
 	#
 	tree $(classes)
 
-test: compile
+test: compile 
 	#
 	###################### running tests
 	#
@@ -65,6 +66,10 @@ test: compile
 	test" ;\
 	javac test/*.java -Xlint:unchecked -Xlint:deprecation -d test/classes && \
 	time java -ea  org.junit.runner.JUnitCore com.celamanzi.liferay.portlets.rails286.TestLoader
+
+hotdeploy: compile
+	rm -rf $(hotdeploydir)/com/celamanzi/liferay/portlets/rails286/
+	cp -r WEB-INF/classes/com $(hotdeploydir)
 
 help:
 	@echo "To compile classes:"
