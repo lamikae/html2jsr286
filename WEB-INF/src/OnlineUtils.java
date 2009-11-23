@@ -380,34 +380,6 @@ public class OnlineUtils {
   }
 
 
-  /** Sends POST login data, and returns the authenticated cookies */
-  protected static Cookie[] getAuthCookies(java.net.URL actionUrl, NameValuePair[] loginCredentials)
-  throws Exception {
-    Cookie[] logonCookies = null;
-    try {
-      // form the login POST action URL
-      SessionAuthenticator sa = new SessionAuthenticator(actionUrl);
-      // send the login credentials
-      logonCookies = sa.sendLoginCredentials(loginCredentials);
-
-      // log the cookies
-      if ((logonCookies == null) || (logonCookies.length == 0)) {
-        log.warn("No authorized cookies");
-      }
-      else {
-        log.info("Received " + logonCookies.length + " authorized cookies");
-        for (int i = 0; i < logonCookies.length; i++) {
-          log.debug(logonCookies[i].toExternalForm());
-        }
-      }
-    }
-    catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return logonCookies;
-  }
-
-
   private static void debugUrl(java.net.URL url) {
     System.out.println( "Protocol : " + url.getProtocol() );
     System.out.println( "Host     : " + url.getHost()     );
