@@ -96,7 +96,10 @@ public class BodyTagVisitor extends NodeVisitor
   {
     //log.debug("Encountered a " + tag.getClass()); // Floods the debug channel
     RouteAnalyzer ra = new RouteAnalyzer(baseUrl,servlet);
-
+      
+      
+      Pattern pattern = null;
+      Matcher matcher = null;
 
     /**
      * Replace the <body> tag with <div id=%namespace%_body> 
@@ -136,8 +139,7 @@ public class BodyTagVisitor extends NodeVisitor
         String route = null;
         String onclick = null;
         String newLink = null;
-        Pattern pattern = null;
-        Matcher matcher = null;
+
 
         // skip Ajax links with href="#"
         pattern = Pattern.compile("^#$");
@@ -335,13 +337,38 @@ public class BodyTagVisitor extends NodeVisitor
      * Convert forms, only if actionUrl is defined
      */
     else if ((tag instanceof FormTag) && (actionUrl != null))
+//    else if ((tag instanceof FormTag) )
     {
+        
       FormTag frm = (FormTag)tag;
       String method = frm.getFormMethod();
       //String formAction = frm.extractFormLocn();
       String formAction = frm.getFormLocation();
       log.debug("Encountered a " + method + " FormTag to action: " + formAction);
 
+        
+        
+        /** Exiting portlet?
+         * Yes, this is a duplicate from the LinkTag handling.
+         * Not good, not good at all.
+         *
+         */
+        String exit_param = "exit_portlet=(true|false)";
+        pattern = Pattern.compile(exit_param);
+        matcher = pattern.matcher(formAction);
+        if (matcher.find()) {
+            log.debug("Exit portlet parameter encountered: "+exit_param);
+            // TODO: use a proper replace regexp, so sanitization is not required.
+            formAction = formAction.replaceFirst(exit_param,""); // remove the parameter
+            formAction = formAction.replaceFirst("&amp;$","");   // sanitize
+            formAction = formAction.replaceFirst("\\?&amp;","?"); // sanitize
+            formAction = formAction.replaceFirst("\\?$","");     // sanitize
+            log.debug("Saving form action: "+formAction);
+            frm.setFormLocation(formAction);
+            return;
+        }
+        
+        
       /** RouteAnalyzer */
       try {
         formAction = ra.getRequestRoute(formAction);

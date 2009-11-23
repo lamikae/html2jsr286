@@ -75,7 +75,53 @@ public class BodyTagVisitorTest {
 	TODO: link formation cannot be tested properly without PortletURL.
 	*/
 
-	public void testLinkExitPortletParameter() {}
+    @Test
+	public void testLinkExitPortletParameterGET()
+	throws Exception,
+        XPathExpressionException
+    {
+		String url = baseUrl.toString()+"/"+requestPath;
+        String url_with_extra_param = url+"?exit_portlet=true";
+		String html = "<html><body>"+
+        "<a href=\""+url_with_extra_param+"\" alt=\"alt_txt\">Link text</a>"+
+        "</body></html>";
+		NodeList body = TestHelpers.getBody(html);
+		body.visitAllNodesWith(visitor); // visit all nodes
+        
+		String output = body.toHtml();
+		Document doc = TestHelpers.html2doc(body.toHtml());
+        
+		expr = xpath.compile("/div/a/@href");
+		nodes = TestHelpers.evalExpr(expr, doc);
+		assertEquals(1,nodes.getLength());
+        assertEquals(url,nodes.item(0).getNodeValue());
+    }
+
+    @Test
+	public void testLinkExitPortletParameterPOST()
+	throws Exception,
+        XPathExpressionException
+    {
+		String url = baseUrl.toString()+"/"+requestPath;
+        String url_with_extra_param = url+"?exit_portlet=true";
+        String form = "<form action=\""+url_with_extra_param+"\" enctype=\"multipart/form-data\" "+
+            "id=\"form_id\" method=\"post\" onsubmit=\"someJavaScript(); return true;\">"+
+            "</form>";
+        
+        String html = "<html><body>" +form+ "</body></html>";
+        
+		NodeList body = TestHelpers.getBody(html);
+		body.visitAllNodesWith(visitor); // visit all nodes
+        
+		String output = body.toHtml();
+		Document doc = TestHelpers.html2doc(body.toHtml());
+
+		expr = xpath.compile("/div/form/@action");
+		nodes = TestHelpers.evalExpr(expr, doc);
+		assertEquals(1,nodes.getLength());
+        assertEquals(url,nodes.item(0).getNodeValue());
+        
+    }
 
 	public void testLinkAmpersandAndSlashValidity() {}
 
