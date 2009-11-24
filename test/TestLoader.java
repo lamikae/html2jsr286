@@ -8,13 +8,14 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
+ 	PortletTest.class,
+	RenderFilterTest.class,
 	PageProcessorTest.class,
 	HeadProcessorTest.class,
 	BodyTagVisitorTest.class,
 	RouteAnalyzerTest.class,
 	PortletFunctionsTest.class
-/*   RenderFilterTest.class, */
-/* 	PortletTest.class */
+/*    SessionTest.class */
 })
 
 public class TestLoader {

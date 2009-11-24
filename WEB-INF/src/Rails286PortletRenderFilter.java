@@ -59,16 +59,16 @@ public class Rails286PortletRenderFilter implements RenderFilter {
   /** the default rails URLs */
   private java.net.URL defaultRailsBaseUrl = null;
   private String       defaultRailsRoute = null;
-  private String host    = null;
-  private String servlet = null;
-  private String route   = null;
+  public String host    = null;
+  public String servlet = null;
+  public String route   = null;
 
   /** Constructors */
   public Rails286PortletRenderFilter() {}
 
   @Override
 
-  /** Read the init parameters from XML.
+  /** Read the init parameters from FilterConfig (XML).
     * There are three different parameters:
     * - host    (optional - if empty or null, the request server is used)
     * - servlet (the url to the Rails WAR)

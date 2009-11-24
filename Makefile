@@ -52,6 +52,8 @@ test: compile
 	mkdir -p test/classes
 	echo $(classes)
 	export CLASSPATH="\
+	$(classes):\
+	test/classes:\
 	$(jarlib)/portlet-1.0.jar:\
 	$(jarlib)/portlet-2.0.jar:\
 	$(jarlib)/commons-logging.jar:\
@@ -61,8 +63,8 @@ test: compile
 	$(jarlib)/htmlparser-1.6.jar:\
 	$(jarlib)/log4j-1.2.15.jar:\
 	$(jarlib)/junit-4.6.jar:\
-	$(classes):\
-	test/classes:\
+	$(jarlib)/spring-test-2.5.6.jar:\
+	$(jarlib)/spring-core-2.5.6.jar:\
 	test" ;\
 	javac test/*.java -Xlint:unchecked -Xlint:deprecation -d test/classes && \
 	time java -ea  org.junit.runner.JUnitCore com.celamanzi.liferay.portlets.rails286.TestLoader
