@@ -44,13 +44,12 @@ list:
 	#
 	tree $(classes)
 
-test: compile 
+test: compile
 	#
 	###################### running tests
 	#
 	if [ -e test/classes ]; then rm -rf test/classes/* ; fi
 	mkdir -p test/classes
-	echo $(classes)
 	export CLASSPATH="\
 	$(classes):\
 	test/classes:\
@@ -58,6 +57,7 @@ test: compile
 	$(jarlib)/portlet-2.0.jar:\
 	$(jarlib)/commons-logging.jar:\
 	$(jarlib)/commons-httpclient-3.1.jar:\
+	$(jarlib)/commons-codec-1.3.jar:\
 	$(jarlib)/portal-service-$(liferay).jar:\
 	$(jarlib)/servlet-api-2.4.jar:\
 	$(jarlib)/htmlparser-1.6.jar:\
