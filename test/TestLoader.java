@@ -9,26 +9,31 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
  	PortletTest.class,
+	OnlineClientTest.class,
 	RenderFilterTest.class,
 	PageProcessorTest.class,
 	HeadProcessorTest.class,
 	BodyTagVisitorTest.class,
 	RouteAnalyzerTest.class,
-	PortletFunctionsTest.class
-/*    SessionTest.class */
+	PortletFunctionsTest.class,
+	SessionTest.class,
+	RailsSessionTest.class
+
+	//TestHttpContextTest.class,
 })
 
 public class TestLoader {
 
   @BeforeClass
   public static void setUp() {
-	/** TODO: how to set common variables in setUp? */
-//     System.out.println("setting up\n");
+	/* TODO: how to set common variables in setUp?
+     */
+     //     System.out.println("setting up\n");
   }
 
   @AfterClass
   public static void tearDown() {
-//     System.out.println("tearing down\n");
+      //     System.out.println("tearing down\n");
   }
 
 }

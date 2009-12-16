@@ -28,7 +28,6 @@ import com.celamanzi.liferay.portlets.rails286.Rails286Portlet;
 public class RailsSessionTest
 {
     
-    // all request urls need to be prepended with /test
     private final String host    = "http://localhost:3000";
     private final String servlet = "";
         
@@ -73,7 +72,7 @@ public class RailsSessionTest
         HttpClient client = new HttpClient();
         assertNotNull(client);
         
-        String url =  railsJUnitURL+"/cookie";
+        String url =  railsJUnitURL+"/session_cookie";
         
         GetMethod method = new GetMethod(url);
         assertNotNull(method);
@@ -208,7 +207,7 @@ public class RailsSessionTest
         HttpClient client = new HttpClient();
         assertNotNull(client);
         
-        String url =  railsJUnitURL+"/cookie";
+        String url =  railsJUnitURL+"/session_cookie";
         
         GetMethod method = new GetMethod(url);
         assertNotNull(method);
@@ -300,7 +299,7 @@ public class RailsSessionTest
             assertEquals(1,nodes.getLength());
             String _sessionId = nodes.item(0).getNodeValue();
             
-            // FINALLY test that the session matches
+            // test that the session does not match
             assertFalse(sessionId.equals(_sessionId));
             
             
