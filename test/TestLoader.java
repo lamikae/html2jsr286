@@ -18,8 +18,6 @@ import org.junit.runners.Suite.SuiteClasses;
 	PortletFunctionsTest.class,
 	SessionTest.class,
 	RailsSessionTest.class
-
-	//TestHttpContextTest.class,
 })
 
 public class TestLoader {

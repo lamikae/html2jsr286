@@ -31,16 +31,14 @@ public class RailsSessionTest
     private final String host    = "http://localhost:3000";
     private final String servlet = "";
         
-    private final String railsJUnitRoute = "/caterpillar/test_bench/junit";
-    
-    private final String railsJUnitURL = host+servlet+railsJUnitRoute;
+    private final String railsJUnitURL = host+servlet+PortletTest.railsJUnitRoute;
     
     private Pattern pattern = null;
     private Matcher matcher = null;
     
     XPath xpath = null;
-	XPathExpression expr = null;
-	org.w3c.dom.NodeList nodes = null;
+    XPathExpression expr = null;
+    org.w3c.dom.NodeList nodes = null;
     
     
     @Before

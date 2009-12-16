@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2008 Mikael Lammentausta
+ * Copyright (c) 2008,2009 Mikael Lammentausta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,7 @@ import javax.portlet.filter.RenderFilter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.net.URL;
 import java.net.MalformedURLException;
 
 
@@ -89,6 +90,7 @@ public class Rails286PortletRenderFilter implements RenderFilter {
       host = null;
     }
     servlet = filterConfig.getInitParameter("servlet");
+    if (servlet==null) { servlet = ""; }
     route   = filterConfig.getInitParameter("route");
     log.debug("init host: "+host);
     log.debug("init servlet: "+servlet);
@@ -118,16 +120,9 @@ public class Rails286PortletRenderFilter implements RenderFilter {
   throws IOException, PortletException, MalformedURLException {
     PortletSession session = request.getPortletSession(true);
     String session_id      = request.getRequestedSessionId();
-    log.debug("Render Filter "+session_id+" activated");
-    log.debug(session.getPortletContext().getServerInfo());
-
-    log.debug("konteksti:");
-    log.debug(session.getPortletContext().getPortletContextName());
-//     log.debug(session.getPortletContext().());
-
-    if (servlet==null) {
-      throw new PortletException("Servlet is undefined");
-    }
+    log.debug("Render Filter activated for session "+session_id);
+    //log.debug(session.getPortletContext().getServerInfo());
+    //log.debug(session.getPortletContext().getPortletContextName());
 
     if (log.isDebugEnabled()) {
       log.debug("Request attributes -------v");
@@ -141,114 +136,100 @@ public class Rails286PortletRenderFilter implements RenderFilter {
         log.debug(a+": "+request.getParameter(a));
       }
       log.debug("---------------------------");
-      log.debug("*");
     }
 
-    /** Base URL (host + servlet) */
-    // remove the last slash '/' from the base URL,
-    // otherwise several things may fail in the TagVisitor
+    /** Base URL (host + servlet).
+     *
+     * Remove the last slash '/' from the base URL,
+     * otherwise several things may fail in the TagVisitor
+     */
     String base = (
-      host == null ?
-        request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+"/"+servlet :
-        host.replaceFirst("/$","")+"/"+servlet
-    );
-    java.net.URL railsBaseUrl = new java.net.URL(
-      base
-    );
-    log.debug("Using baseurl: "+railsBaseUrl.toString());
+                   host == null ?
+                   request.getScheme()+
+                    "://"+
+                    request.getServerName()+
+                    ":"+
+                    request.getServerPort()+
+                    "/"+
+                    servlet :
+                   
+                    host.replaceFirst("/$","")+"/"+servlet
+                   );
+    URL railsBaseUrl = new java.net.URL(base);
 
-
-    /** Route.
-      * First use the value to the init parameter, and update
-      * from the request parameters or session.
-      */
-    String railsRoute = route;
-    if ( request.getParameter("railsRoute") != null ) {
+    
+    String railsRoute    = null;
+    String requestMethod = "get";
+    URL    httpReferer   = null;
+    
+    
+    if ( request.getParameter("railsRoute") == null ) {
+      log.debug("Unset request parameter \"railsRoute\" - reset portlet");
+      railsRoute = route;
+    }
+    else {
+      /** Set the route from request parameter "railsRoute".
+       *
+       * If the parameter is not set, the route is reset to default.
+       */
       railsRoute = request.getParameter("railsRoute");
-      log.debug( "Received the request parameter railsRoute: " + railsRoute );
-    }
-    // attributes are set in processAction
-    else if ( request.getAttribute("railsRoute") != null ) {
-      railsRoute = (String)request.getAttribute("railsRoute");
-      log.debug( "Received the request attribute railsRoute: " + railsRoute );
-    }
-    /** Then in the session */
-    else if (session.getAttribute("railsRoute") != null) {
-      railsRoute  = (String)session.getAttribute("railsRoute");
-      log.debug("Using route from session: "+railsRoute);
+
+      /** Request method. GET or POST */
+      if ( request.getAttribute("requestMethod") != null ) {
+        requestMethod = (String)request.getAttribute("requestMethod");
+        log.debug("Set request method: "+requestMethod);
+      }
+
+      /** Set the HTTP Referer from session */
+      if (session.getAttribute("railsRoute") != null) {
+        try {
+          String oldRoute = (String)session.getAttribute("railsRoute");
+          RouteAnalyzer ra = new RouteAnalyzer(railsBaseUrl,servlet);
+          httpReferer = ra.getFullURL(oldRoute);
+        }
+        catch (java.net.MalformedURLException e) {
+          log.error(e.getMessage());
+        }
+        catch (NullPointerException e) {
+          log.error(e.getMessage());
+        }
+        log.debug("Set HTTP referer: "+httpReferer.toString());
+      }
     }
 
+    
     // railsRoute may contain variables to be replaced at runtime
     railsRoute = Rails286PortletFunctions.decipherPath( railsRoute, request );
 
-
-    /** Request method. GET or POST */
-    String requestMethod = "get";
-    if ( request.getAttribute("requestMethod") != null ) {
-      requestMethod = (String)request.getAttribute("requestMethod");
-      log.debug("Request method: "+requestMethod);
-    }
-    else {
-      log.debug("Using default request method GET");
-    }
-
-
-    /** Set the HTTP Referer from session for GET requests */
-    java.net.URL httpReferer = null;
-    if ((session.getAttribute("railsRoute") != null) && (session.getAttribute("requestMethod").equals("get"))) {
-      try {
-        String redirectRoute = (String)session.getAttribute("railsRoute");
-        RouteAnalyzer ra = new RouteAnalyzer(railsBaseUrl,servlet);
-        httpReferer = ra.getFullURL(redirectRoute);
-      }
-      catch (java.net.MalformedURLException e) {
-        log.error(e.getMessage());
-      }
-      catch (NullPointerException e) {
-        log.error(e.getMessage());
-      }
-      log.debug("HTTP referer: "+httpReferer.toString());
-    }
-    else {
-      log.debug("No HTTP referer");
-    }
-
-
+    
     /** update the PortletSession */
     try {
-      log.debug( "Saving attributes to PortletSession id " + session_id );
+      log.debug( "Updating session id " + session_id );
 
-      if (railsBaseUrl != null) {
-        //log.debug( "railsBaseUrl = " + railsBaseUrl );
-        session.setAttribute(
-            "railsBaseUrl",
-            railsBaseUrl,
-            PortletSession.PORTLET_SCOPE);
-      }
+      session.setAttribute(
+          "railsBaseUrl",
+          railsBaseUrl,
+          PortletSession.PORTLET_SCOPE);
+
       session.setAttribute(
           "servlet",
           servlet,
           PortletSession.PORTLET_SCOPE);
-      if (railsRoute != null) {
-        //log.debug( "railsRoute = " + railsRoute );
-        session.setAttribute(
-            "railsRoute",
-            railsRoute,
-            PortletSession.PORTLET_SCOPE);
-      }
-      if (requestMethod != null) {
-        session.setAttribute(
-            "requestMethod",
-            requestMethod,
-            PortletSession.PORTLET_SCOPE);
-      }
-      if (httpReferer != null) {
-        log.debug("Setting new referer to: "+httpReferer);
-        session.setAttribute(
-            "httpReferer",
-            httpReferer,
-            PortletSession.PORTLET_SCOPE);
-      }
+
+      session.setAttribute(
+          "railsRoute",
+          railsRoute,
+          PortletSession.PORTLET_SCOPE);
+
+      session.setAttribute(
+          "requestMethod",
+          requestMethod,
+          PortletSession.PORTLET_SCOPE);
+
+      session.setAttribute(
+          "httpReferer",
+          httpReferer,
+          PortletSession.PORTLET_SCOPE);
     }
     catch (IllegalStateException e) {
       log.error( e.getMessage() );
@@ -259,13 +240,14 @@ public class Rails286PortletRenderFilter implements RenderFilter {
       throw e;
     }
 
-    log.debug("*");
-    log.debug("Session attributes -------v");
-    for (Enumeration e = session.getAttributeNames() ; e.hasMoreElements();) {
-      String a = (String)e.nextElement();
-      log.debug(a+": "+session.getAttribute(a));
+    if (log.isDebugEnabled()) {
+      log.debug("Session attributes -------v");
+      for (Enumeration e = session.getAttributeNames() ; e.hasMoreElements();) {
+        String a = (String)e.nextElement();
+        log.debug(a+": "+session.getAttribute(a));
+      }
+      log.debug("---------------------------");
     }
-    log.debug("---------------------------");
 
     // add the Filter to the chain
     chain.doFilter(request, response);

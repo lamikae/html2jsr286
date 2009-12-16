@@ -85,6 +85,7 @@ public class RenderFilterTest {
         
         java.net.URL _baseUrl = (URL)session.getAttribute("railsBaseUrl");
         assertNotNull(_baseUrl);
+        assertEquals(new URL(host+"/"+servlet),_baseUrl);
         // TODO: test the thing with different combinations
         
         String _servlet = (String)session.getAttribute("servlet");
@@ -107,5 +108,119 @@ public class RenderFilterTest {
             System.out.println(names.nextElement()); } 
         */
     }
+
+    @Test
+    /** When the portlet is loaded without portlet parameters,
+     * the session should be reset.
+     */
+    public void test_railsRoute()
+    throws PortletException, IOException, MalformedURLException
+    {
+      filter.init(filterConfig);
+      
+      String route_a = PortletTest.railsJUnitRoute;
+      
+      MockRenderRequest _request = new MockRenderRequest(PortletMode.VIEW);
+      _request.setSession(session);
+      
+      _request.addParameter("railsRoute", route_a);
+
+      RenderRequest request = (RenderRequest)_request;
+      assertNotNull(request);
+      RenderResponse response = new MockRenderResponse();
+      assertNotNull(response);
+      FilterChain chain = new MockFilterChain();
+      assertNotNull(chain);
+            
+      filter.doFilter(request,response,chain);
+      
+      String _route = (String)session.getAttribute("railsRoute");
+      assertNotNull(_route);
+      assertEquals(route_a,_route);
+      
+      String _method = (String)session.getAttribute("requestMethod");
+      assertNotNull(_method);
+      assertEquals("get",_method);
+      
+      assertNull(session.getAttribute("httpReferer"));
+    }
+  
+    @Test
+    /** 
+     */
+    public void test_httpReferer()
+    throws PortletException, IOException, MalformedURLException
+    {
+      filter.init(filterConfig);
+
+      String route_a = PortletTest.railsJUnitRoute;
+      String route_b = "/foo?bar";
+      
+      session.setAttribute(
+                           "railsRoute",
+                           route_a,
+                           PortletSession.PORTLET_SCOPE);
+      
+      session.setAttribute(
+                           "httpReferer",
+                           null,
+                           PortletSession.PORTLET_SCOPE);
+      
+      MockRenderRequest _request = new MockRenderRequest(PortletMode.VIEW);
+      _request.setSession(session);
+      
+      _request.addParameter("railsRoute", route_b);
+
+      RenderRequest request = (RenderRequest)_request;
+      RenderResponse response = new MockRenderResponse();
+      assertNotNull(response);
+      FilterChain chain = new MockFilterChain();
+      assertNotNull(chain);
+
+      filter.doFilter(request,response,chain);
+
+      String _route = (String)session.getAttribute("railsRoute");
+      assertNotNull(_route);
+      assertEquals(route_b,_route);
+
+      URL _referer = (URL)session.getAttribute("httpReferer");
+      assertNotNull(_referer);
+      assertEquals(new URL(host+"/"+servlet+route_a),_referer);
+      
+    }
+
+    @Test
+    /** When the portlet is loaded without portlet parameters,
+     * the session should be reset.
+     */
+    public void test_sessionReset()
+    throws PortletException, IOException
+    {
+      filter.init(filterConfig);
+      
+      // test that this attribute will be reset,
+      // when no request parameters are set.
+      session.setAttribute("railsRoute",PortletTest.railsJUnitRoute);
+      
+      MockRenderRequest _request = new MockRenderRequest(PortletMode.VIEW);
+      _request.setSession(session);
+      RenderRequest request = (RenderRequest)_request;
+      assertNotNull(request);
+      
+      RenderResponse response = new MockRenderResponse();
+      assertNotNull(response);
+      
+      FilterChain chain = new MockFilterChain();
+      assertNotNull(chain);
+      
+      filter.doFilter(request,response,chain);
+      
+      String _route = (String)session.getAttribute("railsRoute");
+      assertNotNull(_route);
+      assertEquals(route,_route);
+      
+      assertNull(session.getAttribute("httpReferer"));
+    }
+  
 
 }

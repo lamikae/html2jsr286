@@ -29,20 +29,56 @@ public class PortletTest {
   
     private final String host    = "http://localhost:3000";
     private final String servlet = "";
-    private final String railsJUnitRoute = "/caterpillar/test_bench/junit";
+    private final String route   = "/";
+
+    protected final static String railsJUnitRoute = "/caterpillar/test_bench/junit";
     private final String railsJUnitURL = host+servlet+railsJUnitRoute;
 
     
     @Before
-    public void setup() {
+    public void setup()
+    throws MalformedURLException
+    {
         assertNotNull(portlet);
         assertNotNull(portletContext);
         MockPortletConfig _portletConfig = new MockPortletConfig(portletContext,portletName);
         assertNotNull(_portletConfig);
+      
+        _portletConfig.addInitParameter("host", host);
+        _portletConfig.addInitParameter("servlet", servlet);
+        _portletConfig.addInitParameter("route", route);
+      
         portletConfig = (PortletConfig)_portletConfig;
         
         session = new MockPortletSession();
         assertNotNull(session);
+      
+        session.setAttribute(
+                             "railsBaseUrl",
+                             new URL(host+"/"+servlet),
+                             PortletSession.PORTLET_SCOPE);
+        
+        session.setAttribute(
+                             "servlet",
+                             servlet,
+                             PortletSession.PORTLET_SCOPE);
+        
+        session.setAttribute(
+                             "railsRoute",
+                             route,
+                             PortletSession.PORTLET_SCOPE);
+        
+        session.setAttribute(
+                             "requestMethod",
+                             null,
+                             PortletSession.PORTLET_SCOPE);
+        
+        session.setAttribute(
+                             "httpReferer",
+                             null,
+                             PortletSession.PORTLET_SCOPE);
+        
+      
     }
     
     
@@ -60,7 +96,7 @@ public class PortletTest {
     throws PortletException, IOException
     {
         portlet.init(portletConfig);
-        
+      
         MockRenderRequest _request = new MockRenderRequest(PortletMode.VIEW);
         _request.setSession(session);
         RenderRequest request = (RenderRequest)_request;
@@ -69,12 +105,26 @@ public class PortletTest {
         RenderResponse response = new MockRenderResponse();
         assertNotNull(response);
         
-        //portletRequest.addParameter("param1", "value1");
+        portlet.render(request,response);
 
-        //portlet.render(request,response);
-        // TODO: re-design and test
+        URL _baseUrl = (URL)session.getAttribute("railsBaseUrl");
+        assertNotNull(_baseUrl);
+        assertEquals(new URL(host+"/"+servlet),_baseUrl);
+        // TODO: test the thing with different combinations
         
-	}
+        String _servlet = (String)session.getAttribute("servlet");
+        assertNotNull(_servlet);
+        assertEquals(servlet,_servlet);
+        
+        String _route = (String)session.getAttribute("railsRoute");
+        assertNotNull(_route);
+        assertEquals(route,_route);
+        
+        String _method = (String)session.getAttribute("requestMethod");
+        assertNull(_method);
+        
+        assertNull(session.getAttribute("httpReferer"));
+  }
     
     
   @Test
@@ -122,13 +172,9 @@ public class PortletTest {
     // re-cast to read response body;
     // the body contains the correct value to match with
     MockRenderResponse _response = (MockRenderResponse)response;
-    String _targetURI = _response.getContentAsString();
+    String _targetURI = _response.getContentAsString().trim();
     
-    //System.out.println(targetURI);
-    //System.out.println(_targetURI);
-    
-    // FIXME: strip _targetURI
-    //assertEquals(targetURI,_targetURI);
+    assertEquals(targetURI,_targetURI);
   }
     
   @Test
@@ -154,7 +200,7 @@ public class PortletTest {
     for (int i=0 ; i < cookies.length ; i++) {
       assertEquals(cookies[i],_cookies[i]);
     }
-    
-  } 
+  }
+  
 
 }
