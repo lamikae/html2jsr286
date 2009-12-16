@@ -175,7 +175,13 @@ public class OnlineClient {
       // Execute the method.
       statusCode = client.executeMethod(method);
       
-      if (statusCode == 302) {
+      if (
+          (statusCode == HttpStatus.SC_MOVED_TEMPORARILY) ||
+          (statusCode == HttpStatus.SC_MOVED_PERMANENTLY) ||
+          (statusCode == HttpStatus.SC_SEE_OTHER) ||
+          (statusCode == HttpStatus.SC_TEMPORARY_REDIRECT)
+        )
+      {
         if (log.isDebugEnabled()) {
           debugHeaders((Header[])method.getResponseHeaders());
         }
