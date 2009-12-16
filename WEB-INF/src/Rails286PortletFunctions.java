@@ -38,14 +38,14 @@ import javax.portlet.PortletSession;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.Cookie;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /** Liferay classes to get the User ID and portlet's Group ID */
 import com.liferay.portal.util.PortalUtil;
@@ -86,7 +86,7 @@ public class Rails286PortletFunctions {
     // create a fixed size NameValuePair Array
     NameValuePair[] ret = new NameValuePair[n];
 
-    // Transform from Object[] => NameValuePair[]
+    // cast Object[] => NameValuePair[]
     for (int x=0 ; x<n ; x++) {
       ret[x] = (NameValuePair)o[x];
     }
@@ -103,10 +103,10 @@ public class Rails286PortletFunctions {
 
 	/** Is the supported Liferay version same or newer than the given parameter.
 
-		For instance, the running version supports version 5.2, and the input version is 5.1.
-		This tests whether running version is new enough for the feature, which in this case yes.
+		For instance, if the running version is 5.2, and the argument is [5,1];
+		 this returns true.
 
-		Compares only two decimals (x.y).
+		Compares only up to two decimals (x.y).
 	  */
 	protected static Boolean isMinimumLiferayVersionMet(int[] version) {
 		// bail out if major version is sufficient
@@ -241,5 +241,5 @@ public class Rails286PortletFunctions {
     log.debug("New path: " + path);
     return path;
   }
-
+  
 }

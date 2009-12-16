@@ -1,11 +1,12 @@
 package com.celamanzi.liferay.portlets.rails286;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import static org.junit.Assert.*;
 
+import javax.portlet.*;
+
 import com.celamanzi.liferay.portlets.rails286.Rails286PortletFunctions;
+
 
 public class PortletFunctionsTest {
 
@@ -73,12 +74,13 @@ public class PortletFunctionsTest {
 		version = new int[] {5,3};
 		assertFalse( Rails286PortletFunctions.isLiferayVersionEqual(version) );
 	}
-
-
+  
 	// This would be very important to test
 // 	@Test
 	public void test_decipherPath() {
 		fail( "Needs to instantiate RenderRequest request" );
 	}
 
+
+  
 }
