@@ -215,7 +215,7 @@ public class Rails286PortletFunctions {
 				// Liferay 5 +
 				/*if (isMinimumLiferayVersionMet(new int[] {5})) { */
 					gid = new Long(
-						com.liferay.portal.util.PortalUtil.getPortletGroupId(_request)
+						com.liferay.portal.util.PortalUtil.getScopeGroupId(_request)
 					).toString();
 				/*}
 

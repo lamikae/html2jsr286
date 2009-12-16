@@ -129,18 +129,20 @@ public class Rails286PortletRenderFilter implements RenderFilter {
       throw new PortletException("Servlet is undefined");
     }
 
-    log.debug("Request attributes -------v");
-    for (Enumeration e = request.getAttributeNames() ; e.hasMoreElements();) {
-      String a = (String)e.nextElement();
-      log.debug(a+": "+request.getAttribute(a));
+    if (log.isDebugEnabled()) {
+      log.debug("Request attributes -------v");
+      for (Enumeration e = request.getAttributeNames() ; e.hasMoreElements();) {
+        String a = (String)e.nextElement();
+        log.debug(a+": "+request.getAttribute(a));
+      }
+      log.debug("Request parameters -------v");
+      for (Enumeration e = request.getParameterNames() ; e.hasMoreElements();) {
+        String a = (String)e.nextElement();
+        log.debug(a+": "+request.getParameter(a));
+      }
+      log.debug("---------------------------");
+      log.debug("*");
     }
-    log.debug("Request parameters -------v");
-    for (Enumeration e = request.getParameterNames() ; e.hasMoreElements();) {
-      String a = (String)e.nextElement();
-      log.debug(a+": "+request.getParameter(a));
-    }
-    log.debug("---------------------------");
-    log.debug("*");
 
     /** Base URL (host + servlet) */
     // remove the last slash '/' from the base URL,
