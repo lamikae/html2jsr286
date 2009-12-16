@@ -92,12 +92,14 @@ public class Rails286PortletFunctions {
     }
 
     // Check
-    log.debug(ret.length + " parameters: --------------------");
-    for (int x=0 ; x<ret.length ; x++) {
-      log.debug(ret[x].toString());
+    if (log.isDebugEnabled()) {
+      log.debug(ret.length + " parameters: --------------------");
+      for (int x=0 ; x<ret.length ; x++) {
+        log.debug(ret[x].toString());
+      }
+      log.debug("----------------------------------");
     }
-    log.debug("----------------------------------");
-
+    
     return ret;
   }
 
