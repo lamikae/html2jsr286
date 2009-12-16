@@ -25,6 +25,7 @@ package com.celamanzi.liferay.portlets.rails286;
 import java.net.URL;
 import java.io.IOException;
 
+import java.util.HashMap;
 import java.util.Locale;
 
 import javax.portlet.PortletURL;
@@ -81,9 +82,9 @@ public class OnlineClient {
     locale      = null;
   }
   
-  OnlineClient(URL _requestURL, Cookie[] _cookies, URL _httpReferer, Locale _locale) {
+  OnlineClient(URL _requestURL, HashMap<String,Cookie> _cookies, URL _httpReferer, Locale _locale) {
     requestURL  = _requestURL;
-    cookies     = _cookies;
+    cookies     = _cookies.values().toArray(new Cookie[0]);
     httpReferer = _httpReferer;
     locale      = _locale;
   }
@@ -106,17 +107,7 @@ public class OnlineClient {
     byte[] responseBody = null;
     statusCode = -1;
     
-    // Create an instance of HttpClient and prepare it
-    HttpClient client = new HttpClient();
-    
-    client.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
-    client.getParams().setParameter(HttpMethodParams.SINGLE_COOKIE_HEADER, true);
-
-    // Set state (session cookies)
-    client.setState(preparedHttpState());
-    // Set timeout
-    client.getHttpConnectionManager().getParams().setConnectionTimeout(timeout);
-    
+    HttpClient client = preparedClient();    
     
     // Create the GET method and prepare its headers
     GetMethod method = new GetMethod(requestURL.toString());
@@ -125,7 +116,7 @@ public class OnlineClient {
     
     //debugHeaders(method.getRequestHeaders());
 
-    log.debug("Request URL: " + requestURL.toString());
+    log.debug("GET request URL: " + requestURL.toString());
     
     try {
       // Execute the method
@@ -145,6 +136,7 @@ public class OnlineClient {
       
       // Get session cookies
       cookies = client.getState().getCookies();
+      log.debug("Stored "+cookies.length+" cookies.");
       
     } finally {
       // Release the connection
@@ -153,6 +145,84 @@ public class OnlineClient {
     
     return responseBody;
   }
+  
+  
+  /** POST
+   *
+   * Posts the parametersBody
+   */
+  protected byte[] post(NameValuePair[] parametersBody)
+  throws HttpException, IOException
+  {
+    // Response body from the web server
+    byte[] responseBody = null;
+    statusCode = -1;
+    
+    HttpClient client = preparedClient();
+    
+    // Create a method instance.
+    log.debug("POST action request URL: " + requestURL.toString());
+    PostMethod method = new PostMethod(requestURL.toString());
+    HttpMethod _method = (HttpMethod)method;
+    method = (PostMethod)prepareMethodHeaders(_method);
+    method.setRequestBody( parametersBody );
+    
+    // Provide custom retry handler is necessary
+    method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, 
+                                    new DefaultHttpMethodRetryHandler(3, false));
+  
+    try {
+      // Execute the method.
+      statusCode = client.executeMethod(method);
+      
+      if (statusCode == 302) {
+        if (log.isDebugEnabled()) {
+          debugHeaders((Header[])method.getResponseHeaders());
+        }
+        
+        // get Location
+        String location = ((Header)method.getResponseHeader("Location")).getValue();
+        requestURL = new URL(location);
+        log.info("POST status code: " + method.getStatusLine());
+        log.debug("Redirect to location: "+location);
+        
+        // Get session cookies
+        cookies = client.getState().getCookies();
+
+        responseBody = get();
+        log.debug(new String(responseBody));
+        
+        /** Note that this overwrites the previous POST method,
+          * so it should have set statusCode and cookies from the last reply.
+          */
+          
+      }
+      else {
+        // the original POST method was OK, pass
+        // No more redirects! Response should be 200 OK
+        if (statusCode != HttpStatus.SC_OK) {
+          log.error("Method failed: " + method.getStatusLine());
+        }
+        else {
+          log.info("POST status code: " + method.getStatusLine());
+        }
+        
+        // Read the response body.
+        responseBody = method.getResponseBody();
+        
+        // Get session cookies
+        cookies = client.getState().getCookies();
+      }
+
+      
+    } finally {
+      // Release the connection
+      method.releaseConnection();
+    }
+    
+    return responseBody;
+  }
+  
   
   
   /** Returns a HttpState fixed with cookies.
@@ -182,7 +252,25 @@ public class OnlineClient {
 
     return state;
   }
-  
+    
+  /** Prepares client.
+   */
+  protected HttpClient preparedClient()
+  {
+    // Create an instance of HttpClient and prepare it
+    HttpClient client = new HttpClient();
+    
+    client.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
+    client.getParams().setParameter(HttpMethodParams.SINGLE_COOKIE_HEADER, true);
+    
+    // Set state (session cookies)
+    client.setState(preparedHttpState());
+    // Set timeout
+    client.getHttpConnectionManager().getParams().setConnectionTimeout(timeout);
+    
+    return client;
+  }
+    
   
   /** Prepares method headers.
    *
@@ -224,7 +312,7 @@ public class OnlineClient {
   private void debugHeaders(Header[] headers) {
     log.debug("Headers:");
     for (Header h : headers)
-      log.debug(h.toString());
+      log.debug(h.toString().trim());
   }
       
       

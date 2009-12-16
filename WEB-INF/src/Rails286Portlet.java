@@ -86,6 +86,10 @@ public class Rails286Portlet extends GenericPortlet {
       super.init(config);
   }
 
+  public Map<String, String[]> getContainerRuntimeOptions() {
+    return this.getPortletConfig().getContainerRuntimeOptions();
+  }
+    
   /**
     * Main method, render(). Other portlet modes are not supported.
     *
@@ -217,15 +221,31 @@ public class Rails286Portlet extends GenericPortlet {
         *
         * Cookies are never explicitly removed from PortletSession.
         *
+        * In the PortletSession, the cookies are stored in Cookie[].
+        * In this method they are handled in HashMap.
+        *
         */
-      Cookie[] cookies = null;
+      HashMap<String,Cookie> cookies = new HashMap<String,Cookie>();
         
+      // get cookies from PortletSession to HashMap
       if (session.getAttribute("cookies") != null) {
         log.debug("Stored session cookies found");
-        cookies = (Cookie[])session.getAttribute("cookies");
+        for (Cookie cookie : (Cookie[])session.getAttribute("cookies")) {
+          cookies.put((String)cookie.getName(), cookie);
+        }
       }
 
-
+      // Retrieve servlet cookies.
+      // Author Reinaldo Silva
+      // Needs tests!
+      /*
+      Cookie[] servletCookies = OnlineUtils.getRequestCookies(request, requestUrl);
+      for (int i = 0; i < servletCookies.length; i++) {
+        if (!cookies.containsKey(servletCookies[i].getName()))
+          cookies.put((String)servletCookies[i].getName(), (Cookie)servletCookies[i]);
+      }
+       */
+      
       /**
         * Select the request method (GET or POST).
         *
@@ -257,14 +277,23 @@ public class Rails286Portlet extends GenericPortlet {
       
       
       OnlineClient client = null;
+      client = new OnlineClient(requestUrl,cookies,httpReferer,locale);
 
       /**
        * GET
        */
       if (requestMethod.equals("get")) {
-        // OnlineClient will eventually replace OnlineUtils completely
-        client = new OnlineClient(requestUrl,cookies,httpReferer,locale);
         railsResponse = new String(client.get());
+        // TODO: get responseHeader and responseBody
+        
+        // save/update client Cookie[] into cookies HashMap
+        /*
+        for (Cookie c : client.cookies)
+          cookies.put((String)c.getName(), (Cookie)c);
+         */
+        
+        // should servlet cookies be stored to the session? here they are not.
+
         session.setAttribute("cookies",
                              client.cookies,
                              PortletSession.PORTLET_SCOPE);
@@ -274,21 +303,30 @@ public class Rails286Portlet extends GenericPortlet {
        * POST
        */
       else if (requestMethod.equals("post") || requestMethod.equals("put")) {
-        // parametersBody for the POST action
+        // retrieve POST parameters        
         NameValuePair[] parametersBody = (NameValuePair[])request.getAttribute("parametersBody");
-        if (parametersBody != null) {
-          debugParams(parametersBody);
-        }
-        else {
+        if (parametersBody == null) {
           log.warn("Empty parametersBody in the request, no POST data?");
         }
+        else if (log.isDebugEnabled()) {
+          debugParams(parametersBody);
+        }
+        
         // POST the parametersBody
-        railsResponse = OnlineUtils.postActionRequest(requestUrl,parametersBody,cookies,httpReferer);
+        // OnlineClient handles cases where POST redirects.
+        railsResponse = new String(client.post(parametersBody));
 
-        /** TODO: Cookie handling; store new cookies into PortletSession.
-         TODO: do not leave the POST method hanging around in the session.
-         */
+        // store new cookies into PortletSession.
+        session.setAttribute("cookies",
+                             client.cookies,
+                             PortletSession.PORTLET_SCOPE);
 
+        // do not leave the POST method hanging around in the session.
+        session.setAttribute("requestMethod",
+                             "get",
+                             PortletSession.PORTLET_SCOPE);
+        
+        // ???
         if (session.getAttribute("httpReferer") != null) {
           log.debug("Saving route from httpReferer: "+httpReferer.toString());
           session.setAttribute(
@@ -296,64 +334,7 @@ public class Rails286Portlet extends GenericPortlet {
               httpReferer.toString(),
               PortletSession.PORTLET_SCOPE);
         }
-        
-        /** FIXME:
-         
-         Post is too complicated. This needs a redesign of the structure,
-         or implemented into OnlineClient.
-         
-         Cookie handling is broken here.
-         
-         */
-
-
-        // TODO: check for status code 302 instead of regexp
-        if (true) {
-          log.debug("You are being redirected .. GET the directed page");
-
-          /** Extract the url and create another request.
-            *
-            * The railsResponse is a page with the contents:
-            * You are being <a href="...">redirected</a>.</div>
-            *
-            */
-
-          /* REGULAR EXPRESSIONS */
-          String a_regexp = "You are being <a ([^\\>])*>redirected";
-          String href_regexp = "href=[\"]?(([^\"|>| ])*)";
-          Pattern a_pattern = Pattern.compile(a_regexp);
-          Matcher a_matcher = a_pattern.matcher(railsResponse);
-
-          while (a_matcher.find()) {
-            String html_a = null;
-            log.debug( "groups   : " + a_matcher.groupCount() );
-            html_a = a_matcher.group();
-            log.debug( "Redirect link: " + html_a );
-
-            String a_href = null;
-            Pattern href_pattern = Pattern.compile(href_regexp);
-            Matcher href_matcher = href_pattern.matcher(html_a);
-
-            if (href_matcher.find()) {
-              a_href = href_matcher.group(1);
-              log.debug( "href: " + a_href );
-
-              /** Form the request URL */
-              java.net.URL post_get = null;
-              try {
-                post_get = ra.getFullURL(a_href);
-              }
-              catch (java.net.MalformedURLException e) {
-                log.error(e.getMessage());
-              }
-              log.debug("post-POST GET: "+post_get.toString());
-
-              /** GET after POST */
-              railsResponse = OnlineUtils.getRailsHTML(post_get,cookies,httpReferer,locale);
-            } // match!
-          } // match!
-        } // response 302
-      } // POST
+      }
 
       /** FAIL */
       else {

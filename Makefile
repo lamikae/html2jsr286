@@ -27,7 +27,6 @@ compile: clean
 #$(jarlib)/portal-service-5.1.1.jar:\
 
 	export CLASSPATH="\
-	$(jarlib)/portlet-1.0.jar:\
 	$(jarlib)/portlet-2.0.jar:\
 	$(jarlib)/commons-logging.jar:\
 	$(jarlib)/commons-httpclient-3.1.jar:\
@@ -53,7 +52,6 @@ test: compile
 	export CLASSPATH="\
 	$(classes):\
 	test/classes:\
-	$(jarlib)/portlet-1.0.jar:\
 	$(jarlib)/portlet-2.0.jar:\
 	$(jarlib)/commons-logging.jar:\
 	$(jarlib)/commons-httpclient-3.1.jar:\

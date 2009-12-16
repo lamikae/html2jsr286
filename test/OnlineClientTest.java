@@ -19,6 +19,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
 import org.apache.commons.httpclient.Cookie;
+import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.cookie.*;
 import org.apache.commons.httpclient.Header;
@@ -141,6 +142,23 @@ public class OnlineClientTest {
     assertEquals(sessionId,_sessionId);
   } 
   
+  @Test
+  public void test_post()
+  throws MalformedURLException, HttpException, IOException
+  {
+    client = new OnlineClient(new URL(railsJUnitURL+"/post_redirect_get"));
+    assertNotNull(client);
+    
+    NameValuePair[] params = {
+       new NameValuePair("foo", "bar")
+    };
+    
+    byte[] body = client.post(params);
+    assertEquals(200,client.statusCode);
+    
+    Cookie[] cookies = client.cookies;
+    assertEquals(1,cookies.length);
+  }
   
   
   

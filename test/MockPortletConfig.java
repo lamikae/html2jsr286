@@ -21,6 +21,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Map;
+import java.util.Vector;
+
 
 import javax.portlet.PortletConfig;
 import javax.portlet.filter.FilterConfig;
@@ -114,25 +117,46 @@ public class MockPortletConfig implements PortletConfig,FilterConfig {
 		return this.initParameters.getProperty(name);
 	}
 
-	public Enumeration getInitParameterNames() {
-		return this.initParameters.keys();
-	}
-
+  
+  /** baked on top stable spring release 2.x */
+  
+  
+  public Enumeration<String> getInitParameterNames() {
+    Vector<String> v = new Vector<String>();
     
-    
-    
-    
-    
-    
-    // added for FilterConfig typecast
-    // javax.portlet.filter.FilterConfig fc = new portletConfig();
-    public String getFilterName() {
-        return this.portletName;
+    for(Enumeration e = this.initParameters.keys() ; e.hasMoreElements() ;) {
+      v.add((String)e.nextElement());
     }
+    return v.elements();
+  }
+  
+  public Enumeration<java.util.Locale> getSupportedLocales() {
+    return null;
+  }
+  
+  public java.util.Enumeration<javax.xml.namespace.QName> getProcessingEventQNames() {
+    return null;
+  }
+
+  
+  public java.util.Enumeration<javax.xml.namespace.QName> getPublishingEventQNames() {
+    return null;
+  }
+  
+  public java.lang.String getDefaultNamespace() {
+    return "";
+  }
+  
+  public java.util.Enumeration<String> getPublicRenderParameterNames() {
+    return null;
+  }
     
-    
-    
-    
-    
-    
+  public String getFilterName() {
+      return this.portletName;
+  }
+  
+  public Map<String, String[]> getContainerRuntimeOptions() {
+    return null;
+  }
+  
 }

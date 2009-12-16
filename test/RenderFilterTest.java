@@ -23,10 +23,10 @@ public class RenderFilterTest {
     public String servlet  = "servlet";
     public String route    = "some/route?params";
     
-    Rails286PortletRenderFilter filter = new Rails286PortletRenderFilter();
-    FilterConfig filterConfig = null;
-    PortletContext portletContext = null;
-    PortletSession session = null;
+    private Rails286PortletRenderFilter filter = new Rails286PortletRenderFilter();
+    private FilterConfig filterConfig = null;
+    private PortletContext portletContext = null;
+    private PortletSession session = null;
     
     @Before
     public void setup() {
