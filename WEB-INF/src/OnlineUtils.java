@@ -315,69 +315,6 @@ public class OnlineUtils {
   }
 
 
-  /** GETs innocent cookies */
-  protected static Cookie[] getCookies(java.net.URL url)
-  throws HttpException, Exception {
-    Cookie[] cookies = null;
-
-    HttpClient client = new HttpClient();
-    client.getHostConfiguration().setHost(url.getHost(), url.getPort(), url.getProtocol());
-    GetMethod cookget = new GetMethod(url.toString());
-    int statusCode = -1;
-
-    try {
-      log.debug("Requesting cookies from: " + url.toString());
-      statusCode = client.executeMethod(cookget);
-
-    } catch (HttpException e) {
-      log.error("Fatal protocol violation: " + e.getMessage());
-      throw e;
-//       e.printStackTrace();
-    } catch (IOException e) {
-      log.error("Fatal transport error: " + e.getMessage());
-      throw e;
-//       e.printStackTrace();
-    } finally {
-      log.debug(cookget.getStatusLine());
-      // release any connection resources used by the method
-      cookget.releaseConnection();
-    }
-
-    // Bail out if the status code is not OK (200)
-    if (statusCode != HttpStatus.SC_OK) {
-      log.warn("Got status code "+statusCode+" while requesting cookies from "+url.toString());
-      return null;
-    }
-
-    // See if we got any cookies
-    CookieSpec cookiespec = CookiePolicy.getDefaultSpec();
-    cookies = client.getState().getCookies();
-
-    log.debug("Received "+cookies.length+" cookies:");
-    for (int i = 0; i < cookies.length; i++) {
-      log.debug(cookies[i].toString());
-    }
-
-    // pick the desired cookie
-    cookies = cookiespec.match(
-      url.getHost(), url.getPort(), url.getPath(), false, cookies);
-
-    if (cookies.length == 0) {
-      log.debug("No matching cookies");
-    } else {
-      log.debug("Matched cookies:");
-      for (int i = 0; i < cookies.length; i++) {
-        log.debug(cookies[i].toString());
-      }
-    }
-
-    return cookies;
-  }
-
-  protected static Cookie[] getCookies(String url)
-  throws Exception {
-    return getCookies(new java.net.URL(url));
-  }
 
 
   private static void debugUrl(java.net.URL url) {
