@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2008 Mikael Lammentausta
+ * Copyright (c) 2008,2009 Mikael Lammentausta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.net.URL;
 import java.net.MalformedURLException;
 
 import java.io.IOException;
@@ -70,20 +71,6 @@ public class Rails286Portlet extends GenericPortlet {
    */
   private final Log log = LogFactory.getLog(getClass().getName());
 
-  // EDIT or HELP modes are not supported
-  private String editUrl;
-  private String helpUrl;
-  private String errorUrl;
-  private String debugUrl;
-
-  /* Cookie handling -- not used
-  String username = "";
-  String userpw = "";
-  NameValuePair userid   = new NameValuePair("username", username);
-  NameValuePair password = new NameValuePair("userpw", userpw);
-  NameValuePair[] loginCredentials = new NameValuePair[] {userid, password};
-  */
-
 
   /**** Override the GenericPortlet functions.
    */
@@ -97,11 +84,6 @@ public class Rails286Portlet extends GenericPortlet {
                PortletVersion.PORTLET_VERSION+
                " - " + config.getPortletName() );
       super.init(config);
-
-//     editUrl           = config.getInitParameter("edit_url");
-//     helpUrl           = config.getInitParameter("help_url");
-//     errorUrl          = config.getInitParameter("error_url");
-//     debugUrl          = config.getInitParameter("debug_url");
   }
 
   /**
@@ -120,19 +102,25 @@ public class Rails286Portlet extends GenericPortlet {
   public void render(RenderRequest request, RenderResponse response)
   throws PortletException, IOException {
     log.debug("View "+response.getNamespace());
-	/* The preferences are never used.
-    PortletPreferences preferences = request.getPreferences();
-	*/
 
-    /** Base + Request URLs are set in the RenderFilter and are read from the PortletSession. */
-    java.net.URL railsBaseUrl  = null;
-    String       railsRoute    = null;
-    java.net.URL httpReferer   = null;
+    /* The preferences are never used.
+    PortletPreferences preferences = request.getPreferences();
+     */
+    
+    /** 
+     Base + Request URLs are set in the RenderFilter 
+     and are read from the PortletSession.
+     */
+    URL      railsBaseUrl  = null;
+    String   servlet       = null;
+    String   railsRoute    = null;
+    URL      httpReferer   = null;
+            
 
     /** The processed web page is catenated to the RenderResponse */
     String outputHTML          = null;
-
-
+    
+    
     /**
       * Session storage.
       *
@@ -140,15 +128,15 @@ public class Rails286Portlet extends GenericPortlet {
       * The session is manipulated in the Render Filter.
       *
       * APPLICATION_SCOPE stores data across all user portlets in the same session.
-      * PORTLET_SCOPE stores information only accessible to the user's QueryPortlet instance.
+      * PORTLET_SCOPE stores information only accessible to the user's RailsPortlet instance.
       *
       * @see javax.portlet.PortletSession
       * http://www.bluesunrise.com/portlet-api/javax/portlet/PortletSession.html
       *
       */
     PortletSession session = request.getPortletSession(true);
-
-
+    
+    
     /**
       * Host and route.
       *
@@ -206,7 +194,7 @@ public class Rails286Portlet extends GenericPortlet {
 
 
       /** Form the request URL */
-      String servlet = (String)session.getAttribute("servlet");
+      servlet = (String)session.getAttribute("servlet");
       RouteAnalyzer ra = new RouteAnalyzer(railsBaseUrl,servlet);
       try {
         requestUrl = ra.getFullURL(railsRoute);
@@ -215,54 +203,23 @@ public class Rails286Portlet extends GenericPortlet {
         log.error(e.getMessage());
       }
 
-      /** nothing between the previous and this comment belongs in this method */
+      /** nothing in the previous try-catch belongs to this method */
 
 
-        /** Cookie handling.
-          *
-          * Get the authentication cookies, if not found from the session.
-          * Store the new cookies into the session.
-          *
-          * TODO: clean up this cruft to another function.
-          * Besides, cookies are not currently used for anything.
-          *
-          */
-        Cookie[] logonCookies = null;
-        Cookie[] cookies = null;
-        /*
-        if (session.getAttribute("cookies") == null) {
-          // request new cookies
-          log.debug("Cookies not found in the session - requesting new cookies");
-          try {
-            //logonCookies = OnlineUtils.getCookies(requestUrl,loginCredentials);
-            cookies = OnlineUtils.getCookies(requestUrl);
-          }
-          catch (Exception e) {
-            log.error(e.getMessage());
-          }
-
-          // in case we got new cookies
-          if (cookies != null) {
-            log.info("Storing "+cookies.length+" cookies into session");
-            session.setAttribute(
-                "cookies",
-                cookies,
-                PortletSession.PORTLET_SCOPE);
-          }
-          else {
-            log.warn("No cookies received");
-          }
-        }
-        // pick up existing cookies from the session store
-        else {
-          cookies = (Cookie[])session.getAttribute("cookies");
-          log.debug("Using cookies stored in the session");
-
-          for (int i = 0; i < cookies.length; i++) {
-            log.debug(cookies[i].toString());
-          }
-        }
+      /** Cookie handling.
+        *
+        * If session cookies were found in the PortletSession,
+        * use them later with OnlineClient.
+        *
+        * Cookies are never explicitly removed from PortletSession.
+        *
         */
+      Cookie[] cookies = null;
+        
+      if (session.getAttribute("cookies") != null) {
+        log.debug("Stored session cookies found");
+        cookies = (Cookie[])session.getAttribute("cookies");
+      }
 
 
       /**
@@ -286,14 +243,32 @@ public class Rails286Portlet extends GenericPortlet {
 
       // Language
       java.util.Locale locale = request.getLocale();
+      
+      
+      /**
+       *
+       * Execute the request
+       *
+       */
+      
+      
+      OnlineClient client = null;
 
-
-      /** GET */
+      /**
+       * GET
+       */
       if (requestMethod.equals("get")) {
-        railsResponse = OnlineUtils.getRailsHTML(requestUrl,cookies,httpReferer,locale);
+        // OnlineClient will eventually replace OnlineUtils completely
+        client = new OnlineClient(requestUrl,cookies,httpReferer,locale);
+        railsResponse = new String(client.get());
+        session.setAttribute("cookies",
+                             client.cookies,
+                             PortletSession.PORTLET_SCOPE);
       }
 
-      /** POST */
+      /**
+       * POST
+       */
       else if (requestMethod.equals("post") || requestMethod.equals("put")) {
         // parametersBody for the POST action
         NameValuePair[] parametersBody = (NameValuePair[])request.getAttribute("parametersBody");
@@ -306,7 +281,10 @@ public class Rails286Portlet extends GenericPortlet {
         // POST the parametersBody
         railsResponse = OnlineUtils.postActionRequest(requestUrl,parametersBody,cookies,httpReferer);
 
-        // do not leave the POST method hanging around in the session
+        /** TODO: Cookie handling; store new cookies into PortletSession.
+         TODO: do not leave the POST method hanging around in the session.
+         */
+
         if (session.getAttribute("httpReferer") != null) {
           log.debug("Saving route from httpReferer: "+httpReferer.toString());
           session.setAttribute(
@@ -314,6 +292,15 @@ public class Rails286Portlet extends GenericPortlet {
               httpReferer.toString(),
               PortletSession.PORTLET_SCOPE);
         }
+        
+        /** FIXME:
+         
+         Post is too complicated. This needs a redesign of the structure,
+         or implemented into OnlineClient.
+         
+         Cookie handling is broken here.
+         
+         */
 
 
         // TODO: check for status code 302 instead of regexp
@@ -370,7 +357,11 @@ public class Rails286Portlet extends GenericPortlet {
       }
 
 
-      /** Process the response body */
+      /**
+       *
+       * Process the response body
+       *
+       */
       if ( railsResponse != null ) {
         try {
           // instantiate the PageProcessor
@@ -403,6 +394,7 @@ public class Rails286Portlet extends GenericPortlet {
     }
 
     // Catenate the HTML page to the RenderResponse
+      //log.debug(outputHTML);
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     out.println( outputHTML );
