@@ -257,8 +257,8 @@ public class Rails286Portlet extends GenericPortlet {
       log.debug("Request method: "+requestMethod);
 
       // get the referer
-      httpReferer = (java.net.URL)session.getAttribute("httpReferer");
-      if (httpReferer != null ) {
+      if (session.getAttribute("httpReferer") != null) {
+        httpReferer = (java.net.URL)session.getAttribute("httpReferer");
         log.debug("HTTP referer: "+httpReferer.toString());
       }
       else {
