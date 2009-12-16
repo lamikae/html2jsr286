@@ -41,6 +41,7 @@ import org.apache.commons.logging.LogFactory;
 import java.io.IOException;
 
 import javax.portlet.PortletURL;
+import javax.portlet.RenderRequest;
 
 
 public class OnlineUtils {
