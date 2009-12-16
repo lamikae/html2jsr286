@@ -92,6 +92,11 @@ public class OnlineClient {
   
   /** GET
    *
+   * Instantiates HttpClient, prepares it with session cookies,
+   * executes the request and returns the response body.
+   *
+   * TODO: set response headers to internal protected variable.
+   * 
    * @since 0.8.0
    */
   protected byte[] get()
@@ -103,6 +108,10 @@ public class OnlineClient {
     
     // Create an instance of HttpClient and prepare it
     HttpClient client = new HttpClient();
+    
+    client.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
+    client.getParams().setParameter(HttpMethodParams.SINGLE_COOKIE_HEADER, true);
+
     // Set state (session cookies)
     client.setState(preparedHttpState());
     // Set timeout
@@ -155,21 +164,22 @@ public class OnlineClient {
     HttpState state = new HttpState();
 
     if (cookies != null) {
-      log.debug("Using " + cookies.length + " session cookies");
-      for (Cookie c : cookies)
-        log.debug(c.toExternalForm());
-      /*
-      for (int i = 0; i < authCookies.length; i++) {
-        log.debug(authCookies[i].toExternalForm());
-      }
-       */
-      
       // Add cookies to the state
       state.addCookies(cookies);
     }
-    else {
-      log.debug("No existing session cookies");
+      
+    if (log.isDebugEnabled()) {
+      Cookie[] _cookies = state.getCookies();
+      log.debug("Using " + _cookies.length + " authorized cookies");
+      for (Cookie cookie : _cookies)
+        log.debug("HttpState-Cookie: "
+                  + cookie.toString()
+                  + ", domain=" + cookie.getDomain()
+                  + ", path=" + cookie.getPath()
+                  + ", max-age=" + cookie.getExpiryDate()
+                  + ", secure=" + cookie.getSecure());
     }
+
     return state;
   }
   

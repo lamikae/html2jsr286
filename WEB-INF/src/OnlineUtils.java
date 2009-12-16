@@ -315,7 +315,43 @@ public class OnlineUtils {
   }
 
 
-
+  /** 
+   * @author Reinaldo Silva 
+   */
+  protected static Cookie[] getRequestCookies(RenderRequest request, java.net.URL url)
+  {
+    javax.servlet.http.Cookie[] sr_cookies;
+    org.apache.commons.httpclient.Cookie[] cookies;
+    
+    sr_cookies = request.getCookies();
+    cookies = new org.apache.commons.httpclient.Cookie[sr_cookies.length];
+    
+    log.debug("Servlet request cookies -------v");
+    
+    for (int i = 0; i < sr_cookies.length; i++) {
+      cookies[i] = new org.apache.commons.httpclient.Cookie(
+                                                            url.getHost(),
+                                                            sr_cookies[i].getName(),
+                                                            sr_cookies[i].getValue(),
+                                                            url.getPath(),
+                                                            sr_cookies[i].getMaxAge(),
+                                                            sr_cookies[i].getSecure()
+                                                            );
+      
+      log.debug("Servlet-Cookie: "
+                + cookies[i].toString()
+                + ", original-domain=" + sr_cookies[i].getDomain()
+                + ", domain=" + url.getHost()
+                + ", original-path=" + sr_cookies[i].getPath()
+                + ", path=" + cookies[i].getPath()
+                + ", max-age=" + cookies[i].getExpiryDate()
+                + ", secure=" + cookies[i].getSecure());
+    }
+    
+    return cookies;
+  }
+  
+      
 
   private static void debugUrl(java.net.URL url) {
     System.out.println( "Protocol : " + url.getProtocol() );
