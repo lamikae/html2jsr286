@@ -75,13 +75,14 @@ public class BodyTagVisitor extends NodeVisitor
   }
 
   /** alternative that takes portletUrl directly */
-  public BodyTagVisitor( java.net.URL bu, String s, String rp, String ns, PortletURL pu ) {
+  public BodyTagVisitor( java.net.URL bu, String s, String rp, String ns, PortletURL pu, PortletURL actionURL ) {
     baseUrl      = bu;
     servlet      = s;
     requestPath  = rp;
     documentPath = "/";
     namespace    = ns;
     portletUrl   = pu;
+    actionUrl    = actionURL;
   }
 
   /** Recurses to every HTML tag.
@@ -339,7 +340,6 @@ public class BodyTagVisitor extends NodeVisitor
     else if ((tag instanceof FormTag) && (actionUrl != null))
 //    else if ((tag instanceof FormTag) )
     {
-        
       FormTag frm = (FormTag)tag;
       String method = frm.getFormMethod();
       //String formAction = frm.extractFormLocn();

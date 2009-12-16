@@ -19,6 +19,8 @@ import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.springframework.mock.web.portlet.*;
+
 import com.celamanzi.liferay.portlets.rails286.BodyTagVisitor;
 
 
@@ -35,7 +37,8 @@ public class BodyTagVisitorTest {
 	String requestPath  = "request/path";
 	String documentPath = "/";
 	private String namespace = "__TEST_PORTLET__";
-	PortletURL portletUrl   = null; // TODO: instantiate PortletURL
+	PortletURL portletURL   = null;
+    PortletURL actionURL    = null; 
 	NodeVisitor visitor = null;
 	XPath xpath = null;
 	XPathExpression expr = null;
@@ -47,11 +50,24 @@ public class BodyTagVisitorTest {
 	throws java.net.MalformedURLException
 	{
 		baseUrl = new java.net.URL("http://localhost:3000");
-		visitor = new BodyTagVisitor(baseUrl, servlet, requestPath, namespace, portletUrl);
+        
+        javax.portlet.PortalContext portalContext = new MockPortalContext();
+        
+        MockPortletURL _portletURL = new MockPortletURL(portalContext,"render");
+        MockPortletURL _actionURL  = new MockPortletURL(portalContext,"action");
+        
+        portletURL = (PortletURL)_portletURL;
+        assertNotNull(portletURL);
+
+        actionURL = (PortletURL)_actionURL;
+        assertNotNull(actionURL);
+
+        visitor = new BodyTagVisitor(baseUrl, servlet, requestPath, namespace, portletURL, actionURL);
 		assertNotNull(visitor);
 		xpath = XPathFactory.newInstance().newXPath();
 		nodes = null;
-	}
+        
+    }
 
 
 	@Test
@@ -119,9 +135,7 @@ public class BodyTagVisitorTest {
 		expr = xpath.compile("/div/form/@action");
 		nodes = TestHelpers.evalExpr(expr, doc);
 		assertEquals(1,nodes.getLength());
-        // NOTE: the assertion is commented, because it fails in development
-        // but not in production (possibly...) due to missing PortletURL instance.
-        //assertEquals(url,nodes.item(0).getNodeValue());
+        assertEquals(url,nodes.item(0).getNodeValue());
         
     }
 
