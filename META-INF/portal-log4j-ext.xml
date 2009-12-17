@@ -24,7 +24,7 @@
     <priority value="INFO" />
   </category>
   
-  <category name="com.celamanzi.liferay.portlets.rails286.SessionAuthenticator">
+  <category name="com.celamanzi.liferay.portlets.rails286.OnlineClient">
     <priority value="INFO" />
   </category>
   
