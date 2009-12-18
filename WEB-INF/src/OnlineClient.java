@@ -196,7 +196,7 @@ public class OnlineClient {
         cookies = client.getState().getCookies();
 
         responseBody = get();
-        log.debug(new String(responseBody));
+        //log.debug(new String(responseBody));
         
         /** Note that this overwrites the previous POST method,
           * so it should have set statusCode and cookies from the last reply.

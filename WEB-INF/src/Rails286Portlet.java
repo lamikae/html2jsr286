@@ -80,8 +80,10 @@ public class Rails286Portlet extends GenericPortlet {
   /** Portlet initialization at portal startup.
     */
   public void init(PortletConfig config) throws PortletException {
-      log.info("Initializing Rails-portlet %s (v.%s)".format(
-        config.getPortletName(),PortletVersion.PORTLET_VERSION));
+      log.info(
+		"Initializing Rails-portlet "+config.getPortletName()+
+		" (v."+PortletVersion.PORTLET_VERSION+")"
+      );
       super.init(config);
   }
 
