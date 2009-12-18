@@ -162,8 +162,11 @@ public class Rails286PortletRenderFilter implements RenderFilter {
     String requestMethod = "get";
     URL    httpReferer   = null;
     
-    
-    if ( request.getParameter("railsRoute") == null ) {
+    // actionURL puts the parameter to attributes!!!!
+    if (
+		( request.getParameter("railsRoute") == null ) &&
+		( request.getAttribute("railsRoute") == null )
+	) {
       log.debug("Unset request parameter \"railsRoute\" - reset portlet");
       railsRoute = route;
     }

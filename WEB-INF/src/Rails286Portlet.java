@@ -105,11 +105,16 @@ public class Rails286Portlet extends GenericPortlet {
   public void render(RenderRequest request, RenderResponse response)
   throws PortletException, IOException {
     if (log.isDebugEnabled()) {
-      log.debug("View "+response.getNamespace());
-      log.debug(request.getAuthType());
-      log.debug(request.getRemoteUser());
-      log.debug(request.getUserPrincipal().getName());
-    }
+      try {
+        log.debug("View "+response.getNamespace());
+        log.debug(request.getAuthType());
+        log.debug(request.getRemoteUser());
+        log.debug(request.getUserPrincipal().getName());
+      }
+      catch (java.lang.NullPointerException e) {
+        log.error(e.getMessage());
+      }
+    } 
 
     /* The preferences are never used.
     PortletPreferences preferences = request.getPreferences();
