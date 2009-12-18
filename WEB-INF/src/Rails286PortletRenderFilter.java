@@ -162,25 +162,26 @@ public class Rails286PortletRenderFilter implements RenderFilter {
     String requestMethod = "get";
     URL    httpReferer   = null;
     
-    // actionURL puts the parameter to attributes!!!!
     if (
-		( request.getParameter("railsRoute") == null ) &&
-		( request.getAttribute("railsRoute") == null )
-	) {
+      ( request.getParameter("railsRoute") == null ) &&
+      ( request.getAttribute("railsRoute") == null )
+    ) {
+      /*
+       * If the request does not define the route, it is reset to default.
+       */
       log.debug("Unset request parameter \"railsRoute\" - reset portlet");
       railsRoute = route;
     }
     else {
-      /** Set the route from request parameter "railsRoute".
-       *
-       * If the parameter is not set, the route is reset to default.
-       */
-      railsRoute = request.getParameter("railsRoute");
-
-      /** Request method. GET or POST */
+      /** Request method. If POST via actionURL, this is set. */
       if ( request.getAttribute("requestMethod") != null ) {
+        railsRoute = (String)request.getAttribute("railsRoute");
         requestMethod = (String)request.getAttribute("requestMethod");
-        log.debug("Set request method: "+requestMethod);
+      }
+      else {
+        /** Set the route from request parameter "railsRoute".
+         */
+        railsRoute = request.getParameter("railsRoute");
       }
 
       /** Set the HTTP Referer from session */
