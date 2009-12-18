@@ -150,7 +150,7 @@ public class BodyTagVisitor extends NodeVisitor
           return;
         }
 
-        // the link might be Ajax '#', or plain "some_file.htm(l)",
+        // the link might be plain "some_file.htm(l)",
         // that will raise MalformedURLException.
         String local_file = "^[a-zA-Z0-9_%]*.htm";
         pattern = Pattern.compile(local_file);

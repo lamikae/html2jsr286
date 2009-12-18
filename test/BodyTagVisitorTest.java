@@ -156,12 +156,12 @@ public class BodyTagVisitorTest {
 		String output = body.toHtml();
 		Document doc = TestHelpers.html2doc(body.toHtml());
 
-		expr = xpath.compile("/div/a/@href");
+		expr = xpath.compile("//a/@href");
 		nodes = TestHelpers.evalExpr(expr, doc);
 		assertEquals(1,nodes.getLength());
 		//System.out.println(nodes.item(0).getNodeValue());
 
-		expr = xpath.compile("/div/a/@alt");
+		expr = xpath.compile("//a/@alt");
 		nodes = TestHelpers.evalExpr(expr, doc);
 		assertEquals(1,nodes.getLength());
 		assertEquals("alt_txt",nodes.item(0).getNodeValue());
