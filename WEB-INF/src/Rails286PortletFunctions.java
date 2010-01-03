@@ -26,30 +26,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import java.io.IOException;
-
-import javax.portlet.PortletContext;
-import javax.portlet.PortletException;
 import javax.portlet.PortletRequest;
-import javax.portlet.PortletSession;
 import javax.portlet.RenderRequest;
-import javax.portlet.RenderResponse;
 
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.Cookie;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-/** Liferay classes to get the User ID and portlet's Group ID */
-import com.liferay.portal.util.PortalUtil;
-// import com.liferay.portal.theme.ThemeDisplay;
 
 
 /**
@@ -240,8 +225,32 @@ public class Rails286PortletFunctions {
         log.error(e.getMessage());
       }
     } // end iterate
+
+    //After replaced the runtime variables we need to clear the unused Rails wildcards
+    path = clearRailsWildcards(path);
+    
     log.debug("New path: " + path);
     return path;
+  }
+  
+  /**
+   * 
+   * Clear unused Rails wildcards
+   *
+   **/
+  private static String clearRailsWildcards(String oldPath) {
+	  String path = oldPath;
+	  if (!path.endsWith("/")){
+		  path += "/";
+	  }
+
+	  log.info("Original path (with Rails wildcards): " + path);
+
+	  String newPath = path.replaceAll("(:[a-zA-Z]*/)", "");
+
+	  log.info("Path after cleanup (withour Rails wildcards): " + newPath);
+
+	  return newPath;
   }
   
 }

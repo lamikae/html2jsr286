@@ -1,11 +1,14 @@
 package com.celamanzi.liferay.portlets.rails286;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import javax.portlet.*;
+import javax.portlet.PortletMode;
 
-import com.celamanzi.liferay.portlets.rails286.Rails286PortletFunctions;
+import org.junit.Test;
+import org.springframework.mock.web.portlet.MockRenderRequest;
 
 
 public class PortletFunctionsTest {
@@ -81,6 +84,27 @@ public class PortletFunctionsTest {
 		fail( "Needs to instantiate RenderRequest request" );
 	}
 
-
+	/**
+     * Should clean unused Rails wildcards, like:
+     * 	/10145/10136/otters/:action/ => /10145/10136/otters/ 
+     */
+    @Test
+    public void test_decipherPathCleaningRailsWildcards(){
+    	MockRenderRequest request = new MockRenderRequest(PortletMode.VIEW);
+    	String path = Rails286PortletFunctions.decipherPath("/otters/:action", request);
+    	assertEquals("/otters/", path);
+    	
+    	path = Rails286PortletFunctions.decipherPath("/otters/:action/:another/:another", request);
+    	assertEquals("/otters/", path);
+    	
+    	path = Rails286PortletFunctions.decipherPath("/otters/:action/view/:another", request);
+    	assertEquals("/otters/view/", path);
+    	
+    	path = Rails286PortletFunctions.decipherPath("/otters/:action/view/12/:another", request);
+    	assertEquals("/otters/view/12/", path);
+    	
+    	path = Rails286PortletFunctions.decipherPath("/otters/index", request);
+    	assertEquals("/otters/index/", path);
+    }
   
 }
