@@ -22,29 +22,24 @@
 
 package com.celamanzi.liferay.portlets.rails286;
 
-import java.net.URL;
 import java.io.IOException;
-
-import java.util.HashMap;
+import java.net.URL;
 import java.util.Locale;
-
-import javax.portlet.PortletURL;
+import java.util.Map;
 
 import org.apache.commons.httpclient.Cookie;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
-import org.apache.commons.httpclient.cookie.CookieSpec;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
+import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.HttpState;
-import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpState;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.NameValuePair;
+import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -82,7 +77,7 @@ public class OnlineClient {
     locale      = null;
   }
   
-  OnlineClient(URL _requestURL, HashMap<String,Cookie> _cookies, URL _httpReferer, Locale _locale) {
+  OnlineClient(URL _requestURL, Map<String,Cookie> _cookies, URL _httpReferer, Locale _locale) {
     requestURL  = _requestURL;
     cookies     = _cookies.values().toArray(new Cookie[0]);
     httpReferer = _httpReferer;

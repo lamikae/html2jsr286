@@ -22,41 +22,28 @@
 
 package com.celamanzi.liferay.portlets.rails286;
 
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-import java.util.HashMap;
-import java.util.Map;
-
-import java.net.URL;
-import java.net.MalformedURLException;
-
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.GenericPortlet;
 import javax.portlet.PortletConfig;
-import javax.portlet.PortletContext;
 import javax.portlet.PortletException;
 import javax.portlet.PortletMode;
-import javax.portlet.PortletPreferences;
-import javax.portlet.PortletRequest;
-import javax.portlet.PortletRequestDispatcher;
-import javax.portlet.PortletResponse;
 import javax.portlet.PortletSession;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
-// import javax.portlet.ValidatorException;
-// import javax.portlet.PortletURL;
 
-import org.htmlparser.util.ParserException;
-
-import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.Cookie;
-
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.htmlparser.util.ParserException;
 
 
 /** Presents a Rails application in a JSR286 portlet.
@@ -133,7 +120,7 @@ public class Rails286Portlet extends GenericPortlet {
             
 
     /** The processed web page is catenated to the RenderResponse */
-    String outputHTML          = null;
+    String outputHTML      = null;
     
     
     /**
@@ -219,27 +206,7 @@ public class Rails286Portlet extends GenericPortlet {
 
       /** nothing in the previous try-catch belongs to this method */
 
-
-      /** Cookie handling.
-        *
-        * If session cookies were found in the PortletSession,
-        * use them later with OnlineClient.
-        *
-        * Cookies are never explicitly removed from PortletSession.
-        *
-        * In the PortletSession, the cookies are stored in Cookie[].
-        * In this method they are handled in HashMap.
-        *
-        */
-      HashMap<String,Cookie> cookies = new HashMap<String,Cookie>();
-        
-      // get cookies from PortletSession to HashMap
-      if (session.getAttribute("cookies") != null) {
-        log.debug("Stored session cookies found");
-        for (Cookie cookie : (Cookie[])session.getAttribute("cookies")) {
-          cookies.put((String)cookie.getName(), cookie);
-        }
-      }
+      Map<String,Cookie> cookies = getCookies(session);
 
       // Retrieve servlet cookies.
       // Author Reinaldo Silva
@@ -252,94 +219,31 @@ public class Rails286Portlet extends GenericPortlet {
       }
        */
       
-      /**
-        * Select the request method (GET or POST).
-        *
-        * Use requestMethod if defined, otherwise use GET.
-        */
-      String requestMethod = (
-        session.getAttribute("requestMethod") == null ? "get" : (String)session.getAttribute("requestMethod")
-      );
-      log.debug("Request method: "+requestMethod);
-
+      String requestMethod = getRequestMethod(session);
       // get the referer
-      if (session.getAttribute("httpReferer") != null) {
-        httpReferer = (java.net.URL)session.getAttribute("httpReferer");
-        log.debug("HTTP referer: "+httpReferer.toString());
-      }
-      else {
-        log.debug("HTTP referer is null!");
-      }
-
+      httpReferer = getHttpReferer(session);
       // Language
       java.util.Locale locale = request.getLocale();
-      
       
       /**
        *
        * Execute the request
        *
        */
-      
-      
-      OnlineClient client = null;
-      client = new OnlineClient(requestUrl,cookies,httpReferer,locale);
+      OnlineClient client = new OnlineClient(requestUrl,cookies,httpReferer,locale);
 
       /**
        * GET
        */
       if (requestMethod.equals("get")) {
-        railsResponse = new String(client.get());
-        // TODO: get responseHeader and responseBody
-        
-        // save/update client Cookie[] into cookies HashMap
-        /*
-        for (Cookie c : client.cookies)
-          cookies.put((String)c.getName(), (Cookie)c);
-         */
-        
-        // should servlet cookies be stored to the session? here they are not.
-
-        session.setAttribute("cookies",
-                             client.cookies,
-                             PortletSession.PORTLET_SCOPE);
+        railsResponse = executeGet(session, client);
       }
 
       /**
        * POST
        */
       else if (requestMethod.equals("post") || requestMethod.equals("put")) {
-        // retrieve POST parameters        
-        NameValuePair[] parametersBody = (NameValuePair[])request.getAttribute("parametersBody");
-        if (parametersBody == null) {
-          log.warn("Empty parametersBody in the request, no POST data?");
-        }
-        else if (log.isDebugEnabled()) {
-          debugParams(parametersBody);
-        }
-        
-        // POST the parametersBody
-        // OnlineClient handles cases where POST redirects.
-        railsResponse = new String(client.post(parametersBody));
-
-        // store new cookies into PortletSession.
-        session.setAttribute("cookies",
-                             client.cookies,
-                             PortletSession.PORTLET_SCOPE);
-
-        // do not leave the POST method hanging around in the session.
-        session.setAttribute("requestMethod",
-                             "get",
-                             PortletSession.PORTLET_SCOPE);
-        
-        // ???
-        if (session.getAttribute("httpReferer") != null) {
-          log.debug("Saving route from httpReferer: "+httpReferer.toString());
-          session.setAttribute(
-              "railsRoute",
-              httpReferer.toString(),
-              PortletSession.PORTLET_SCOPE);
-        }
+        railsResponse = executePost(request, httpReferer, session, client);
       }
 
       /** FAIL */
@@ -347,36 +251,10 @@ public class Rails286Portlet extends GenericPortlet {
         throw new PortletException("Unknown request method: "+requestMethod);
       }
 
-
       /**
-       *
        * Process the response body
-       *
        */
-      if ( railsResponse != null ) {
-        try {
-          // instantiate the PageProcessor
-          // PageProcessor => HeadProcessor, BodyTagVisitor (uses RouteAnalyzer)
-          PageProcessor p = new PageProcessor(railsResponse,servlet,response);
-          outputHTML   = p.process(railsBaseUrl,railsRoute);
-
-          /** Set the portlet title by HTML title */
-          String title = p.title;
-          log.info("Page title: "+title);
-          if ( title==null || title=="" ) {
-            response.setTitle( " " ); // nbsp, because Liferay post-processes blank strings
-          }
-          else { response.setTitle( title ); }
-        }
-        // p.process throws ParserException when input is invalid. Should it be catched?
-        catch (ParserException e) {
-          log.error(e.getMessage());
-        }
-        catch (IllegalStateException e) {
-          log.error(e.getMessage());
-        }
-      }
-      /*****************************************************/
+      outputHTML = processResponseBody(response, railsBaseUrl, servlet, railsRoute, railsResponse);
 
     } // try
     catch(Exception e) {
@@ -384,18 +262,16 @@ public class Rails286Portlet extends GenericPortlet {
       log.error(outputHTML);
     }
 
-    // Catenate the HTML page to the RenderResponse
+    // Concatenate the HTML page to the RenderResponse
       //log.debug(outputHTML);
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     out.println( outputHTML );
   }
 
-
   // suppress request.getParameterMap unchecked cast for processAction,
   // since it should always return <String,String[]>
   @SuppressWarnings("unchecked")
-
 
   /** Handles POST requests.
     */
@@ -417,8 +293,7 @@ public class Rails286Portlet extends GenericPortlet {
         */
       Map<String,String[]> p = new HashMap<String,String[]>(request.getParameterMap());
       // create a clone of the parameter Map
-      Map<String,String[]> params = new HashMap<String,String[]>();
-      params.putAll(p);
+      Map<String,String[]> params = new HashMap<String,String[]>(p);
 
       // default to POST for actions
       actionMethod = (params.containsKey("originalActionMethod") ? 
@@ -451,15 +326,153 @@ public class Rails286Portlet extends GenericPortlet {
 	*/
   }
 
-  @SuppressWarnings("")
+  private String executePost(RenderRequest request, URL httpReferer, PortletSession session, OnlineClient client) 
+  throws HttpException,IOException {
+	  
+	  String railsResponse = null;
+	  // retrieve POST parameters        
+	  NameValuePair[] parametersBody = (NameValuePair[]) request.getAttribute("parametersBody");
+	  if (parametersBody == null) {
+		  log.warn("Empty parametersBody in the request, no POST data?");
+	  }
+	  else if (log.isDebugEnabled()) {
+		  debugParams(parametersBody);
+	  }
+
+	  // POST the parametersBody
+	  // OnlineClient handles cases where POST redirects.
+	  railsResponse = new String(client.post(parametersBody));
+
+	  // store new cookies into PortletSession.
+	  session.setAttribute("cookies", client.cookies, PortletSession.PORTLET_SCOPE);
+
+	  // do not leave the POST method hanging around in the session.
+	  session.setAttribute("requestMethod", "get", PortletSession.PORTLET_SCOPE);
+
+	  // ???
+	  if (session.getAttribute("httpReferer") != null) {
+		  log.debug("Saving route from httpReferer: "+httpReferer.toString());
+		  session.setAttribute("railsRoute", httpReferer.toString(), PortletSession.PORTLET_SCOPE);
+	  }
+	  return railsResponse;
+  }
+
+  private String executeGet(PortletSession session, OnlineClient client)
+  throws HttpException, IOException {
+	  
+	  String railsResponse = null;
+	  railsResponse = new String(client.get());
+	  // TODO: get responseHeader and responseBody
+
+	  // save/update client Cookie[] into cookies HashMap
+	  /*
+		for (Cookie c : client.cookies)
+		  cookies.put((String)c.getName(), (Cookie)c);
+	   */
+
+	  // should servlet cookies be stored to the session? here they are not.
+
+	  session.setAttribute("cookies", client.cookies, PortletSession.PORTLET_SCOPE);
+	  return railsResponse;
+  }
+  
+  /**
+   * Create the {@link PageProcessor} and process the railsRoute.
+   * 
+   * @param response - {@link RenderResponse}
+   * @param railsBaseUrl - {@link URL}
+   * @param servlet - {@link String}
+   * @param railsRoute - {@link String}
+   * @param railsResponse - {@link String}
+   * @return outputHTML - {@link String}
+   */
+  private String processResponseBody(RenderResponse response, 
+		  						     URL railsBaseUrl, 
+		  						     String servlet, 
+		  						     String railsRoute, 
+		  						     String railsResponse) {
+	  
+	  String outputHTML = null;
+	  if ( railsResponse != null ) {
+		  try {
+			  // instantiate the PageProcessor
+			  // PageProcessor => HeadProcessor, BodyTagVisitor (uses RouteAnalyzer)
+			  PageProcessor p = new PageProcessor(railsResponse,servlet,response);
+			  outputHTML   = p.process(railsBaseUrl,railsRoute);
+
+			  /** Set the portlet title by HTML title */
+			  String title = p.title;
+			  log.info("Page title: "+title);
+			  if ( title==null || title=="" ) {
+				  response.setTitle( " " ); // nbsp, because Liferay post-processes blank strings
+			  }
+			  else { 
+				  response.setTitle( title ); 
+			  }
+		  }
+		  // p.process throws ParserException when input is invalid. Should it be catched?
+		  catch (ParserException e) {
+			  log.error(e.getMessage());
+		  }
+		  catch (IllegalStateException e) {
+			  log.error(e.getMessage());
+		  }
+	  }
+	  return outputHTML;
+  }
+  
+  /**
+   * Select the request method (GET or POST).
+   *
+   * Use requestMethod if defined, otherwise use GET.
+   */
+  private String getRequestMethod(PortletSession session) {
+	  String requestMethod = session.getAttribute("requestMethod") == null ? "get" : (String)session.getAttribute("requestMethod");
+	  log.debug("Request method: "+requestMethod);
+	  return requestMethod;
+  }
+  
+  private URL getHttpReferer(PortletSession session) {
+	  if (session.getAttribute("httpReferer") != null) {
+		  URL httpReferer = (java.net.URL)session.getAttribute("httpReferer");
+		  log.debug("HTTP referer: "+httpReferer.toString());
+		  return httpReferer;
+	  }
+	  
+	  log.debug("HTTP referer is null!");
+	  return null;
+  }
+
+  /** Cookie handling.
+   *
+   * If session cookies were found in the PortletSession,
+   * use them later with OnlineClient.
+   *
+   * Cookies are never explicitly removed from PortletSession.
+   *
+   * In the PortletSession, the cookies are stored in Cookie[].
+   * In this method they are handled in HashMap.
+   *
+   */
+  private Map<String, Cookie> getCookies(PortletSession session) {
+	  Map<String, Cookie> cookies = new HashMap<String, Cookie>();
+	  // get cookies from PortletSession to HashMap
+	  if (session.getAttribute("cookies") != null) {
+		  log.debug("Stored session cookies found");
+		  for (Cookie cookie : (Cookie[])session.getAttribute("cookies")) {
+			  cookies.put((String)cookie.getName(), cookie);
+		  }
+	  }
+	  return cookies;
+  }
 
   /** Debug */
   private void debugParams(NameValuePair[] parametersBody) {
-    log.debug(parametersBody.length + " parameters: --------------------");
-    for (int x=0 ; x<parametersBody.length ; x++) {
-      log.debug(parametersBody[x].toString());
-    }
-    log.debug("----------------------------------");
+	  log.debug(parametersBody.length + " parameters: --------------------");
+	  for (int x=0 ; x<parametersBody.length ; x++) {
+		  log.debug(parametersBody[x].toString());
+	  }
+	  log.debug("----------------------------------");
   }
 
 }
