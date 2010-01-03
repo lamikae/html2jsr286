@@ -244,11 +244,11 @@ public class Rails286PortletFunctions {
 		  path += "/";
 	  }
 
-	  log.info("Original path (with Rails wildcards): " + path);
+	  log.debug("Original path (with Rails wildcards): " + path);
 
 	  String newPath = path.replaceAll("(:[a-zA-Z]*/)", "");
 
-	  log.info("Path after cleanup (withour Rails wildcards): " + newPath);
+	  log.debug("Path after cleanup (withour Rails wildcards): " + newPath);
 
 	  return newPath;
   }
