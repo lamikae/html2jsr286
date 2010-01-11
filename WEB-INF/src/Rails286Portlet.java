@@ -402,7 +402,7 @@ public class Rails286Portlet extends GenericPortlet {
 
 			  /** Set the portlet title by HTML title */
 			  String title = p.title;
-			  log.info("Page title: "+title);
+			  log.debug("Page title: "+title);
 			  if ( title==null || title=="" ) {
 				  response.setTitle( " " ); // nbsp, because Liferay post-processes blank strings
 			  }

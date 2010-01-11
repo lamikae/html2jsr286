@@ -301,8 +301,11 @@ public class OnlineClient {
       //log.debug("Locale is null");
     }
     
+    //Correct the charset problem
+    method.getParams().setContentCharset("UTF-8");
+    
     // Provide custom retry handler
-    method.getParams().setParameter(                                    HttpMethodParams.RETRY_HANDLER,
+    method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
         new DefaultHttpMethodRetryHandler(retries, false));
            
     return method;

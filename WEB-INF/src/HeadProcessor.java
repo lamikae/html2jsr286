@@ -22,25 +22,23 @@
 
 package com.celamanzi.liferay.portlets.rails286;
 
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-
-import org.htmlparser.Parser;
-import org.htmlparser.util.ParserException;
-
-import org.htmlparser.util.NodeList;
-import org.htmlparser.util.SimpleNodeIterator;
-
-import org.htmlparser.nodes.TagNode;
-import org.htmlparser.tags.*;
-
-import org.htmlparser.filters.NodeClassFilter;
-import org.htmlparser.filters.AndFilter;
-import org.htmlparser.filters.TagNameFilter;
-import org.htmlparser.filters.HasAttributeFilter;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.htmlparser.Parser;
+import org.htmlparser.filters.AndFilter;
+import org.htmlparser.filters.HasAttributeFilter;
+import org.htmlparser.filters.NodeClassFilter;
+import org.htmlparser.filters.TagNameFilter;
+import org.htmlparser.tags.MetaTag;
+import org.htmlparser.tags.ScriptTag;
+import org.htmlparser.tags.StyleTag;
+import org.htmlparser.tags.TitleTag;
+import org.htmlparser.util.NodeList;
+import org.htmlparser.util.ParserException;
+import org.htmlparser.util.SimpleNodeIterator;
 
 public class HeadProcessor {
 
