@@ -1,3 +1,10 @@
+Please note:
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+To successfully run the test suite, the example Rails app needs to be running,
+accessible at http://localhost:3000 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 To add a new test class, include it to TestLoader.java.
 
 Logger may be set to DEBUG in log4j.properties for debugging while running tests.
