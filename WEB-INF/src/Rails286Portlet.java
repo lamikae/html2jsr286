@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2008,2009 Mikael Lammentausta
+ *               2010 Mikael Lammentausta, Túlio Ornelas dos Santos
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
