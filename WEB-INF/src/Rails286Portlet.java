@@ -436,8 +436,10 @@ public class Rails286Portlet extends GenericPortlet {
 		  						     String railsResponse) {
 	  
 	  String outputHTML = null;
-	  if ( railsResponse != null ) {
+          log.debug("Response length: "+railsResponse.length());
+	  if ( (railsResponse != null ) && (railsResponse.length() > 1) ) {
 		  try {
+			  log.debug("Processing page");
 			  // instantiate the PageProcessor
 			  // PageProcessor => HeadProcessor, BodyTagVisitor (uses RouteAnalyzer)
 			  PageProcessor p = new PageProcessor(railsResponse,servlet,response);
