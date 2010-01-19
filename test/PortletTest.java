@@ -27,12 +27,18 @@ public class PortletTest {
     private PortletSession session = null;
     private String portletName = "__TEST__";
   
-    private final String host    = "http://localhost:3000";
-    private final String servlet = "";
-    private final String route   = "/";
+    protected final static String host    = "http://localhost:3000";
+    protected final static String servlet = "";
+    protected final static String route   = "/";
 
-    protected final static String railsJUnitRoute = "/caterpillar/test_bench/junit";
-    private final String railsJUnitURL = host+servlet+railsJUnitRoute;
+    protected final static String railsTestBenchRoute = "/caterpillar/test_bench";
+    protected final static String railsJUnitRoute = railsTestBenchRoute+"/junit";
+    protected final static String railsJUnitURL = host+servlet+railsJUnitRoute;
+    
+    protected final static String sessionKey    = "_example_session";
+    protected final static String sessionSecret = 
+     	"cfb08929b6465bced2081c3387940d07bf7dceac8e38c95ea34bd1e518ca3bce"+
+      "7244aafedcefc10b6d8c79b37a0b88f501f237361e45360ff688cad332222ccb";
 
     
     @Before

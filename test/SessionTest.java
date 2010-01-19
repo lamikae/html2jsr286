@@ -36,12 +36,12 @@ public class SessionTest {
     private PortletSession session = null;
     private String portletName = "__TEST__";
     
-    private final String host    = "http://localhost:3000";
-    private final String servlet = "";
+    private final String host    = PortletTest.host;
+    private final String servlet = PortletTest.servlet;
     
-    private final String railsJUnitRoute = "/caterpillar/test_bench/junit";
-    
-    private final String railsJUnitURL = host+servlet+railsJUnitRoute;
+    private final String railsTestBenchRoute = PortletTest.railsTestBenchRoute;
+    private final String railsJUnitRoute = PortletTest.railsJUnitRoute;
+    private final String railsJUnitURL = PortletTest.railsJUnitURL;
 
     private XPath xpath = null;
     private XPathExpression expr = null;

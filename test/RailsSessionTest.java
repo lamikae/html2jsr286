@@ -28,10 +28,12 @@ import com.celamanzi.liferay.portlets.rails286.Rails286Portlet;
 public class RailsSessionTest
 {
     
-    private final String host    = "http://localhost:3000";
-    private final String servlet = "";
-        
-    private final String railsJUnitURL = host+servlet+PortletTest.railsJUnitRoute;
+    private final String host    = PortletTest.host;
+    private final String servlet = PortletTest.servlet;
+    
+    private final String railsTestBenchRoute = PortletTest.railsTestBenchRoute;
+    private final String railsJUnitRoute = PortletTest.railsJUnitRoute;
+    private final String railsJUnitURL = PortletTest.railsJUnitURL;
     
     private Pattern pattern = null;
     private Matcher matcher = null;
@@ -43,12 +45,12 @@ public class RailsSessionTest
     
     @Before
     public void setup() {
-        pattern = null;
-        matcher = null;
-        // assert railsJUnitURL responds
-		xpath = XPathFactory.newInstance().newXPath();
-        expr = null;
-		nodes = null;
+      pattern = null;
+      matcher = null;
+      // assert railsJUnitURL responds
+      xpath = XPathFactory.newInstance().newXPath();
+      expr = null;
+			nodes = null;
     }
     
     @After
@@ -59,6 +61,146 @@ public class RailsSessionTest
     /*assertEquals("Server: WEBrick/1.3.1 (Ruby/1.8.7/2009-06-12)",
      method.getResponseHeader("Server"));*/
     
+    
+    @Test
+    /* 
+    
+    Security method in Caterpillar application controller.
+    
+    Test to request new cookie from /cookiejar
+    
+    */
+    public void test_cookiejar()
+    throws
+        javax.xml.parsers.ParserConfigurationException,
+        javax.xml.xpath.XPathExpressionException,
+        Exception
+    {
+        HttpClient client = new HttpClient();
+        assertNotNull(client);
+        
+        String url =  host+servlet+railsTestBenchRoute+"/cookiejar";
+        
+        GetMethod method = new GetMethod(url);
+        assertNotNull(method);
+        method.getParams().setCookiePolicy(CookiePolicy.RFC_2109);
+        
+        Cookie[] sessionCookies = null;
+        String sessionId = null;
+        
+        /* Get the session cookie. */
+        try {
+            // Execute the method.
+            // TODO: send security key
+            int statusCode = client.executeMethod(method);
+            assertEquals(200,statusCode);
+            
+            
+            Header[] responseHeaders = method.getResponseHeaders();
+            //debugHeaders(responseHeaders);
+            //assertEquals(7,responseHeaders.length);
+                        
+            sessionCookies = client.getState().getCookies();
+            assertEquals(1,sessionCookies.length);
+            
+            //System.out.println(sessionCookies[0].getValue("rng_security_key]"));
+           // assertEquals("99999",sessionCookies[0].get
+            
+        } catch (HttpException e) {
+            fail(e.getMessage());
+        } catch (IOException e) {
+            fail(e.getMessage());
+        } finally {
+            // Release the connection.
+            method.releaseConnection();
+        }
+
+				/** Test authentication */
+
+        url =  host+servlet+railsJUnitRoute+"/cookie_uid";
+
+
+        /** Try 404 without UID */
+
+        method = new GetMethod(url);
+        assertNotNull(method);
+        method.getParams().setCookiePolicy(CookiePolicy.RFC_2109);
+
+        try {
+          int statusCode = client.executeMethod(method);
+          assertEquals(404,statusCode);
+                        
+        } catch (HttpException e) {
+            fail(e.getMessage());
+        } catch (IOException e) {
+            fail(e.getMessage());
+        } finally {
+            method.releaseConnection();
+        }            
+
+
+        /** Try 404 with false UID */
+
+        method = new GetMethod(url);
+        assertNotNull(method);
+        method.getParams().setCookiePolicy(CookiePolicy.RFC_2109);
+        
+
+        try {
+          sessionCookies[0].setName("wrong_sec_key_UID");
+          sessionCookies[0].setValue("10000");
+
+          // Add cookies to the state
+          HttpState state = new HttpState();
+          state.addCookies(sessionCookies);
+    			client.setState(state);
+
+          int statusCode = client.executeMethod(method);
+          assertEquals(404,statusCode);
+                        
+        } catch (HttpException e) {
+            fail(e.getMessage());
+        } catch (IOException e) {
+            fail(e.getMessage());
+        } finally {
+            method.releaseConnection();
+        }
+
+
+        /** Try 404 with proper UID */
+
+        method = new GetMethod(url);
+        assertNotNull(method);
+        method.getParams().setCookiePolicy(CookiePolicy.RFC_2109);
+        
+
+        try {
+        	String uid = "10000";
+          sessionCookies[0].setName(PortletTest.sessionSecret+"_UID");
+          sessionCookies[0].setValue(uid);
+          //System.out.println(sessionCookies[0].toString());
+
+          // Add cookies to the state
+          HttpState state = new HttpState();
+          state.addCookies(sessionCookies);
+    			client.setState(state);
+
+          int statusCode = client.executeMethod(method);
+          assertEquals(200,statusCode);
+          
+          byte[] responseBody = method.getResponseBody();
+          String body = new String(responseBody);
+          assertEquals(uid,body);
+                        
+        } catch (HttpException e) {
+            fail(e.getMessage());
+        } catch (IOException e) {
+            fail(e.getMessage());
+        } finally {
+            method.releaseConnection();
+        }
+
+    }
     
     @Test
     public void test_session_cookie()
