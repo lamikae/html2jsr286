@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2008,2009 Mikael Lammentausta
+ * Copyright (c) 2008,2009,2010 Mikael Lammentausta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -92,9 +92,12 @@ public class Rails286PortletRenderFilter implements RenderFilter {
     servlet = filterConfig.getInitParameter("servlet");
     if (servlet==null) { servlet = ""; }
     route   = filterConfig.getInitParameter("route");
-    log.debug("init host: "+host);
-    log.debug("init servlet: "+servlet);
-    log.debug("init route: "+route);
+
+    if (log.isDebugEnabled()) {
+      log.debug("init host: "+host);
+      log.debug("init servlet: "+servlet);
+      log.debug("init route: "+route);
+    }
   }
 
   public void destroy() {}
@@ -125,17 +128,7 @@ public class Rails286PortletRenderFilter implements RenderFilter {
     //log.debug(session.getPortletContext().getPortletContextName());
 
     if (log.isDebugEnabled()) {
-      log.debug("Request attributes -------v");
-      for (Enumeration e = request.getAttributeNames() ; e.hasMoreElements();) {
-        String a = (String)e.nextElement();
-        log.debug(a+": "+request.getAttribute(a));
-      }
-      log.debug("Request parameters -------v");
-      for (Enumeration e = request.getParameterNames() ; e.hasMoreElements();) {
-        String a = (String)e.nextElement();
-        log.debug(a+": "+request.getParameter(a));
-      }
-      log.debug("---------------------------");
+    	debugRequest(request);
     }
 
     /** Base URL (host + servlet).
@@ -245,16 +238,37 @@ public class Rails286PortletRenderFilter implements RenderFilter {
     }
 
     if (log.isDebugEnabled()) {
-      log.debug("Session attributes -------v");
-      for (Enumeration e = session.getAttributeNames() ; e.hasMoreElements();) {
-        String a = (String)e.nextElement();
-        log.debug(a+": "+session.getAttribute(a));
-      }
-      log.debug("---------------------------");
+    	debugSession(session);
     }
 
     // add the Filter to the chain
     chain.doFilter(request, response);
 
   }
+
+  /** Debug */
+  private void debugRequest(RenderRequest request) {
+      log.debug("Request attributes -------v");
+      for (Enumeration e = request.getAttributeNames() ; e.hasMoreElements();) {
+        String a = (String)e.nextElement();
+        log.debug(a+": "+request.getAttribute(a));
+      }
+      log.debug("Request parameters -------v");
+      for (Enumeration e = request.getParameterNames() ; e.hasMoreElements();) {
+        String a = (String)e.nextElement();
+        log.debug(a+": "+request.getParameter(a));
+      }
+      log.debug("---------------------------");
+  }
+
+  /** Debug */
+  private void debugSession(PortletSession session) {
+      log.debug("Session attributes -------v");
+      for (Enumeration e = session.getAttributeNames() ; e.hasMoreElements();) {
+        String a = (String)e.nextElement();
+        log.debug(a+": "+session.getAttribute(a));
+      }
+      log.debug("---------------------------");
+  }  
+
 }
