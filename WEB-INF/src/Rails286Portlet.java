@@ -47,9 +47,29 @@ import org.apache.commons.logging.LogFactory;
 import org.htmlparser.util.ParserException;
 
 
-/** Presents a Rails application in a JSR286 portlet.
- * Supports the GET and POST methods.
- * XHRs do not convey through the portlet. They are sent directly to the Rails server.
+/**
+ * Presents a web application in a JSR286 portlet.
+ * Rails is the only tested framework, but the same principles apply to all HTTP servers.
+ *
+ * Supports the GET and POST methods (also unofficially PUT).
+ * Session cookies are supported.
+ * TODO: explain cookie system and security
+ *
+ * XHRs do not convey through the portlet. They should be directed to the Rails server in the HTML.
+ * This presents a problem that the returned HTML is not processed anymore, and cannot have any PortletURLs.
+ * Maybe XHR could be sent to the portal, which would trigger XMLPortletRequest,
+ * then the returned HTML could be passed through portlet transformation.
+ *
+ * http://www.subbu.org/blog/2007/08/update-on-jsr-286-and-ajax 
+ *
+ * JSR-286 introduces a new URL type ResourceURL that can be used to invoke 
+ * the serveResource method of a portlet.
+ * Since serveResource mimics the service method of the servlet API,
+ * portlets can use XMLHttpRequest with a ResourceURL,
+ * generate some textual or XML response, and process it in the browser.
+ *
+ * This is not implemented yet.
+ *
  *
  * @author Mikael Lammentausta
  */
@@ -85,11 +105,14 @@ public class Rails286Portlet extends GenericPortlet {
     * Downloads the Rails HTML, runs the HTML processor and
     * inserts it into RenderResponse.
     *
-    * This is a horribly long function that could be split up to several
+    * This is still a horribly long function that could be split up to
     * subfunctions for clarity.
     *
+    * @since 0.8.2
+    * 	Split to subfunctions, cookie system...
+    *
     * @since 0.6.1
-    *   Changed to use Liferay 5.2.0 API, using deprecated methods.
+    *   Changed to use Liferay 5.2.0 API.
     *
     */
   public void render(RenderRequest request, RenderResponse response)
@@ -184,9 +207,11 @@ public class Rails286Portlet extends GenericPortlet {
       }
 
       // this always returns true
+      /*
       if ( ! OnlineUtils.serverIsAlive( railsHost ) ) {
         throw new PortletException("The server " + railsHost + " is online, but did not respond to the request.");
       }
+      */
 
       /**
         * server is alive!
@@ -195,7 +220,8 @@ public class Rails286Portlet extends GenericPortlet {
       java.net.URL requestUrl    = null;
 
 
-      /** Form the request URL */
+      /** Form the request URL, 
+      TODO : move to subfunction  */
       servlet = (String)session.getAttribute("servlet");
       RouteAnalyzer ra = new RouteAnalyzer(railsBaseUrl,servlet);
       try {
@@ -205,7 +231,6 @@ public class Rails286Portlet extends GenericPortlet {
         log.error(e.getMessage());
       }
 
-      /** nothing in the previous try-catch belongs to this method */
 
       Map<String,Cookie> cookies = getCookies(session);
 
@@ -241,11 +266,13 @@ public class Rails286Portlet extends GenericPortlet {
       }
 
       /**
-       * POST
+       * POST, PUT (PUT is sent as POST)
        */
       else if (requestMethod.equals("post") || requestMethod.equals("put")) {
         railsResponse = executePost(request, httpReferer, session, client);
       }
+      
+      // DELETE?
 
       /** FAIL */
       else {
@@ -263,9 +290,9 @@ public class Rails286Portlet extends GenericPortlet {
       log.error(outputHTML);
     }
 
-    // Concatenate the HTML page to the RenderResponse
+    // Write the HTML to RenderResponse
       //log.debug(outputHTML);
-    response.setContentType("text/html");
+    response.setContentType("text/html"); // TODO: get from the actual response
     PrintWriter out = response.getWriter();
     out.println( outputHTML );
   }
@@ -308,7 +335,7 @@ public class Rails286Portlet extends GenericPortlet {
         // formulate NameValuePair[]
         NameValuePair[] parametersBody = Rails286PortletFunctions.paramsToNameValuePairs(params);
         debugParams(parametersBody);
-        // save the attributes to the RenderRequest (no can do set parameter)
+        // save the attributes to the RenderRequest (set custom parameters now..)
         request.setAttribute("parametersBody",parametersBody);
       }
       else {
@@ -327,6 +354,14 @@ public class Rails286Portlet extends GenericPortlet {
 	*/
   }
 
+	/*
+
+  Subfunctions
+
+  */
+
+	/** Executes a POST request.
+   */
   private String executePost(RenderRequest request, URL httpReferer, PortletSession session, OnlineClient client) 
   throws HttpException,IOException {
 	  
@@ -358,6 +393,8 @@ public class Rails286Portlet extends GenericPortlet {
 	  return railsResponse;
   }
 
+	/** Executes a GET request.
+   */
   private String executeGet(PortletSession session, OnlineClient client)
   throws HttpException, IOException {
 	  
@@ -434,14 +471,9 @@ public class Rails286Portlet extends GenericPortlet {
   }
   
   private URL getHttpReferer(PortletSession session) {
-	  if (session.getAttribute("httpReferer") != null) {
-		  URL httpReferer = (java.net.URL)session.getAttribute("httpReferer");
-		  log.debug("HTTP referer: "+httpReferer.toString());
-		  return httpReferer;
-	  }
-	  
-	  log.debug("HTTP referer is null!");
-	  return null;
+    URL httpReferer = (java.net.URL)session.getAttribute("httpReferer");
+    log.debug("HTTP referer: "+httpReferer.toString());
+    return httpReferer;
   }
 
   /** Cookie handling.
