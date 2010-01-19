@@ -68,6 +68,9 @@ import org.htmlparser.util.ParserException;
  * portlets can use XMLHttpRequest with a ResourceURL,
  * generate some textual or XML response, and process it in the browser.
  *
+ * http://ibmdw.blogspot.com/2009/04/jsr-268-portlets-standard-portlet-and.html
+ * http://www.ibm.com/developerworks/websphere/library/techarticles/0803_hepper/0803_hepper.html
+ *
  * This is not implemented yet.
  *
  *
@@ -230,6 +233,7 @@ public class Rails286Portlet extends GenericPortlet {
       catch (java.net.MalformedURLException e) {
         log.error(e.getMessage());
       }
+      log.debug("Request URL: "+requestUrl.toString());
 
 
       Map<String,Cookie> cookies = getCookies(session);
@@ -281,6 +285,7 @@ public class Rails286Portlet extends GenericPortlet {
 
       /**
        * Process the response body
+       * TODO: only if response was in 2xx range
        */
       outputHTML = processResponseBody(response, railsBaseUrl, servlet, railsRoute, railsResponse);
 
@@ -471,9 +476,10 @@ public class Rails286Portlet extends GenericPortlet {
   }
   
   private URL getHttpReferer(PortletSession session) {
-    URL httpReferer = (java.net.URL)session.getAttribute("httpReferer");
-    log.debug("HTTP referer: "+httpReferer.toString());
-    return httpReferer;
+    if (session.getAttribute("httpReferer") != null) {
+	    return (java.net.URL)session.getAttribute("httpReferer");
+    }
+    return null; // otherwise
   }
 
   /** Cookie handling.
