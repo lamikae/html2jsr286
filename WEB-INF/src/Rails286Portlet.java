@@ -93,7 +93,7 @@ public class Rails286Portlet extends GenericPortlet {
   public void init(PortletConfig config) throws PortletException {
       log.info(
 		"Initializing Rails-portlet "+config.getPortletName()+
-		" (v."+PortletVersion.PORTLET_VERSION+")"
+		" (version "+PortletVersion.PORTLET_VERSION+")"
       );
       super.init(config);
   }
@@ -209,16 +209,7 @@ public class Rails286Portlet extends GenericPortlet {
         railsRoute = "/";
       }
 
-      // this always returns true
-      /*
-      if ( ! OnlineUtils.serverIsAlive( railsHost ) ) {
-        throw new PortletException("The server " + railsHost + " is online, but did not respond to the request.");
-      }
-      */
 
-      /**
-        * server is alive!
-        */
       String       railsResponse = null;
       java.net.URL requestUrl    = null;
 

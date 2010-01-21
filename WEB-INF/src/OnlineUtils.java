@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2008 Mikael Lammentausta
+ * Copyright (c) 2009 Reinaldo Silva
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,12 +48,6 @@ import javax.portlet.RenderRequest;
 public class OnlineUtils {
 
   private static final Log log     = LogFactory.getLog(OnlineUtils.class);
-
-
-  protected static Boolean serverIsAlive ( String host ) {
-    // expect that the server is always online
-    return true;
-  }
 
 
   /** 
