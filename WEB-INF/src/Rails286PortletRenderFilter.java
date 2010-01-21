@@ -64,16 +64,19 @@ public class Rails286PortletRenderFilter implements RenderFilter {
   public String servlet = null;
   public String route   = null;
 
+  protected String sessionSecret = null;
+
   /** Constructors */
   public Rails286PortletRenderFilter() {}
 
   @Override
 
-  /** Read the init parameters from FilterConfig (XML).
-    * There are three different parameters:
+  /** Reads the init parameters from FilterConfig (XML).
+    * There are four available parameters:
     * - host    (optional - if empty or null, the request server is used)
     * - servlet (the url to the Rails WAR)
     * - route   (the Rails route)
+    * - sessionSecret (TODO: document)
     *
     * Using the server address from the request is better than
     * specifying it in the init parameter for two reasons:
@@ -84,19 +87,32 @@ public class Rails286PortletRenderFilter implements RenderFilter {
     */
   public void init(final FilterConfig filterConfig) {
     this.filterConfig = filterConfig;
-    host    = filterConfig.getInitParameter("host");
-    // consider empty hosts as null
-    if ((host != null) && (host.equals(""))) {
-      host = null;
-    }
+
+    // undefined and an empty string host is null
+    host = filterConfig.getInitParameter("host");
+    if ((host != null) && (host.equals(""))) { host = null; }
+
+    // undefined servlets are an empty string
     servlet = filterConfig.getInitParameter("servlet");
     if (servlet==null) { servlet = ""; }
-    route   = filterConfig.getInitParameter("route");
+
+    // undefined route is "/"
+    route = filterConfig.getInitParameter("route");
+    if (route==null) { route = "/"; }
+
+		// undefined session secret is null
+    sessionSecret = filterConfig.getInitParameter("session_secret");
+    if (sessionSecret == null) {
+      log.info("Session security not established");
+    }
+    else {
+      log.info("Session is secured by a shared secret");
+    }
 
     if (log.isDebugEnabled()) {
-      log.debug("init host: "+host);
-      log.debug("init servlet: "+servlet);
-      log.debug("init route: "+route);
+      log.debug("Host: "+host);
+      log.debug("Servlet: "+servlet);
+      log.debug("Route: "+route);
     }
   }
 
@@ -221,6 +237,11 @@ public class Rails286PortletRenderFilter implements RenderFilter {
       session.setAttribute(
           "requestMethod",
           requestMethod,
+          PortletSession.PORTLET_SCOPE);
+
+      session.setAttribute(
+          "sessionSecret",
+          sessionSecret,
           PortletSession.PORTLET_SCOPE);
 
       session.setAttribute(
