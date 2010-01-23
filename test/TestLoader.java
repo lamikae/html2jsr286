@@ -16,8 +16,9 @@ import org.junit.runners.Suite.SuiteClasses;
 	BodyTagVisitorTest.class,
 	RouteAnalyzerTest.class,
 	PortletFunctionsTest.class,
-	SessionTest.class,
-	RailsSessionTest.class
+	AuthorizationTest.class,
+	RemoteCookiesTest.class,
+	SessionCookiesTest.class
 })
 
 public class TestLoader {

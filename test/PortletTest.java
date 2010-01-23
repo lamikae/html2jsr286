@@ -49,11 +49,6 @@ public class PortletTest {
         assertNotNull(portletContext);
         MockPortletConfig _portletConfig = new MockPortletConfig(portletContext,portletName);
         assertNotNull(_portletConfig);
-      
-        _portletConfig.addInitParameter("host", host);
-        _portletConfig.addInitParameter("servlet", servlet);
-        _portletConfig.addInitParameter("route", route);
-      
         portletConfig = (PortletConfig)_portletConfig;
         
         session = new MockPortletSession();
@@ -78,7 +73,7 @@ public class PortletTest {
                              "requestMethod",
                              null,
                              PortletSession.PORTLET_SCOPE);
-        
+
         session.setAttribute(
                              "httpReferer",
                              null,
@@ -98,6 +93,12 @@ public class PortletTest {
     
     
     @Test
+    /* Baffled?
+    
+    The test creates a mock request and response to the portlet.
+    
+    
+    */
     public void test_render()
     throws PortletException, IOException
     {
