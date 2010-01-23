@@ -64,19 +64,16 @@ public class Rails286PortletRenderFilter implements RenderFilter {
   public String servlet = null;
   public String route   = null;
 
-  protected String sessionSecret = null;
-
   /** Constructors */
   public Rails286PortletRenderFilter() {}
 
   @Override
 
   /** Reads the init parameters from FilterConfig (XML).
-    * There are four available parameters:
+    * There are three available parameters:
     * - host    (optional - if empty or null, the request server is used)
     * - servlet (the url to the Rails WAR)
     * - route   (the Rails route)
-    * - sessionSecret (TODO: document)
     *
     * Using the server address from the request is better than
     * specifying it in the init parameter for two reasons:
@@ -99,15 +96,6 @@ public class Rails286PortletRenderFilter implements RenderFilter {
     // undefined route is "/"
     route = filterConfig.getInitParameter("route");
     if (route==null) { route = "/"; }
-
-		// undefined session secret is null
-    sessionSecret = filterConfig.getInitParameter("session_secret");
-    if (sessionSecret == null) {
-      log.info("Session security not established");
-    }
-    else {
-      log.info("Session is secured by a shared secret");
-    }
 
     if (log.isDebugEnabled()) {
       log.debug("Host: "+host);
@@ -237,11 +225,6 @@ public class Rails286PortletRenderFilter implements RenderFilter {
       session.setAttribute(
           "requestMethod",
           requestMethod,
-          PortletSession.PORTLET_SCOPE);
-
-      session.setAttribute(
-          "sessionSecret",
-          sessionSecret,
           PortletSession.PORTLET_SCOPE);
 
       session.setAttribute(

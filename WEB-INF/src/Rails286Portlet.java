@@ -82,6 +82,9 @@ public class Rails286Portlet extends GenericPortlet {
    */
   private final Log log = LogFactory.getLog(getClass().getName());
 
+  private String sessionSecret = null;
+  protected int responseStatusCode = -1;
+
 
   /**** Override the GenericPortlet functions.
    */
@@ -95,6 +98,16 @@ public class Rails286Portlet extends GenericPortlet {
 		"Initializing Rails-portlet "+config.getPortletName()+
 		" (version "+PortletVersion.PORTLET_VERSION+")"
       );
+
+      // store session secret to private instance variable
+      sessionSecret = config.getInitParameter("session_secret");
+      if (sessionSecret == null) {
+        log.info("Session security not established");
+      }
+      else {
+        log.info("Session is secured by a shared secret");
+      }
+
       super.init(config);
   }
 
@@ -193,6 +206,7 @@ public class Rails286Portlet extends GenericPortlet {
     railsHost = railsBaseUrl.getHost();
     log.debug("railsHost in session: " + railsHost);
 
+    OnlineClient client = null;
 
     try {
       // check the server and route
@@ -251,7 +265,7 @@ public class Rails286Portlet extends GenericPortlet {
        * Execute the request
        *
        */
-      OnlineClient client = new OnlineClient(requestUrl,cookies,httpReferer,locale);
+      client = new OnlineClient(requestUrl,cookies,httpReferer,locale);
 
       /**
        * GET
@@ -286,6 +300,10 @@ public class Rails286Portlet extends GenericPortlet {
       log.error(outputHTML);
     }
 
+    // set the response status code (for tests)
+    responseStatusCode = client.statusCode;
+    log.debug("Response status code: " +responseStatusCode);
+    
     // Write the HTML to RenderResponse
       //log.debug(outputHTML);
     response.setContentType("text/html"); // TODO: get from the actual response
@@ -495,8 +513,49 @@ public class Rails286Portlet extends GenericPortlet {
 			  cookies.put((String)cookie.getName(), cookie);
 		  }
 	  }
-	  return cookies;
+    
+    // Add dynamic session cookies.
+    // These should not be saved to the database and the portlet session.
+
+    // Create the secret cookie.
+    // This is a weak symmetry-key algorithm.
+    // Security could be boosted by using private and public key pairs.
+    // http://en.wikipedia.org/wiki/Public-key_cryptography
+    if ( sessionSecret != null ) {
+      Cookie _secretCookie = secretCookie();
+      cookies.put((String)_secretCookie.getName(), _secretCookie);
+    }
+
+    log.debug(cookies.size() + " cookies");
+    return cookies;
   }
+
+  /*
+  Cookie with session secret.
+  */
+	protected Cookie secretCookie() {
+  	return new Cookie(
+        "localhost", // FIXME
+        "session_secret",
+        sessionSecret,
+        "/",
+        null,
+        false);
+  }
+
+  /*
+  Cookie with Liferay UID.
+  */
+	protected Cookie uidCookie() {
+  	return new Cookie(
+        "localhost", // FIXME
+        "Liferay_UID",
+        "10000",
+        "/",
+        null,
+        false);
+  }
+  
 
   /** Debug */
   private void debugParams(NameValuePair[] parametersBody) {

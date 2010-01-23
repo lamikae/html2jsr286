@@ -23,8 +23,6 @@ public class RenderFilterTest {
     public String servlet  = "servlet";
     public String route    = "some/route?params";
     
-    protected String sessionSecret = PortletTest.sessionSecret;
-    
     private Rails286PortletRenderFilter filter = new Rails286PortletRenderFilter();
     private FilterConfig filterConfig = null;
     private PortletContext portletContext = null;
@@ -45,7 +43,6 @@ public class RenderFilterTest {
         portletConfig.addInitParameter("host", host);
         portletConfig.addInitParameter("servlet", servlet);
         portletConfig.addInitParameter("route", route);
-        portletConfig.addInitParameter("session_secret", sessionSecret);
 
         
         //filterConfig = (FilterConfig)_filterConfig;
@@ -58,15 +55,14 @@ public class RenderFilterTest {
     }
 
     
-	@Test
-	public void test_init() {
+    @Test
+    public void test_init() {
         filter.init(filterConfig);
         
         assertEquals(host,filter.host);
         assertEquals(servlet,filter.servlet);
         assertEquals(route,filter.route);
-        assertEquals(sessionSecret,filter.sessionSecret);
-	}
+    }
     
     
     @Test
@@ -104,10 +100,6 @@ public class RenderFilterTest {
         String _method = (String)session.getAttribute("requestMethod");
         assertNotNull(_method);
         assertEquals("get",_method);
-
-        String _secret = (String)session.getAttribute("sessionSecret");
-        assertNotNull(_secret);
-        assertEquals(sessionSecret,_secret);
         
         assertNull(session.getAttribute("httpReferer"));
         
@@ -117,41 +109,6 @@ public class RenderFilterTest {
             System.out.println(names.nextElement()); } 
         */
     }
-
-
-    @Test
-    public void test_withoutSecret() 
-    throws IOException, PortletException, MalformedURLException 
-    {
-        MockPortletConfig c = new MockPortletConfig();
-        assertNotNull(c);
-        c.addInitParameter("host", host);
-        c.addInitParameter("servlet", servlet);
-        c.addInitParameter("route", route);
-
-        FilterConfig fc = (FilterConfig)c;
-        assertNotNull(fc);
-
-        filter.init(fc);
-        
-        assertNull(filter.sessionSecret);
-
-        MockRenderRequest _request = new MockRenderRequest(PortletMode.VIEW);
-        _request.setSession(session);
-        RenderRequest request = (RenderRequest)_request;
-        assertNotNull(request);
-
-        RenderResponse response = new MockRenderResponse();
-        assertNotNull(response);
-        
-        FilterChain chain = new MockFilterChain();
-        assertNotNull(chain);
-                
-        filter.doFilter(request,response,chain);
-        
-        assertNull(session.getAttribute("sessionSecret"));
-    }
-        
 
     @Test
     /** When the portlet is loaded without portlet parameters,
