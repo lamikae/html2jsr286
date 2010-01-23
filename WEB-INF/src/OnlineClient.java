@@ -121,24 +121,25 @@ public class OnlineClient {
       // log the status
       if (statusCode != HttpStatus.SC_OK) {
         log.error("Request failed: " + method.getStatusLine());
-        //throw new HttpException(method.getStatusLine());
+        throw new HttpException(method.getStatusLine().toString());
       }
       else {
         log.debug("Status code: " + method.getStatusLine());
+      
+        // Read the response body
+        responseBody = method.getResponseBody();
+        
+        // Get session cookies
+        cookies = client.getState().getCookies();
+        log.debug("Stored "+cookies.length+" cookies.");
       }
-      
-      // Read the response body
-      responseBody = method.getResponseBody();
-      
-      // Get session cookies
-      cookies = client.getState().getCookies();
-      log.debug("Stored "+cookies.length+" cookies.");
       
     } finally {
       // Release the connection
       method.releaseConnection();
     }
     
+    log.debug("Return body nicely..");
     return responseBody;
   }
   
@@ -185,7 +186,7 @@ public class OnlineClient {
         // get Location
         String location = ((Header)method.getResponseHeader("Location")).getValue();
         requestURL = new URL(location);
-        log.info("POST status code: " + method.getStatusLine());
+        log.debug("POST status code: " + method.getStatusLine());
         log.debug("Redirect to location: "+location);
         
         // Get session cookies
@@ -204,9 +205,10 @@ public class OnlineClient {
         // No more redirects! Response should be 200 OK
         if (statusCode != HttpStatus.SC_OK) {
           log.error("Method failed: " + method.getStatusLine());
+	        throw new HttpException(method.getStatusLine().toString());
         }
         else {
-          log.info("POST status code: " + method.getStatusLine());
+          log.debug("POST status code: " + method.getStatusLine());
         }
         
         // Read the response body.
@@ -264,7 +266,9 @@ public class OnlineClient {
     
     client.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
     client.getParams().setParameter(HttpMethodParams.SINGLE_COOKIE_HEADER, true);
-    
+    // magic cookie line (all cookies on one header line)
+    client.getParams().setParameter("http.protocol.single-cookie-header", true);
+
     // Set state (session cookies)
     client.setState(preparedHttpState());
     // Set timeout
