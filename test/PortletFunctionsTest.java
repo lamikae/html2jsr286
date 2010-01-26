@@ -92,19 +92,19 @@ public class PortletFunctionsTest {
     public void test_decipherPathCleaningRailsWildcards(){
     	MockRenderRequest request = new MockRenderRequest(PortletMode.VIEW);
     	String path = Rails286PortletFunctions.decipherPath("/otters/:action", request);
-    	assertEquals("/otters/", path);
+    	assertEquals("/otters", path);
     	
     	path = Rails286PortletFunctions.decipherPath("/otters/:action/:another/:another", request);
-    	assertEquals("/otters/", path);
+    	assertEquals("/otters", path);
     	
     	path = Rails286PortletFunctions.decipherPath("/otters/:action/view/:another", request);
-    	assertEquals("/otters/view/", path);
+    	assertEquals("/otters/view", path);
     	
     	path = Rails286PortletFunctions.decipherPath("/otters/:action/view/12/:another", request);
-    	assertEquals("/otters/view/12/", path);
+    	assertEquals("/otters/view/12", path);
     	
     	path = Rails286PortletFunctions.decipherPath("/otters/index", request);
-    	assertEquals("/otters/index/", path);
+    	assertEquals("/otters/index", path);
     }
   
 }

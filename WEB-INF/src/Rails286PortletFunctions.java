@@ -239,15 +239,13 @@ public class Rails286PortletFunctions {
    * Clear unused Rails wildcards
    *
    **/
-  private static String clearRailsWildcards(String oldPath) {
-	  String path = oldPath;
-	  if (!path.endsWith("/")){
-		  path += "/";
-	  }
-
+  private static String clearRailsWildcards(String path) {
 	  log.debug("Original path (with Rails wildcards): " + path);
 
-	  String newPath = path.replaceAll("(:[a-zA-Z]*/)", "");
+	  String newPath = path.replaceAll("(:[a-zA-Z]*/?)", "");
+	  if (newPath.endsWith("/")){
+		  newPath = newPath.substring(0, newPath.length() - 1); //cut the last char
+	  }
 
 	  log.debug("Path after cleanup (withour Rails wildcards): " + newPath);
 
