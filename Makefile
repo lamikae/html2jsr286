@@ -12,7 +12,8 @@ liferay=5.2.3
 all: compile list
 
 clean:
-	find $(classes) -name *.class -exec rm -f {} \;
+	if [ ! -e $(classes) ]; then mkdir $(classes); fi
+	-find $(classes) -name *.class -exec rm -f {} \;
 	if [ -e test/classes ]; then rm -rf test/classes/* ; fi
 
 compile: clean
