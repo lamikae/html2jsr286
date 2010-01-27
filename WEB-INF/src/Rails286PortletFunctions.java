@@ -158,6 +158,7 @@ public class Rails286PortletFunctions {
         if (matcher.find()) {
           if (var.equals("%UID%")) {
             log.debug("Matched variable: "+var);
+            log.warn("Formulating unsecure URL with UID .. plz fixme");
             String uid = null;
 
             try {

@@ -31,7 +31,7 @@ public class AuthorizationTest {
     private final String railsTestBenchRoute = PortletTest.railsTestBenchRoute;
     private final String railsJUnitRoute = PortletTest.railsJUnitRoute;
     private final String railsJUnitURL = PortletTest.railsJUnitURL;
-    
+
     private String sessionSecret = PortletTest.sessionSecret;
 
     private Rails286Portlet portlet = new Rails286Portlet();
@@ -48,7 +48,7 @@ public class AuthorizationTest {
         assertNotNull(portletContext);
         MockPortletConfig _portletConfig = new MockPortletConfig(portletContext,portletName);
         assertNotNull(_portletConfig);
-        _portletConfig.addInitParameter("session_secret", sessionSecret);
+        _portletConfig.addInitParameter("secret", sessionSecret);
         portletConfig = (PortletConfig)_portletConfig;
         
         session = new MockPortletSession();

@@ -50,7 +50,7 @@ public class SessionCookiesTest {
         assertNotNull(portletContext);
         MockPortletConfig _portletConfig = new MockPortletConfig(portletContext,portletName);
         assertNotNull(_portletConfig);
-        _portletConfig.addInitParameter("session_secret", sessionSecret);
+        _portletConfig.addInitParameter("secret", sessionSecret);
         portletConfig = (PortletConfig)_portletConfig;
         
         session = new MockPortletSession();
@@ -96,7 +96,7 @@ public class SessionCookiesTest {
 				// insert session secret
         MockPortletConfig _portletConfig = new MockPortletConfig(portletContext,portletName);
         assertNotNull(_portletConfig);
-        _portletConfig.addInitParameter("session_secret", PortletTest.sessionSecret);
+        _portletConfig.addInitParameter("secret", PortletTest.sessionSecret);
         portlet.init((PortletConfig)_portletConfig);
 
 
@@ -107,7 +107,8 @@ public class SessionCookiesTest {
         String uid = "10000";
         
         Cookie[] sessionCookies = new Cookie[2];
-        sessionCookies[0] = portlet.uidCookie(); // 10000
+        sessionCookies[0] = portlet.uidCookie(uid);
+        assertEquals(uid, sessionCookies[0].getValue());
 
         String url =  host+servlet+railsJUnitRoute+"/liferay_uid";
 
@@ -160,7 +161,7 @@ public class SessionCookiesTest {
 				// insert session secret
         MockPortletConfig _portletConfig = new MockPortletConfig(portletContext,portletName);
         assertNotNull(_portletConfig);
-        _portletConfig.addInitParameter("session_secret", PortletTest.sessionSecret);
+        _portletConfig.addInitParameter("secret", PortletTest.sessionSecret);
         portlet.init((PortletConfig)_portletConfig);
 
         // get foobarcookies
@@ -199,7 +200,8 @@ public class SessionCookiesTest {
         sessionCookies[2] = cookies[2];
         sessionCookies[3] = cookies[3];
 
-        sessionCookies[4] = portlet.uidCookie(); // 10000
+        sessionCookies[4] = portlet.uidCookie(uid);
+        assertEquals(uid, sessionCookies[4].getValue());
 
         String url =  host+servlet+railsJUnitRoute+"/cookies_liferay_auth";
 

@@ -498,7 +498,7 @@ public class RemoteCookiesTest {
     {
         MockPortletConfig _portletConfig = new MockPortletConfig(portletContext,portletName);
         assertNotNull(_portletConfig);
-        _portletConfig.addInitParameter("session_secret", PortletTest.sessionSecret);
+        _portletConfig.addInitParameter("secret", PortletTest.sessionSecret);
         portletConfig = (PortletConfig)_portletConfig;
     
         portlet.init(portletConfig);

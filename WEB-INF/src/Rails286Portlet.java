@@ -82,6 +82,7 @@ public class Rails286Portlet extends GenericPortlet {
    */
   private final Log log = LogFactory.getLog(getClass().getName());
 
+  private String sessionKey    = null;
   private String sessionSecret = null;
   protected int responseStatusCode = -1;
 
@@ -100,12 +101,14 @@ public class Rails286Portlet extends GenericPortlet {
       );
 
       // store session secret to private instance variable
-      sessionSecret = config.getInitParameter("session_secret");
+      sessionKey    = config.getInitParameter("session_key");
+      sessionSecret = config.getInitParameter("secret");
       if (sessionSecret == null) {
         log.info("Session security not established");
       }
       else {
         log.info("Session is secured by a shared secret");
+        log.debug("Session key: "+sessionKey);
       }
 
       super.init(config);
@@ -136,9 +139,9 @@ public class Rails286Portlet extends GenericPortlet {
     if (log.isDebugEnabled()) {
       try {
         log.debug("View "+response.getNamespace());
-        log.debug(request.getAuthType());
-        log.debug(request.getRemoteUser());
-        log.debug(request.getUserPrincipal().getName());
+        //log.debug(request.getAuthType());
+        log.debug("Remote user: "+request.getRemoteUser());
+        log.debug("User principal name: "+request.getUserPrincipal().getName());
       }
       catch (java.lang.NullPointerException e) {
         log.error(e.getMessage());
@@ -204,7 +207,7 @@ public class Rails286Portlet extends GenericPortlet {
     // get the host section from the base URL
     String railsHost = null;
     railsHost = railsBaseUrl.getHost();
-    log.debug("railsHost in session: " + railsHost);
+    //log.debug("railsHost in session: " + railsHost);
 
     OnlineClient client = null;
 
@@ -302,7 +305,7 @@ public class Rails286Portlet extends GenericPortlet {
 
     // set the response status code (for tests)
     responseStatusCode = client.statusCode;
-    log.debug("Response status code: " +responseStatusCode);
+    //log.debug("Response status code: " +responseStatusCode);
     
     // Write the HTML to RenderResponse
       //log.debug(outputHTML);
@@ -445,10 +448,10 @@ public class Rails286Portlet extends GenericPortlet {
 		  						     String railsResponse) {
 	  
 	  String outputHTML = null;
-          log.debug("Response length: "+railsResponse.length());
+    //log.debug("Response length: "+railsResponse.length());
 	  if ( (railsResponse != null ) && (railsResponse.length() > 1) ) {
 		  try {
-			  log.debug("Processing page");
+			  //log.debug("Processing page");
 			  // instantiate the PageProcessor
 			  // PageProcessor => HeadProcessor, BodyTagVisitor (uses RouteAnalyzer)
 			  PageProcessor p = new PageProcessor(railsResponse,servlet,response);
@@ -456,7 +459,7 @@ public class Rails286Portlet extends GenericPortlet {
 
 			  /** Set the portlet title by HTML title */
 			  String title = p.title;
-			  log.debug("Page title: "+title);
+			  log.debug("Title: "+title);
 			  if ( title==null || title=="" ) {
 				  response.setTitle( " " ); // nbsp, because Liferay post-processes blank strings
 			  }
@@ -525,6 +528,12 @@ public class Rails286Portlet extends GenericPortlet {
       Cookie _secretCookie = secretCookie();
       cookies.put((String)_secretCookie.getName(), _secretCookie);
     }
+    
+    // UID cookie
+    if ( session.getAttribute("uid") != null ) {
+      Cookie _uidCookie = uidCookie((String)session.getAttribute("uid"));
+      cookies.put((String)_uidCookie.getName(), _uidCookie);
+    }
 
     log.debug(cookies.size() + " cookies");
     return cookies;
@@ -544,18 +553,18 @@ public class Rails286Portlet extends GenericPortlet {
   }
 
   /*
-  Cookie with Liferay UID.
+  Cookie with UID.
   */
-	protected Cookie uidCookie() {
+	protected Cookie uidCookie(String uid) {
   	return new Cookie(
         "localhost", // FIXME
         "Liferay_UID",
-        "10000",
+        uid,
         "/",
         null,
         false);
   }
-  
+
 
   /** Debug */
   private void debugParams(NameValuePair[] parametersBody) {

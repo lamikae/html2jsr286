@@ -202,6 +202,11 @@ public class Rails286PortletRenderFilter implements RenderFilter {
     // railsRoute may contain variables to be replaced at runtime
     railsRoute = Rails286PortletFunctions.decipherPath( railsRoute, request );
 
+
+    // For the cookies,
+    // get the UID from request 
+    String uid = request.getRemoteUser();
+
     
     /** update the PortletSession */
     try {
@@ -231,6 +236,12 @@ public class Rails286PortletRenderFilter implements RenderFilter {
           "httpReferer",
           httpReferer,
           PortletSession.PORTLET_SCOPE);
+
+      session.setAttribute(
+          "uid",
+          uid,
+          PortletSession.PORTLET_SCOPE);
+
     }
     catch (IllegalStateException e) {
       log.error( e.getMessage() );
