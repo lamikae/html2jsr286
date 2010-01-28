@@ -244,17 +244,21 @@ public class OnlineClient {
       
     if (log.isDebugEnabled()) {
       Cookie[] _cookies = state.getCookies();
-      log.debug("Using " + _cookies.length + " authorized cookies");
-      for (Cookie cookie : _cookies)
-        log.debug("HttpState-Cookie: "
-                  + cookie.toString()
+      debugCookies(_cookies);
+    }
+
+    return state;
+  }
+  
+  protected void debugCookies(Cookie[] cookies) {
+      log.debug( "Cookie inspector found "+cookies.length+" cookies ------v");
+      for (Cookie cookie : cookies)
+        log.debug(cookie.toString()
                   + ", domain=" + cookie.getDomain()
                   + ", path=" + cookie.getPath()
                   + ", max-age=" + cookie.getExpiryDate()
                   + ", secure=" + cookie.getSecure());
-    }
-
-    return state;
+      log.debug( "----------------------------");
   }
     
   /** Prepares client.

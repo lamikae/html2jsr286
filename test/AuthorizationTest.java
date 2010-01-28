@@ -157,7 +157,7 @@ public class AuthorizationTest {
         
         Cookie[] sessionCookies = new Cookie[1];
         portlet.init(portletConfig);
-        sessionCookies[0] = portlet.secretCookie();
+        sessionCookies[0] = portlet.secretCookie(session);
 
         String url =  host+servlet+railsJUnitRoute+"/authorized";
 

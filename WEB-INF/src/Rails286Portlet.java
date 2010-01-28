@@ -141,6 +141,7 @@ public class Rails286Portlet extends GenericPortlet {
         log.debug("View "+response.getNamespace());
         //log.debug(request.getAuthType());
         log.debug("Remote user: "+request.getRemoteUser());
+        // user principal is null in pre-prod
         log.debug("User principal name: "+request.getUserPrincipal().getName());
       }
       catch (java.lang.NullPointerException e) {
@@ -525,13 +526,13 @@ public class Rails286Portlet extends GenericPortlet {
     // Security could be boosted by using private and public key pairs.
     // http://en.wikipedia.org/wiki/Public-key_cryptography
     if ( sessionSecret != null ) {
-      Cookie _secretCookie = secretCookie();
+      Cookie _secretCookie = secretCookie(session);
       cookies.put((String)_secretCookie.getName(), _secretCookie);
     }
     
     // UID cookie
     if ( session.getAttribute("uid") != null ) {
-      Cookie _uidCookie = uidCookie((String)session.getAttribute("uid"));
+      Cookie _uidCookie = uidCookie(session);
       cookies.put((String)_uidCookie.getName(), _uidCookie);
     }
 
@@ -542,11 +543,14 @@ public class Rails286Portlet extends GenericPortlet {
   /*
   Cookie with session secret.
   */
-	protected Cookie secretCookie() {
+	protected Cookie secretCookie(PortletSession session) {
+    // no. this is not the best way to handle this.
+    URL base = (java.net.URL)session.getAttribute("railsBaseUrl");
+    String host = base.getHost();
   	return new Cookie(
-        "localhost", // FIXME
+        host,
         "session_secret",
-        sessionSecret,
+        sessionSecret, // instance variable
         "/",
         null,
         false);
@@ -555,11 +559,14 @@ public class Rails286Portlet extends GenericPortlet {
   /*
   Cookie with UID.
   */
-	protected Cookie uidCookie(String uid) {
+	protected Cookie uidCookie(PortletSession session) {
+    // no. this is not the best way to handle this.
+    URL base = (java.net.URL)session.getAttribute("railsBaseUrl");
+    String host = base.getHost();
   	return new Cookie(
-        "localhost", // FIXME
+        host,
         "Liferay_UID",
-        uid,
+        (String)session.getAttribute("uid"),
         "/",
         null,
         false);

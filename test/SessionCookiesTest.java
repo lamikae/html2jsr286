@@ -105,9 +105,10 @@ public class SessionCookiesTest {
         HttpState state = new HttpState();
 
         String uid = "10000";
+        session.setAttribute("uid",uid,PortletSession.PORTLET_SCOPE);
         
         Cookie[] sessionCookies = new Cookie[2];
-        sessionCookies[0] = portlet.uidCookie(uid);
+        sessionCookies[0] = portlet.uidCookie(session);
         assertEquals(uid, sessionCookies[0].getValue());
 
         String url =  host+servlet+railsJUnitRoute+"/liferay_uid";
@@ -128,7 +129,7 @@ public class SessionCookiesTest {
 
           // Add secret cookie to the state and try again
           state.clearCookies();
-          sessionCookies[1] = portlet.secretCookie();
+          sessionCookies[1] = portlet.secretCookie(session);
           state.addCookies(sessionCookies);
     			client.setState(state);
 
@@ -193,6 +194,7 @@ public class SessionCookiesTest {
         HttpState state = new HttpState();
 
         String uid = "10000";
+        session.setAttribute("uid",uid,PortletSession.PORTLET_SCOPE);
         
         Cookie[] sessionCookies = new Cookie[6];
         // sessionCookies[0] = cookies[0]; remove session_secret
@@ -200,7 +202,7 @@ public class SessionCookiesTest {
         sessionCookies[2] = cookies[2];
         sessionCookies[3] = cookies[3];
 
-        sessionCookies[4] = portlet.uidCookie(uid);
+        sessionCookies[4] = portlet.uidCookie(session);
         assertEquals(uid, sessionCookies[4].getValue());
 
         String url =  host+servlet+railsJUnitRoute+"/cookies_liferay_auth";
@@ -221,7 +223,7 @@ public class SessionCookiesTest {
 
           // Add secret cookie to the state and try again
           state.clearCookies();
-          sessionCookies[5] = portlet.secretCookie();
+          sessionCookies[5] = portlet.secretCookie(session);
           state.addCookies(sessionCookies);
     			client.setState(state);
 
