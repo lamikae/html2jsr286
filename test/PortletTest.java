@@ -1,23 +1,36 @@
 package com.celamanzi.liferay.portlets.rails286;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-import java.util.Locale;
-import java.util.Map;
+import java.io.File;
 import java.io.IOException;
-
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
+
+import javax.portlet.ActionRequest;
+import javax.portlet.ActionResponse;
+import javax.portlet.PortletConfig;
+import javax.portlet.PortletContext;
+import javax.portlet.PortletException;
+import javax.portlet.PortletMode;
+import javax.portlet.PortletSession;
+import javax.portlet.RenderRequest;
+import javax.portlet.RenderResponse;
 
 import org.apache.commons.httpclient.Cookie;
-
-import org.springframework.mock.web.portlet.*;
-
-import javax.portlet.*;
-
-import com.celamanzi.liferay.portlets.rails286.Rails286Portlet;
-
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.portlet.MockActionRequest;
+import org.springframework.mock.web.portlet.MockActionResponse;
+import org.springframework.mock.web.portlet.MockMultipartActionRequest;
+import org.springframework.mock.web.portlet.MockPortletContext;
+import org.springframework.mock.web.portlet.MockPortletSession;
+import org.springframework.mock.web.portlet.MockRenderRequest;
+import org.springframework.mock.web.portlet.MockRenderResponse;
+import org.springframework.mock.web.portlet.MockPortletConfig;
 
 public class PortletTest {
     
@@ -135,7 +148,7 @@ public class PortletTest {
     
     
   @Test
-	public void test_processAction()
+  public void test_processAction()
   throws PortletException, IOException
   {
     portlet.init(portletConfig);
@@ -209,5 +222,50 @@ public class PortletTest {
     }
   }
   
+  @Test
+  public void test_multipart_processAction() throws PortletException, IOException
+  {
+	  portlet.init(portletConfig);
+
+	  MockMultipartActionRequest request = new MockMultipartActionRequest();
+	  request.setSession(session);
+	  request.setContentType("multipart/");
+	  
+	  File file = new File("test/resources/jake_sully.jpg");
+	  byte[] bytes = OnlineClientTest.getBytes(file);
+	  
+	  MockMultipartFile mockFile = new MockMultipartFile("file_param", bytes);
+	  request.addFile(mockFile);
+	  
+	  ActionResponse response = new MockActionResponse();
+
+	  //TODO: How to test this?
+	  
+	  /*
+	  
+	  portlet.processAction(request, response);
+	  Map<String, Object[]> files = (Map<String, Object[]>) request.getAttribute("files");
+	  assertNotNull(files);
+	  assertEquals(1, files.size());
+	  assertTrue(files.containsKey("file_param"));
+	  
+	  */
+  }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,35 +1,36 @@
 package com.celamanzi.liferay.portlets.rails286;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
+import javax.portlet.PortletConfig;
+import javax.portlet.PortletContext;
+import javax.portlet.PortletSession;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.SAXException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.httpclient.Cookie;
-import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.cookie.*;
-import org.apache.commons.httpclient.Header;
-
-
-import org.springframework.mock.web.portlet.*;
-
-import javax.portlet.*;
-
-import com.celamanzi.liferay.portlets.rails286.Rails286Portlet;
+import org.apache.commons.httpclient.NameValuePair;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.mock.web.portlet.MockPortletContext;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 
 public class OnlineClientTest {
@@ -53,13 +54,11 @@ public class OnlineClientTest {
   private XPathExpression expr = null;
   private NodeList nodes = null;
   
-  
-  
   @Before
   public void setup() {
-		xpath = XPathFactory.newInstance().newXPath();
+    xpath = XPathFactory.newInstance().newXPath();
     expr = null;
-		nodes = null;
+	nodes = null;
     client = null;
     // assert railsJUnitURL responds
   }
@@ -153,15 +152,51 @@ public class OnlineClientTest {
        new NameValuePair("foo", "bar")
     };
     
-    byte[] body = client.post(params);
+    byte[] body = client.post(params, null); //without files
     assertEquals(200,client.statusCode);
     
     Cookie[] cookies = client.cookies;
     assertEquals(1,cookies.length);
   }
   
-  
-  
+  @Test
+  public void test_multipart_post()
+  throws MalformedURLException, HttpException, IOException{
+	  
+    client = new OnlineClient(new URL(railsJUnitURL+"/upload_image"));
+    assertNotNull(client);
+
+    NameValuePair[] params = {
+    	new NameValuePair("normal_param", "import‰ncia") //require UTF-8 encode
+    };
+
+    File file = new File("test/resources/jake_sully.jpg");
+    byte[] bytes = getBytes(file);
+    
+    // This is required to not lose the original file (just for test purpose)
+    file = new File("test/resources/jake_sully_test.jpg");
+    
+    Map<String, Object[]> files = new HashMap<String, Object[]>();
+    files.put("file_param", new Object[]{file, bytes});
+    
+    byte[] body = client.post(params, files);
+    assertEquals(200,client.statusCode);
+    
+    assertEquals("", new String(body));
+  }
+
+  public static byte[] getBytes(File file) throws IOException {
+	  byte[] bytes = new byte[(int) file.length()];
+
+	  FileInputStream fis = new FileInputStream(file);
+	  int b = 0;
+	  int x = 0;
+	  while((b = fis.read()) != -1){
+		  bytes[x++] = (byte)b;
+	  }
+	  return bytes;
+  }
+
   
   
   

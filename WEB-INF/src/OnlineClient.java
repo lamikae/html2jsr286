@@ -23,10 +23,17 @@
 
 package com.celamanzi.liferay.portlets.rails286;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import javax.portlet.RenderRequest;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
@@ -40,6 +47,10 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -70,6 +81,7 @@ public class OnlineClient {
   protected URL      httpReferer = null;
   protected Locale   locale      = null;
   
+  protected RenderRequest renderRequest;
   
   OnlineClient(URL _requestURL) {
     requestURL  = _requestURL;
@@ -84,8 +96,6 @@ public class OnlineClient {
     httpReferer = _httpReferer;
     locale      = _locale;
   }
-  
-
   
   /** GET
    *
@@ -143,31 +153,41 @@ public class OnlineClient {
     return responseBody;
   }
   
-  
-  /** POST
-   *
+  /** 
+   * POST
+   * 
    * Posts the parametersBody
    */
-  protected byte[] post(NameValuePair[] parametersBody)
-  throws HttpException, IOException
-  {
+  protected byte[] post(NameValuePair[] parametersBody, Map<String, Object[]> files)
+  throws HttpException, IOException{
     // Response body from the web server
     byte[] responseBody = null;
     statusCode = -1;
+    
+    List<File> tempFiles = null;
     
     HttpClient client = preparedClient();
     
     // Create a method instance.
     log.debug("POST action request URL: " + requestURL.toString());
-    PostMethod method = new PostMethod(requestURL.toString());
-    HttpMethod _method = (HttpMethod)method;
-    method = (PostMethod)prepareMethodHeaders(_method);
-    method.setRequestBody( parametersBody );
     
-    // Provide custom retry handler is necessary
-    method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, 
-                                    new DefaultHttpMethodRetryHandler(3, false));
-  
+    PostMethod method = new PostMethod(requestURL.toString());
+    HttpMethod _method = (HttpMethod) method;
+    method = (PostMethod) prepareMethodHeaders(_method);
+    
+    if (files != null && files.size() > 0){
+    	
+    	tempFiles = new ArrayList<File>();
+    	createMultipartRequest(parametersBody, files, method, tempFiles); 
+		
+    }else{
+    	method.setRequestBody(parametersBody);
+    	
+    	// Provide custom retry handler is necessary
+	    method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, 
+	                                    new DefaultHttpMethodRetryHandler(3, false));
+    }
+    
     try {
       // Execute the method.
       statusCode = client.executeMethod(method);
@@ -205,7 +225,7 @@ public class OnlineClient {
         // No more redirects! Response should be 200 OK
         if (statusCode != HttpStatus.SC_OK) {
           log.error("Method failed: " + method.getStatusLine());
-	        throw new HttpException(method.getStatusLine().toString());
+	      throw new HttpException(method.getStatusLine().toString());
         }
         else {
           log.debug("POST status code: " + method.getStatusLine());
@@ -218,17 +238,18 @@ public class OnlineClient {
         cookies = client.getState().getCookies();
       }
 
-      
+
     } finally {
-      // Release the connection
-      method.releaseConnection();
+    	// Release the connection
+    	method.releaseConnection();
+
+    	// Delete temp files
+    	deleteFiles(tempFiles);
     }
-    
+
     return responseBody;
   }
-  
-  
-  
+
   /** Returns a HttpState fixed with cookies.
    *
    * @since 0.8.0
@@ -320,8 +341,83 @@ public class OnlineClient {
     return method;
   }
   
+  protected void createMultipartRequest(NameValuePair[] parametersBody, Map<String, Object[]> files, PostMethod method, List<File> tempFiles)
+  throws IOException, FileNotFoundException {
+	  
+	  List<Part> parts = new ArrayList<Part>();
+	  parametersBody = removeFileParams(parametersBody, files);
+
+	  for(NameValuePair param : parametersBody){
+		  parts.add(createStringPart(param));
+	  }
+
+	  for(String key : files.keySet()){
+		  File file = createFile(files.get(key));
+		  if (file != null){
+			  parts.add(new FilePart(key, file));
+			  tempFiles.add(file);
+		  }
+	  }
+
+	  Part[] array = new Part[parts.size()];
+	  method.setRequestEntity(new MultipartRequestEntity(parts.toArray(array), method.getParams()));
+
+	  method.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, false);
+  }
   
-      
+  private NameValuePair[] removeFileParams(NameValuePair[] parametersBody, Map<String, Object[]> files){
+	  List<NameValuePair> list = new ArrayList<NameValuePair>();
+	  
+	  for(NameValuePair param : parametersBody){
+		  if (!files.containsKey(param.getName())){
+			  list.add(param);
+		  }
+	  }
+	  
+	  NameValuePair[] array = new NameValuePair[list.size()];
+	  return list.toArray(array);
+  }
+
+  private StringPart createStringPart(NameValuePair pair){
+	  StringPart part = new StringPart(pair.getName(), pair.getValue());
+
+	  //HACK: When content type is null, Rack will interpretate as string param, 
+	  //otherwise this will be treated like a file.
+	  part.setContentType(null);
+	  
+	  part.setCharSet("UTF-8");
+	  return part;
+  }
+  
+  private File createFile(Object[] objs) throws IOException{
+	  if (objs != null && objs.length == 2){
+
+		  File file = (File) objs[0];
+		  byte[] bytes = (byte[]) objs[1];
+
+		  FileOutputStream fos = new FileOutputStream(file);
+		  fos.write(bytes);
+		  fos.flush();
+		  fos.close();
+
+		  return file;
+	  }
+
+	  return null;
+  }
+
+  private void deleteFiles(List<File> tempFiles) {
+	  if (tempFiles == null){
+		  return;
+	  }
+	  
+	  for (File file : tempFiles){
+		  if(!file.delete()){
+			  log.error("Failure to delete: " + file.getPath());
+		  }
+	  }
+  }
+
   private void debugHeaders(Header[] headers) {
     log.debug("Headers:");
     for (Header h : headers)

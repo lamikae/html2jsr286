@@ -23,6 +23,7 @@
 
 package com.celamanzi.liferay.portlets.rails286;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -39,12 +40,17 @@ import javax.portlet.PortletSession;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
+import org.apache.commons.fileupload.portlet.PortletFileUpload;
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.htmlparser.util.ParserException;
+
+import com.liferay.portal.kernel.upload.UploadPortletRequest;
+import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.util.PortalUtil;
 
 
 /**
@@ -86,14 +92,14 @@ public class Rails286Portlet extends GenericPortlet {
   private String sessionSecret = null;
   protected int responseStatusCode = -1;
 
-
   /**** Override the GenericPortlet functions.
    */
   @Override
 
 
-  /** Portlet initialization at portal startup.
-    */
+  /** 
+   * Portlet initialization at portal startup.
+   */
   public void init(PortletConfig config) throws PortletException {
       log.info(
 		"Initializing Rails-portlet "+config.getPortletName()+
@@ -134,6 +140,7 @@ public class Rails286Portlet extends GenericPortlet {
     *   Changed to use Liferay 5.2.0 API.
     *
     */
+  @SuppressWarnings("unchecked")
   public void render(RenderRequest request, RenderResponse response)
   throws PortletException, IOException {
     if (log.isDebugEnabled()) {
@@ -148,7 +155,7 @@ public class Rails286Portlet extends GenericPortlet {
         log.error(e.getMessage());
       }
     } 
-
+	  
     /* The preferences are never used.
     PortletPreferences preferences = request.getPreferences();
      */
@@ -317,12 +324,20 @@ public class Rails286Portlet extends GenericPortlet {
 
   // suppress request.getParameterMap unchecked cast for processAction,
   // since it should always return <String,String[]>
-  @SuppressWarnings("unchecked")
 
-  /** Handles POST requests.
-    */
+  /** 
+   * Handles POST requests.
+   */
+  @SuppressWarnings("unchecked")
   public void processAction(ActionRequest request, ActionResponse response)
   throws PortletException, IOException {
+
+	// In case of a multipart request, retrieve the files
+	if (PortletFileUpload.isMultipartContent(request)){
+		log.debug("Multipart request");
+		retrieveFiles(request);
+	}
+	  
     PortletSession session = request.getPortletSession(true);
     /** Process an action from the web page.
       * This can be a classic HTML form or a JavaScript-generator form POST.
@@ -372,30 +387,35 @@ public class Rails286Portlet extends GenericPortlet {
 	*/
   }
 
-	/*
-
-  Subfunctions
-
+ /*
+  * Subfunctions
+  * 
   */
 
 	/** Executes a POST request.
    */
+  @SuppressWarnings("unchecked")
   private String executePost(RenderRequest request, URL httpReferer, PortletSession session, OnlineClient client) 
   throws HttpException,IOException {
-	  
+
 	  String railsResponse = null;
+	  
 	  // retrieve POST parameters        
 	  NameValuePair[] parametersBody = (NameValuePair[]) request.getAttribute("parametersBody");
+	  
 	  if (parametersBody == null) {
 		  log.warn("Empty parametersBody in the request, no POST data?");
 	  }
 	  else if (log.isDebugEnabled()) {
 		  debugParams(parametersBody);
 	  }
+	  
+	  // retrieve files
+	  Map<String, Object[]> files = (Map<String, Object[]>) request.getAttribute("files");
 
 	  // POST the parametersBody
 	  // OnlineClient handles cases where POST redirects.
-	  railsResponse = new String(client.post(parametersBody));
+	  railsResponse = new String(client.post(parametersBody, files));
 
 	  // store new cookies into PortletSession.
 	  session.setAttribute("cookies", client.cookies, PortletSession.PORTLET_SCOPE);
@@ -411,7 +431,8 @@ public class Rails286Portlet extends GenericPortlet {
 	  return railsResponse;
   }
 
-	/** Executes a GET request.
+  /**
+   *  Executes a GET request.
    */
   private String executeGet(PortletSession session, OnlineClient client)
   throws HttpException, IOException {
@@ -555,11 +576,34 @@ public class Rails286Portlet extends GenericPortlet {
         null,
         false);
   }
+	
+  private void retrieveFiles(ActionRequest request) throws IOException {
+	  UploadPortletRequest uploadRequest = PortalUtil.getUploadPortletRequest(request);
+	  Map<String, Object[]> files = new HashMap<String, Object[]>();
 
-  /*
+	  // Try to discover the file parameters
+	  for (Object key : uploadRequest.getParameterMap().keySet()){
+		  File file = uploadRequest.getFile(key.toString());
+
+		  if (file != null && file.length() > 0){
+			  // I need to store the bytes because the file will be deleted
+			  // after the method execution, so when OnlineClient request the
+			  // file it no longer exists. I need to store the file object
+			  // to store the path and the attributes of this file.
+			  byte[] bytes = FileUtil.getBytes(file);
+			  files.put(key.toString(), new Object[]{file, bytes});
+		  }
+	  }
+
+	  if (files.size() > 0){
+		  request.setAttribute("files", files);
+	  }
+  }
+
+	/*
   Cookie with UID.
   */
-	protected Cookie uidCookie(PortletSession session) {
+  protected Cookie uidCookie(PortletSession session) {
     // no. this is not the best way to handle this.
     URL base = (java.net.URL)session.getAttribute("railsBaseUrl");
     String host = base.getHost();
