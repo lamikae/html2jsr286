@@ -30,7 +30,9 @@ compile: clean
 	export CLASSPATH="\
 	$(jarlib)/portlet-2.0.jar:\
 	$(jarlib)/commons-logging.jar:\
+	$(jarlib)/commons-fileupload-1.2.1.jar:\
 	$(jarlib)/commons-httpclient-3.1.jar:\
+	$(jarlib)/portal-kernel.jar:\
 	$(jarlib)/portal-service-$(liferay).jar:\
 	$(jarlib)/servlet-api-2.4.jar:\
 	$(jarlib)/htmlparser-1.6.jar" ;\
@@ -57,6 +59,7 @@ test: compile
 	$(jarlib)/commons-logging.jar:\
 	$(jarlib)/commons-httpclient-3.1.jar:\
 	$(jarlib)/commons-codec-1.3.jar:\
+	$(jarlib)/commons-fileupload-1.2.1.jar:\
 	$(jarlib)/portal-service-$(liferay).jar:\
 	$(jarlib)/servlet-api-2.4.jar:\
 	$(jarlib)/htmlparser-1.6.jar:\
@@ -64,6 +67,8 @@ test: compile
 	$(jarlib)/junit-4.6.jar:\
 	$(jarlib)/spring-test-2.5.6.jar:\
 	$(jarlib)/spring-core-2.5.6.jar:\
+	$(jarlib)/spring-webmvc-2.5.6.jar:\
+	$(jarlib)/spring-webmvc-portlet-2.5.6.jar:\
 	test" ;\
 	javac test/*.java -Xlint:unchecked -Xlint:deprecation -d test/classes && \
 	time java -ea  org.junit.runner.JUnitCore com.celamanzi.liferay.portlets.rails286.TestLoader

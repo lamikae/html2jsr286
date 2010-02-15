@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.portlet.RenderRequest;
-
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.Header;
@@ -81,7 +79,6 @@ public class OnlineClient {
   protected URL      httpReferer = null;
   protected Locale   locale      = null;
   
-  protected RenderRequest renderRequest;
   
   OnlineClient(URL _requestURL) {
     requestURL  = _requestURL;
