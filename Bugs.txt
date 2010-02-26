@@ -1,0 +1,7 @@
+Known bugs:
+  * HTMLparser cannot handle inline JavaScript that contains arbitrary HTML tags
+  -> solution is to use XSLT instead of HTMLparser
+
+  * XHR actions are not filtered; if they produce new HTML, it is not parsed
+  -> use JavaScript portletRequest and serveResource()
+
