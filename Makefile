@@ -1,22 +1,26 @@
-# I don't know how to write ant tasks. This should be one. - lamikae
-
+name='rails-portlet'
 jarlib=WEB-INF/lib
 classes=WEB-INF/classes
+version=`awk -F\" /String\ PORTLET_VERSION/{'print $$2'} WEB-INF/src/PortletVersion.java`
 liferay_v=`grep 'LIFERAY_VERSION' WEB-INF/src/PortletVersion.java | grep -o .,. | tr ',' '.'`
+pkgdir=..
 hotdeploydir='/usr/local/liferay/tomcat/webapps/ROOT/WEB-INF/classes'
 
 # version of Liferay's portal-service jar
 #liferay=5.1.1
 liferay=5.2.3
 
+.PHONY: list deploy test help
+
 all: compile list
 
 clean:
-	if [ ! -e $(classes) ]; then mkdir $(classes); fi
 	-find $(classes) -name *.class -exec rm -f {} \;
 	if [ -e test/classes ]; then rm -rf test/classes/* ; fi
+	if [ -e build ]; then rm -rf build; fi
 
 compile: clean
+	if [ ! -e $(classes) ]; then mkdir $(classes); fi
 	#
 	###################### compiling all Java classes
 	#
@@ -24,9 +28,6 @@ compile: clean
 # see the ';\' between the export and the for loop, it is required.
 # portal-service and servlet-api are included to satisfy Liferay classes.
 	
-# how to build packages that are compatible with older versions?
-#$(jarlib)/portal-service-5.1.1.jar:\
-
 	export CLASSPATH="\
 	$(jarlib)/portlet-2.0.jar:\
 	$(jarlib)/commons-logging.jar:\
@@ -81,8 +82,43 @@ help:
 	@echo "To compile classes:"
 	@echo " 	make all"
 	@echo
-	@echo "To run the (very sparse) test suite:"
-	@echo " 	make test"
+	@echo "To run the test suite:"
+	@echo " 	make test (or ant test)"
+	@echo
+	@echo "To build the JAR"
+	@echo " 	make jar"
+
+prepare: clean
+	#
+	###################### preparing
+	#
+	mkdir build
+	rsync * --exclude-from=.exclude -r build/
+	cd build && make
+
+jar: prepare
+	#
+	###################### creating JAR file
+	#
+	pkgdir=`pwd` && \
+	version=$(version) && \
+	pkg=$(name)-$$version.jar && \
+	cd build/WEB-INF && \
+	mv ../README classes && \
+	cd classes && \
+	echo $$version > VERSION && \
+	jar cf "$$pkgdir/$$pkg" . && \
+	echo " * done" && \
+	cd $$pkgdir && ls -lh $$pkg && jar tf $$pkg
 
 
-.PHONY: list deploy test help
+release: jar
+	pkg=$(name)-$(version).jar && \
+	mv $$pkg caterpillar/lib/java/
+	#
+	###################### JAR is located in caterpillar/lib/java/
+	#
+	ls -lh caterpillar/lib/java/
+
+
+
