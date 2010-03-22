@@ -142,23 +142,105 @@ public class OnlineClientTest {
   } 
   
   @Test
-  public void test_post()
+  public void test_post_redirect()
   throws MalformedURLException, HttpException, IOException
   {
     client = new OnlineClient(new URL(railsJUnitURL+"/post_redirect_get"));
     assertNotNull(client);
-    
-    NameValuePair[] params = {
-       new NameValuePair("foo", "bar")
-    };
-    
-    byte[] body = client.post(params, null); //without files
+
+    NameValuePair[] params = {};
+
+    byte[] body = client.post(params,null); //without params or files
     assertEquals(200,client.statusCode);
     
     Cookie[] cookies = client.cookies;
-    assertEquals(1,cookies.length);
+    assertEquals(0,cookies.length);
+
+    assertEquals("/caterpillar/test_bench/junit/redirect_target",new String(body));
   }
-  
+
+    @Test
+    public void test_post_params()
+    throws MalformedURLException, HttpException, IOException, Exception,
+    ParserConfigurationException, XPathExpressionException, SAXException
+    {
+        client = new OnlineClient(new URL(railsJUnitURL+"/post_params"));
+        assertNotNull(client);
+
+        NameValuePair[] params = {
+            new NameValuePair("foo", "bar"),
+            new NameValuePair("baz", "xyz"),
+        };
+
+        byte[] body = client.post(params, null); //without files
+        assertEquals(200,client.statusCode);
+
+        Cookie[] cookies = client.cookies;
+        assertEquals(0,cookies.length);
+
+        String xml = new String(body);
+        Document doc = TestHelpers.html2doc(xml);
+        assertNotNull(doc);
+
+        for (int x=0 ; x<params.length ; x++) {
+            String k = params[x].getName();
+            expr = xpath.compile("//"+k+"/text()");
+            nodes = TestHelpers.evalExpr(expr, doc);
+            assertEquals(1,nodes.getLength());
+            assertEquals(params[x].getValue(),nodes.item(0).getNodeValue());
+        }
+    }
+
+    @Test
+    public void test_post_cookies()
+    throws MalformedURLException, HttpException, IOException, Exception,
+    ParserConfigurationException, XPathExpressionException, SAXException
+    {
+        Map<String, Cookie> cookies = new HashMap<String, Cookie>();
+        cookies.put("1",new Cookie(
+            new URL(host).getHost(),
+            "foo",
+            "bar",
+            "/",
+            null,
+            false));
+        cookies.put("2",new Cookie(
+            new URL(host).getHost(),
+            "baz",
+            "xyz",
+            "/",
+            null,
+            false));
+        assertEquals(2,cookies.size());
+
+        client = new OnlineClient(new URL(railsJUnitURL+"/post_cookies"),
+          cookies,null,null);
+        assertNotNull(client);
+
+        NameValuePair[] params = {};
+
+        byte[] body = client.post(params, null); //without files
+        assertEquals(200,client.statusCode);
+
+        Cookie[] _cookies = client.cookies;
+        assertEquals(2,_cookies.length);
+        String xml = new String(body);
+        System.out.println(xml);
+
+        Document doc = TestHelpers.html2doc(xml);
+        assertNotNull(doc);
+
+        for (java.util.Map.Entry<String,Cookie> entry : cookies.entrySet()) {
+            Cookie c = entry.getValue();
+            String k = c.getName();
+            String v = c.getValue();
+            expr = xpath.compile("//"+k+"/text()");
+            nodes = TestHelpers.evalExpr(expr, doc);
+            assertEquals(1,nodes.getLength());
+            assertEquals(c.getValue(),nodes.item(0).getNodeValue());
+        }
+    }
+
   @Test
   public void test_multipart_post()
   throws MalformedURLException, HttpException, IOException{
@@ -197,13 +279,4 @@ public class OnlineClientTest {
 	  return bytes;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
 }
