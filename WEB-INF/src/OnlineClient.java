@@ -146,7 +146,6 @@ public class OnlineClient {
       method.releaseConnection();
     }
     
-    log.debug("Return body nicely..");
     return responseBody;
   }
   

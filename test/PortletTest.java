@@ -67,28 +67,23 @@ public class PortletTest {
         session = new MockPortletSession();
         assertNotNull(session);
       
-        session.setAttribute(
-                             "railsBaseUrl",
+        session.setAttribute("railsBaseUrl",
                              new URL(host+"/"+servlet),
                              PortletSession.PORTLET_SCOPE);
         
-        session.setAttribute(
-                             "servlet",
+        session.setAttribute("servlet",
                              servlet,
                              PortletSession.PORTLET_SCOPE);
         
-        session.setAttribute(
-                             "railsRoute",
+        session.setAttribute("railsRoute",
                              route,
                              PortletSession.PORTLET_SCOPE);
         
-        session.setAttribute(
-                             "requestMethod",
+        session.setAttribute("requestMethod",
                              null,
                              PortletSession.PORTLET_SCOPE);
 
-        session.setAttribute(
-                             "httpReferer",
+        session.setAttribute("httpReferer",
                              null,
                              PortletSession.PORTLET_SCOPE);
         
