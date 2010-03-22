@@ -195,26 +195,20 @@ public class OnlineClient {
           (statusCode == HttpStatus.SC_TEMPORARY_REDIRECT)
         )
       {
-        if (log.isDebugEnabled()) {
-          debugHeaders((Header[])method.getResponseHeaders());
-        }
         
         // get Location
         String location = ((Header)method.getResponseHeader("Location")).getValue();
         requestURL = new URL(location);
         log.debug("POST status code: " + method.getStatusLine());
         log.debug("Redirect to location: "+location);
-        
-        // Get session cookies
-        cookies = client.getState().getCookies();
 
-        responseBody = get();
-        //log.debug(new String(responseBody));
-        
-        /** Note that this overwrites the previous POST method,
-          * so it should have set statusCode and cookies from the last reply.
-          */
+        // server may add another cookie before redirect..
+        cookies = client.getState().getCookies();
+        //log.debug("Stored "+cookies.length+" cookies.");
           
+        // Note that this GET overwrites the previous POST method,
+        // so it should set statusCode and cookies correctly.
+        responseBody = get();
       }
       else {
         // the original POST method was OK, pass

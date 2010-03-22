@@ -219,13 +219,13 @@ public class OnlineClientTest {
 
         NameValuePair[] params = {};
 
+        // server adds another cookie
         byte[] body = client.post(params, null); //without files
         assertEquals(200,client.statusCode);
 
         Cookie[] _cookies = client.cookies;
-        assertEquals(2,_cookies.length);
+        assertEquals(3,_cookies.length);
         String xml = new String(body);
-        System.out.println(xml);
 
         Document doc = TestHelpers.html2doc(xml);
         assertNotNull(doc);
