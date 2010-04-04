@@ -1,3 +1,5 @@
+  - support to upload (multipart forms)
+
 = 0.9.2
   - UID cookie + security key is now tested in real split-domain environment
 
