@@ -104,7 +104,7 @@ jar: prepare
 	version=$(version) && \
 	pkg=$(name)-$$version.jar && \
 	cd build/WEB-INF && \
-	mv ../README classes && \
+	mv ../README.md classes && \
 	cd classes && \
 	echo $$version > VERSION && \
 	jar cf "$$pkgdir/$$pkg" . && \
