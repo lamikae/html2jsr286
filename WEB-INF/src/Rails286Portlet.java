@@ -317,7 +317,12 @@ public class Rails286Portlet extends GenericPortlet {
     
     // Write the HTML to RenderResponse
       //log.debug(outputHTML);
-    response.setContentType("text/html"); // TODO: get from the actual response
+    
+    //PageProcessor.isHTML(outputHTML)
+    //response.setContentType("text/html"); // TODO: get from the actual response
+    
+    response.setContentType(client.getContentType());
+    
     PrintWriter out = response.getWriter();
     out.println( outputHTML );
   }

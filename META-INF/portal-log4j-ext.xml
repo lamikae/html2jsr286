@@ -25,7 +25,7 @@
   </category>
   
   <category name="com.celamanzi.liferay.portlets.rails286.OnlineClient">
-    <priority value="INFO" />
+    <priority value="DEBUG" />
   </category>
   
   <category name="com.celamanzi.liferay.portlets.rails286.PageProcessor">
