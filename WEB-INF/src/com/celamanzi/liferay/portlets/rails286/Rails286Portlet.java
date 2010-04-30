@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2008,2009 Mikael Lammentausta
- *               2010 Mikael Lammentausta, Túlio Ornelas dos Santos
+ *               2010 Mikael Lammentausta, Tulio Ornelas dos Santos
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -106,6 +106,8 @@ public class Rails286Portlet extends GenericPortlet {
 	private URL      railsBaseUrl  = null;
 	private String   servlet       = null;
 	private String   railsRoute    = null;
+	
+	private OnlineClient client  = null;
 
 	/** 
 	 * Portlet initialization at portal startup.
@@ -140,8 +142,7 @@ public class Rails286Portlet extends GenericPortlet {
 	throws PortletException, IOException {
 		super.serveResource(request, response);
 		
-		log.info(">>>>>>>>> serveResource inicializado!");
-
+		log.debug("serveResourse");
 		
 		byte[] railsBytes = callRuby(request, response);
 		
@@ -160,11 +161,6 @@ public class Rails286Portlet extends GenericPortlet {
 	private byte[] callRuby(PortletRequest request, PortletResponse response){
 
 		URL      httpReferer   = null;
-
-
-		/** The processed web page is catenated to the RenderResponse */
-		String outputHTML      = null;
-
 
 		/**
 		 * Session storage.
@@ -209,7 +205,6 @@ public class Rails286Portlet extends GenericPortlet {
 		railsHost = getRailsBaseUrl().getHost();
 		//log.debug("railsHost in session: " + railsHost);
 
-		OnlineClient client  = null;
 		byte[] railsBytes    = null;
 
 		try {
@@ -264,20 +259,20 @@ public class Rails286Portlet extends GenericPortlet {
 			 * Execute the request
 			 *
 			 */
-			client = new OnlineClient(requestUrl,cookies,httpReferer,locale);
+			setClient(new OnlineClient(requestUrl,cookies,httpReferer,locale));
 
 			/**
 			 * GET
 			 */
 			if (requestMethod.equals("get")) {
-				railsBytes = executeGet(session, client);
+				railsBytes = executeGet(session, getClient());
 			}
 
 			/**
 			 * POST, PUT (PUT is sent as POST)
 			 */
 			else if (requestMethod.equals("post") || requestMethod.equals("put")) {
-				railsBytes = executePost(request, httpReferer, session, client);
+				railsBytes = executePost(request, httpReferer, session, getClient());
 			}
 
 			// DELETE?
@@ -438,6 +433,14 @@ public class Rails286Portlet extends GenericPortlet {
 
 	public void setRailsRoute(String railsRoute) {
 		this.railsRoute = railsRoute;
+	}
+	
+	public OnlineClient getClient() {
+		return client;
+	}
+
+	public void setClient(OnlineClient client) {
+		this.client = client;
 	}
 	
 	/*
