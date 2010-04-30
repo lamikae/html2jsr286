@@ -22,24 +22,20 @@
 
 package com.celamanzi.liferay.portlets.rails286;
 
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-// import java.io.PrintWriter;
-
-// import javax.portlet.PortletURL;
 import javax.portlet.RenderResponse;
-
-import org.htmlparser.Parser;
-import org.htmlparser.tags.*;
-import org.htmlparser.filters.NodeClassFilter;
-
-import org.htmlparser.util.NodeList;
-import org.htmlparser.util.ParserException;
-import org.htmlparser.visitors.NodeVisitor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.htmlparser.Parser;
+import org.htmlparser.filters.NodeClassFilter;
+import org.htmlparser.tags.BodyTag;
+import org.htmlparser.tags.HeadTag;
+import org.htmlparser.util.NodeList;
+import org.htmlparser.util.ParserException;
+import org.htmlparser.visitors.NodeVisitor;
 
 
 /** Processes a web page received from Rails 

@@ -37,12 +37,13 @@ import javax.portlet.GenericPortlet;
 import javax.portlet.PortletConfig;
 import javax.portlet.PortletException;
 import javax.portlet.PortletMode;
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletSession;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
-import javax.portlet.filter.ResourceResponseWrapper;
 
 import org.apache.commons.fileupload.portlet.PortletFileUpload;
 import org.apache.commons.httpclient.Cookie;
@@ -129,54 +130,17 @@ public class Rails286Portlet extends GenericPortlet {
 	public void serveResource(ResourceRequest request, ResourceResponse response)
 	throws PortletException, IOException {
 		super.serveResource(request, response);
-
+		
 		log.info(">>>>>>>>> serveResource inicializado!");
-		
-		FileInputStream fis = new FileInputStream(new File("/Users/tulios/Desktop/apple.gif"));
-		
-		PortletResponseUtil.sendFile(response, "apple.gif", fis);
-		
-		fis.close();
+
+		PortletResponseUtil.sendFile(response, "apple.gif", callRails(request, response).getBytes());
+
 	}
 
-	/**
-	 * Main method, render(). Other portlet modes are not supported.
-	 *
-	 * Downloads the Rails HTML, runs the HTML processor and
-	 * inserts it into RenderResponse.
-	 *
-	 * This is still a horribly long function that could be split up to
-	 * subfunctions for clarity.
-	 *
-	 * @since 0.8.2
-	 * 	Split to subfunctions, cookie system...
-	 *
-	 * @since 0.6.1
-	 *   Changed to use Liferay 5.2.0 API.
-	 *
-	 */
-	public void render(RenderRequest request, RenderResponse response)
-	throws PortletException, IOException {
-		if (log.isDebugEnabled()) {
-			try {
-				log.debug("View "+response.getNamespace());
-				//log.debug(request.getAuthType());
-				log.debug("Remote user: "+request.getRemoteUser());
-				// user principal is null in pre-prod
-				log.debug("User principal name: "+request.getUserPrincipal().getName());
-			}
-			catch (java.lang.NullPointerException e) {
-				log.error(e.getMessage());
-			}
-		} 
-
-		/* The preferences are never used.
-    PortletPreferences preferences = request.getPreferences();
-		 */
-
+	private String callRails(PortletRequest request, PortletResponse response){
 		/** 
-     Base + Request URLs are set in the RenderFilter 
-     and are read from the PortletSession.
+	     Base + Request URLs are set in the RenderFilter 
+	     and are read from the PortletSession.
 		 */
 		URL      railsBaseUrl  = null;
 		String   servlet       = null;
@@ -214,8 +178,8 @@ public class Rails286Portlet extends GenericPortlet {
 
 		/** TODO: cleanup!
 
-    Move the checks from render() to RenderFilter, which will stop the whole process, and
-    forward to another method altogether.
+	    Move the checks from render() to RenderFilter, which will stop the whole process, and
+	    forward to another method altogether.
 		 */
 
 		// save the new path to session, needed for HTTP_REFERER,
@@ -254,7 +218,7 @@ public class Rails286Portlet extends GenericPortlet {
 
 
 			/** Form the request URL, 
-      TODO : move to subfunction  */
+	      TODO : move to subfunction  */
 			servlet = (String)session.getAttribute("servlet");
 			RouteAnalyzer ra = new RouteAnalyzer(railsBaseUrl,servlet);
 			try {
@@ -272,11 +236,11 @@ public class Rails286Portlet extends GenericPortlet {
 			// Author Reinaldo Silva
 			// Needs tests!
 			/*
-      Cookie[] servletCookies = OnlineUtils.getRequestCookies(request, requestUrl);
-      for (int i = 0; i < servletCookies.length; i++) {
-        if (!cookies.containsKey(servletCookies[i].getName()))
-          cookies.put((String)servletCookies[i].getName(), (Cookie)servletCookies[i]);
-      }
+	      Cookie[] servletCookies = OnlineUtils.getRequestCookies(request, requestUrl);
+	      for (int i = 0; i < servletCookies.length; i++) {
+	        if (!cookies.containsKey(servletCookies[i].getName()))
+	          cookies.put((String)servletCookies[i].getName(), (Cookie)servletCookies[i]);
+	      }
 			 */
 
 			String requestMethod = getRequestMethod(session);
@@ -317,7 +281,12 @@ public class Rails286Portlet extends GenericPortlet {
 			 * Process the response body
 			 * TODO: only if response was in 2xx range
 			 */
-			outputHTML = processResponseBody(response, railsBaseUrl, servlet, railsRoute, railsResponse);
+			if (PageProcessor.isHTML(railsResponse)){
+				RenderResponse renderResponse = (RenderResponse) response;
+				outputHTML = processResponseBody(renderResponse, railsBaseUrl, servlet, railsRoute, railsResponse);
+			}else{
+				outputHTML = railsResponse;
+			}
 
 		} // try
 		catch(Exception e) {
@@ -327,25 +296,53 @@ public class Rails286Portlet extends GenericPortlet {
 
 		// set the response status code (for tests)
 		responseStatusCode = client.statusCode;
-		//log.debug("Response status code: " +responseStatusCode);
+		return outputHTML;
+	}
+
+	/**
+	 * Main method, render(). Other portlet modes are not supported.
+	 *
+	 * Downloads the Rails HTML, runs the HTML processor and
+	 * inserts it into RenderResponse.
+	 *
+	 * This is still a horribly long function that could be split up to
+	 * subfunctions for clarity.
+	 *
+	 * @since 0.8.2
+	 * 	Split to subfunctions, cookie system...
+	 *
+	 * @since 0.6.1
+	 *   Changed to use Liferay 5.2.0 API.
+	 *
+	 */
+	public void render(RenderRequest request, RenderResponse response)
+	throws PortletException, IOException {
+		if (log.isDebugEnabled()) {
+			try {
+				log.debug("View "+response.getNamespace());
+				//log.debug(request.getAuthType());
+				log.debug("Remote user: "+request.getRemoteUser());
+				// user principal is null in pre-prod
+				log.debug("User principal name: "+request.getUserPrincipal().getName());
+			}
+			catch (java.lang.NullPointerException e) {
+				log.error(e.getMessage());
+			}
+		} 
+
+		/* The preferences are never used.
+    PortletPreferences preferences = request.getPreferences();
+		 */
+
+		String outputHTML = callRails(request, response);
+		log.debug("Response status code: " +responseStatusCode);
 
 		// Write the HTML to RenderResponse
 		//log.debug(outputHTML);
 
-		//PageProcessor.isHTML(outputHTML)
-		//response.setContentType("text/html"); // TODO: get from the actual response
-
-		if (client.getContentType().startsWith("application")) {
-
-			log.info("Byte response detected");
-
-			//PortletResponseUtil. //(response, "apple.gif", outputHTML.getBytes());
-
-		}else{
-			response.setContentType(client.getContentType());
-			PrintWriter out = response.getWriter();
-			out.println( outputHTML );
-		}
+		response.setContentType("text/html"); // TODO: get from the actual response
+		PrintWriter out = response.getWriter();
+		out.println(outputHTML);
 	}
 
 	// suppress request.getParameterMap unchecked cast for processAction,
@@ -421,7 +418,7 @@ public class Rails286Portlet extends GenericPortlet {
 	/** Executes a POST request.
 	 */
 	@SuppressWarnings("unchecked")
-	private String executePost(RenderRequest request, URL httpReferer, PortletSession session, OnlineClient client) 
+	private String executePost(PortletRequest request, URL httpReferer, PortletSession session, OnlineClient client) 
 	throws HttpException,IOException {
 
 		String railsResponse = null;
@@ -482,7 +479,7 @@ public class Rails286Portlet extends GenericPortlet {
 	/**
 	 * Create the {@link PageProcessor} and process the railsRoute.
 	 * 
-	 * @param response - {@link RenderResponse}
+	 * @param response - {@link PortletResponse}
 	 * @param railsBaseUrl - {@link URL}
 	 * @param servlet - {@link String}
 	 * @param railsRoute - {@link String}
