@@ -29,6 +29,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,6 +57,7 @@ import org.htmlparser.util.ParserException;
 
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.util.servlet.PortletResponseUtil;
 
@@ -142,7 +144,10 @@ public class Rails286Portlet extends GenericPortlet {
 	throws PortletException, IOException {
 		super.serveResource(request, response);
 		
-		log.debug("serveResourse");
+		String fileName = ParamUtil.getString(request, "fileName");
+		log.debug(">>>>> F I L E N A M E="+ fileName);
+		
+		log.debug("serveResource");
 		
 		byte[] railsBytes = callRuby(request, response);
 		

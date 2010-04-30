@@ -29,7 +29,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -100,15 +99,12 @@ public class OnlineClient {
 
 	private void setHeaders(Header[] headers){
 		this.headers = new ArrayList<Header>();
+		
 		for(Header header : headers){
 			this.headers.add(header);
-			
-			if (header.getName().equals("Content-Type")){
-				setContentType(header.getValue());
-				log.debug("Content Type >>>>> = "+getContentType());
-			}
-			
 		}
+
+		setContentType(headers);
 	}
 	
 	public ArrayList<Header> getHeaders(){
@@ -119,8 +115,16 @@ public class OnlineClient {
 		return this.contentType;
 	}
 	
-	private void setContentType(String contentType){
-		this.contentType = contentType;
+	private void setContentType(Header[] headers2){
+		if (this.contentType == null) {
+			for (Header header : headers2) {
+				if (header.getName().equals("Content-Type")){
+					log.debug (" Name="+ header.getName()+" Content Type="+getContentType());
+					this.contentType = header.getValue();
+				}
+				
+			}
+		}
 	}
 	
 	/** GET
