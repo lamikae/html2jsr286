@@ -9,7 +9,7 @@
   </appender>
 
   <category name="com.celamanzi.liferay.portlets.rails286.Rails286Portlet">
-    <priority value="INFO" />
+    <priority value="DEBUG" />
   </category>
 
   <category name="com.celamanzi.liferay.portlets.rails286.Rails286PortletRenderFilter">
