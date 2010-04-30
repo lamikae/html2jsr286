@@ -25,6 +25,7 @@ package com.celamanzi.liferay.portlets.rails286;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -97,6 +98,14 @@ public class Rails286Portlet extends GenericPortlet {
 	private String sessionKey    = null;
 	private String sessionSecret = null;
 	protected int responseStatusCode = -1;
+	
+	/** 
+    Base + Request URLs are set in the RenderFilter 
+    and are read from the PortletSession.
+	 */
+	private URL      railsBaseUrl  = null;
+	private String   servlet       = null;
+	private String   railsRoute    = null;
 
 	/** 
 	 * Portlet initialization at portal startup.
@@ -133,18 +142,23 @@ public class Rails286Portlet extends GenericPortlet {
 		
 		log.info(">>>>>>>>> serveResource inicializado!");
 
-		PortletResponseUtil.sendFile(response, "apple.gif", callRails(request, response).getBytes());
-
+		
+		byte[] railsBytes = callRuby(request, response);
+		
+		File file = new File("../temp/apple.gif");
+		
+		FileOutputStream fos = new FileOutputStream(file);
+		
+		fos.write(railsBytes);
+		
+		fos.flush();
+		fos.close();
+		
+		PortletResponseUtil.sendFile(response, "apple.gif", new FileInputStream(file));
 	}
 
-	private String callRails(PortletRequest request, PortletResponse response){
-		/** 
-	     Base + Request URLs are set in the RenderFilter 
-	     and are read from the PortletSession.
-		 */
-		URL      railsBaseUrl  = null;
-		String   servlet       = null;
-		String   railsRoute    = null;
+	private byte[] callRuby(PortletRequest request, PortletResponse response){
+
 		URL      httpReferer   = null;
 
 
@@ -173,7 +187,7 @@ public class Rails286Portlet extends GenericPortlet {
 		 * Gets the base URL and the route from the session.
 		 *
 		 */
-		railsBaseUrl = (java.net.URL)session.getAttribute("railsBaseUrl");
+		setRailsBaseUrl((java.net.URL)session.getAttribute("railsBaseUrl"));
 		railsRoute = (String)session.getAttribute("railsRoute");
 
 		/** TODO: cleanup!
@@ -192,10 +206,11 @@ public class Rails286Portlet extends GenericPortlet {
 
 		// get the host section from the base URL
 		String railsHost = null;
-		railsHost = railsBaseUrl.getHost();
+		railsHost = getRailsBaseUrl().getHost();
 		//log.debug("railsHost in session: " + railsHost);
 
-		OnlineClient client = null;
+		OnlineClient client  = null;
+		byte[] railsBytes    = null;
 
 		try {
 			// check the server and route
@@ -207,28 +222,23 @@ public class Rails286Portlet extends GenericPortlet {
 			//  throw new PortletException("The server " + railsHost + " was unreachable.");
 			//}
 
-			if ( railsRoute == null ) {
+			if ( getRailsRoute() == null ) {
 				log.warn( "The requested route is undefined" );
-				railsRoute = "/";
+				setRailsRoute("/");
 			}
 
-
-			String       railsResponse = null;
 			java.net.URL requestUrl    = null;
-
 
 			/** Form the request URL, 
 	      TODO : move to subfunction  */
-			servlet = (String)session.getAttribute("servlet");
-			RouteAnalyzer ra = new RouteAnalyzer(railsBaseUrl,servlet);
+			setServlet((String)session.getAttribute("servlet"));
+			RouteAnalyzer ra = new RouteAnalyzer(getRailsBaseUrl(), getServlet());
 			try {
-				requestUrl = ra.getFullURL(railsRoute);
-			}
-			catch (java.net.MalformedURLException e) {
+				requestUrl = ra.getFullURL(getRailsRoute());
+			} catch (java.net.MalformedURLException e) {
 				log.error(e.getMessage());
 			}
 			log.debug("Request URL: "+requestUrl.toString());
-
 
 			Map<String,Cookie> cookies = getCookies(session);
 
@@ -260,14 +270,14 @@ public class Rails286Portlet extends GenericPortlet {
 			 * GET
 			 */
 			if (requestMethod.equals("get")) {
-				railsResponse = executeGet(session, client);
+				railsBytes = executeGet(session, client);
 			}
 
 			/**
 			 * POST, PUT (PUT is sent as POST)
 			 */
 			else if (requestMethod.equals("post") || requestMethod.equals("put")) {
-				railsResponse = executePost(request, httpReferer, session, client);
+				railsBytes = executePost(request, httpReferer, session, client);
 			}
 
 			// DELETE?
@@ -277,26 +287,15 @@ public class Rails286Portlet extends GenericPortlet {
 				throw new PortletException("Unknown request method: "+requestMethod);
 			}
 
-			/**
-			 * Process the response body
-			 * TODO: only if response was in 2xx range
-			 */
-			if (PageProcessor.isHTML(railsResponse)){
-				RenderResponse renderResponse = (RenderResponse) response;
-				outputHTML = processResponseBody(renderResponse, railsBaseUrl, servlet, railsRoute, railsResponse);
-			}else{
-				outputHTML = railsResponse;
-			}
-
 		} // try
 		catch(Exception e) {
-			outputHTML = e.getMessage();
-			log.error(outputHTML);
+			log.error(new String(railsBytes));
 		}
 
 		// set the response status code (for tests)
 		responseStatusCode = client.statusCode;
-		return outputHTML;
+		
+		return railsBytes;
 	}
 
 	/**
@@ -334,7 +333,14 @@ public class Rails286Portlet extends GenericPortlet {
     PortletPreferences preferences = request.getPreferences();
 		 */
 
-		String outputHTML = callRails(request, response);
+		byte[] railsBytes = callRuby(request, response);
+		RenderResponse renderResponse = (RenderResponse) response;
+		String outputHTML = processResponseBody(renderResponse, 
+											    getRailsBaseUrl(), 
+											    getServlet(), 
+											    getRailsRoute(), 
+											    new String(railsBytes));
+
 		log.debug("Response status code: " +responseStatusCode);
 
 		// Write the HTML to RenderResponse
@@ -410,6 +416,30 @@ public class Rails286Portlet extends GenericPortlet {
 		 */
 	}
 
+	public URL getRailsBaseUrl() {
+		return railsBaseUrl;
+	}
+
+	public void setRailsBaseUrl(URL railsBaseUrl) {
+		this.railsBaseUrl = railsBaseUrl;
+	}
+
+	public String getServlet() {
+		return servlet;
+	}
+
+	public void setServlet(String servlet) {
+		this.servlet = servlet;
+	}
+
+	public String getRailsRoute() {
+		return railsRoute;
+	}
+
+	public void setRailsRoute(String railsRoute) {
+		this.railsRoute = railsRoute;
+	}
+	
 	/*
 	 * Subfunctions
 	 * 
@@ -418,10 +448,8 @@ public class Rails286Portlet extends GenericPortlet {
 	/** Executes a POST request.
 	 */
 	@SuppressWarnings("unchecked")
-	private String executePost(PortletRequest request, URL httpReferer, PortletSession session, OnlineClient client) 
+	private byte[] executePost(PortletRequest request, URL httpReferer, PortletSession session, OnlineClient client) 
 	throws HttpException,IOException {
-
-		String railsResponse = null;
 
 		// retrieve POST parameters        
 		NameValuePair[] parametersBody = (NameValuePair[]) request.getAttribute("parametersBody");
@@ -436,10 +464,6 @@ public class Rails286Portlet extends GenericPortlet {
 		// retrieve files
 		Map<String, Object[]> files = (Map<String, Object[]>) request.getAttribute("files");
 
-		// POST the parametersBody
-		// OnlineClient handles cases where POST redirects.
-		railsResponse = new String(client.post(parametersBody, files));
-
 		// store new cookies into PortletSession.
 		session.setAttribute("cookies", client.cookies, PortletSession.PORTLET_SCOPE);
 
@@ -451,17 +475,18 @@ public class Rails286Portlet extends GenericPortlet {
 			log.debug("Saving route from httpReferer: "+httpReferer.toString());
 			session.setAttribute("railsRoute", httpReferer.toString(), PortletSession.PORTLET_SCOPE);
 		}
-		return railsResponse;
+		
+		// POST the parametersBody
+		// OnlineClient handles cases where POST redirects.
+		return client.post(parametersBody, files);
 	}
 
 	/**
 	 *  Executes a GET request.
 	 */
-	private String executeGet(PortletSession session, OnlineClient client)
+	private byte[] executeGet(PortletSession session, OnlineClient client)
 	throws HttpException, IOException {
 
-		String railsResponse = null;
-		railsResponse = new String(client.get());
 		// TODO: get responseHeader and responseBody
 
 		// save/update client Cookie[] into cookies HashMap
@@ -473,7 +498,8 @@ public class Rails286Portlet extends GenericPortlet {
 		// should servlet cookies be stored to the session? here they are not.
 
 		session.setAttribute("cookies", client.cookies, PortletSession.PORTLET_SCOPE);
-		return railsResponse;
+		
+		return client.get();
 	}
 
 	/**
