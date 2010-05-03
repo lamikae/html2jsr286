@@ -59,6 +59,11 @@ public class RouteAnalyzer {
 
     log.debug("Parsing the request route from: "+href);
 
+    // ignore the url convertion if an absolute path is detected
+    if (RouteAnalyzer.isAbsolutePath(href)) {
+    	return href;
+    }
+    
 	// first extract path component,
 	// without servlet definition, the path from a valid URL is returned.
 	try {
@@ -126,6 +131,13 @@ public class RouteAnalyzer {
     return new java.net.URL(
       baseUrl.getProtocol()+"://"+baseUrl.getHost()+":"+port+"/"+servlet+path
     );
+  }
+  
+  public static boolean isAbsolutePath(String path){
+	  Pattern pattern = Pattern.compile("^\\s*http");
+	  Matcher matcher = pattern.matcher(path);
+	  
+	  return matcher.find() ? true : false;
   }
 
 }

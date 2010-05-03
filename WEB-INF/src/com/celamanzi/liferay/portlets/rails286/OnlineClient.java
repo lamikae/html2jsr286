@@ -67,66 +67,70 @@ public class OnlineClient {
 
 	private static int retries = 0;
 	private static int timeout = 30000;
-	
+
 	private ArrayList<Header> headers;
 	private String contentType;
+	private String contentDisposition;
 
 	// TODO: annotate getters
 	protected URL      requestURL  = null;
 	protected int      statusCode  = -1;
-
 
 	// TODO: annotate setters + getters
 	protected Cookie[] cookies     = null;
 	protected URL      httpReferer = null;
 	protected Locale   locale      = null;
 
-	
-
-	OnlineClient(URL _requestURL) {
+	public OnlineClient(URL _requestURL) {
 		requestURL  = _requestURL;
 		cookies     = null;
 		httpReferer = null;
 		locale      = null;
 	}
 
-	OnlineClient(URL _requestURL, Map<String,Cookie> _cookies, URL _httpReferer, Locale _locale) {
+	public OnlineClient(URL _requestURL, Map<String,Cookie> _cookies, URL _httpReferer, Locale _locale) {
 		requestURL  = _requestURL;
 		cookies     = _cookies.values().toArray(new Cookie[0]);
 		httpReferer = _httpReferer;
 		locale      = _locale;
 	}
 
+	private void configureHeader(Header[] headers) {
+		setHeaders(headers);
+		this.contentType = getHeaderValue("Content-Type", getHeaders());
+		this.contentDisposition = getHeaderValue("Content-Disposition", getHeaders());
+	}
+
 	private void setHeaders(Header[] headers){
 		this.headers = new ArrayList<Header>();
-		
+
 		for(Header header : headers){
 			this.headers.add(header);
 		}
-
-		setContentType(headers);
 	}
-	
+
 	public ArrayList<Header> getHeaders(){
 		return headers;
 	}
-	
+
 	public String getContentType(){ 
 		return this.contentType;
 	}
-	
-	private void setContentType(Header[] headers2){
-		if (this.contentType == null) {
-			for (Header header : headers2) {
-				if (header.getName().equals("Content-Type")){
-					log.debug (" Name="+ header.getName()+" Content Type="+getContentType());
-					this.contentType = header.getValue();
-				}
-				
-			}
-		}
+
+	public String getContentDisposition(){
+		return contentDisposition;
 	}
-	
+
+	private String getHeaderValue(String name, ArrayList<Header> headers) {
+		for (Header header : headers) {
+			if (header.getName().equals(name)){
+				return header.getValue();
+			}
+
+		}
+		return "";
+	}
+
 	/** GET
 	 *
 	 * Instantiates HttpClient, prepares it with session cookies,
@@ -169,9 +173,9 @@ public class OnlineClient {
 				// Read the response body
 				responseBody = method.getResponseBody();
 				//method.getRequestHeader('');
-				
+
 				// Keep the headers for future usage (render phase)
-				setHeaders(method.getResponseHeaders());
+				configureHeader(method.getResponseHeaders());
 
 				// Get session cookies
 				cookies = client.getState().getCookies();

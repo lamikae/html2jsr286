@@ -29,9 +29,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -57,7 +58,6 @@ import org.htmlparser.util.ParserException;
 
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.util.servlet.PortletResponseUtil;
 
@@ -100,7 +100,7 @@ public class Rails286Portlet extends GenericPortlet {
 	private String sessionKey    = null;
 	private String sessionSecret = null;
 	protected int responseStatusCode = -1;
-	
+
 	/** 
     Base + Request URLs are set in the RenderFilter 
     and are read from the PortletSession.
@@ -108,7 +108,7 @@ public class Rails286Portlet extends GenericPortlet {
 	private URL      railsBaseUrl  = null;
 	private String   servlet       = null;
 	private String   railsRoute    = null;
-	
+
 	private OnlineClient client  = null;
 
 	/** 
@@ -143,27 +143,26 @@ public class Rails286Portlet extends GenericPortlet {
 	public void serveResource(ResourceRequest request, ResourceResponse response)
 	throws PortletException, IOException {
 		super.serveResource(request, response);
-		
-		String fileName = ParamUtil.getString(request, "fileName");
-		log.debug(">>>>> F I L E N A M E="+ fileName);
-		
-		log.debug("serveResource");
-		
-		byte[] railsBytes = callRuby(request, response);
-		
-		File file = new File("../temp/apple.gif");
-		
-		FileOutputStream fos = new FileOutputStream(file);
-		
-		fos.write(railsBytes);
-		
-		fos.flush();
-		fos.close();
-		
-		PortletResponseUtil.sendFile(response, "apple.gif", new FileInputStream(file));
+
+		log.debug("serveResource has been called");
+
+		byte[] railsBytes = callRails(request, response);
+		String filename = getFilename(client.getContentDisposition());
+
+		if (!filename.equals("")) {
+			File file = new File("../temp/" + filename);
+	
+			FileOutputStream fos = new FileOutputStream(file);
+			fos.write(railsBytes);
+	
+			fos.flush();
+			fos.close();
+	
+			PortletResponseUtil.sendFile(response, filename, new FileInputStream(file));
+		}
 	}
 
-	private byte[] callRuby(PortletRequest request, PortletResponse response){
+	private byte[] callRails(PortletRequest request, PortletResponse response){
 
 		URL      httpReferer   = null;
 
@@ -202,8 +201,8 @@ public class Rails286Portlet extends GenericPortlet {
 		// -- breaks when using POST, and render filter should take care of this itself
 		//     session.setAttribute(
 		//         "railsRoute",
-		//         railsRoute,
-		//         PortletSession.PORTLET_SCOPE);
+		//          railsRoute,
+		//          PortletSession.PORTLET_SCOPE);
 
 		// get the host section from the base URL
 		String railsHost = null;
@@ -294,7 +293,7 @@ public class Rails286Portlet extends GenericPortlet {
 
 		// set the response status code (for tests)
 		responseStatusCode = client.statusCode;
-		
+
 		return railsBytes;
 	}
 
@@ -316,37 +315,32 @@ public class Rails286Portlet extends GenericPortlet {
 	 */
 	public void render(RenderRequest request, RenderResponse response)
 	throws PortletException, IOException {
+		
 		if (log.isDebugEnabled()) {
-			try {
-				log.debug("View "+response.getNamespace());
-				//log.debug(request.getAuthType());
-				log.debug("Remote user: "+request.getRemoteUser());
+			log.debug("View "+response.getNamespace());
+			log.debug("Remote user: "+request.getRemoteUser());
+
+			if (request.getUserPrincipal() != null) {
 				// user principal is null in pre-prod
 				log.debug("User principal name: "+request.getUserPrincipal().getName());
-			}
-			catch (java.lang.NullPointerException e) {
-				log.error(e.getMessage());
 			}
 		} 
 
 		/* The preferences are never used.
-    PortletPreferences preferences = request.getPreferences();
+    	 * PortletPreferences preferences = request.getPreferences();
 		 */
 
-		byte[] railsBytes = callRuby(request, response);
+		byte[] railsBytes = callRails(request, response);
 		RenderResponse renderResponse = (RenderResponse) response;
 		String outputHTML = processResponseBody(renderResponse, 
-											    getRailsBaseUrl(), 
-											    getServlet(), 
-											    getRailsRoute(), 
-											    new String(railsBytes));
+												getRailsBaseUrl(), 
+												getServlet(), 
+												getRailsRoute(), 
+												new String(railsBytes));
 
 		log.debug("Response status code: " +responseStatusCode);
 
-		// Write the HTML to RenderResponse
-		//log.debug(outputHTML);
-
-		response.setContentType("text/html"); // TODO: get from the actual response
+		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
 		out.println(outputHTML);
 	}
@@ -357,7 +351,6 @@ public class Rails286Portlet extends GenericPortlet {
 	/** 
 	 * Handles POST requests.
 	 */
-	@SuppressWarnings("unchecked")
 	public void processAction(ActionRequest request, ActionResponse response)
 	throws PortletException, IOException {
 
@@ -367,7 +360,6 @@ public class Rails286Portlet extends GenericPortlet {
 			retrieveFiles(request);
 		}
 
-		PortletSession session = request.getPortletSession(true);
 		/** Process an action from the web page.
 		 * This can be a classic HTML form or a JavaScript-generator form POST.
 		 */
@@ -399,10 +391,10 @@ public class Rails286Portlet extends GenericPortlet {
 				debugParams(parametersBody);
 				// save the attributes to the RenderRequest (set custom parameters now..)
 				request.setAttribute("parametersBody",parametersBody);
-			}
-			else {
+
+			} else {
 				log.warn("No action URL given! Halting action.");
-				actionUrl = (String)request.getParameter("railsRoute");
+				actionUrl = (String) request.getParameter("railsRoute");
 				actionMethod = "get";
 			}
 			request.setAttribute("requestMethod",actionMethod);
@@ -439,7 +431,7 @@ public class Rails286Portlet extends GenericPortlet {
 	public void setRailsRoute(String railsRoute) {
 		this.railsRoute = railsRoute;
 	}
-	
+
 	public OnlineClient getClient() {
 		return client;
 	}
@@ -447,13 +439,24 @@ public class Rails286Portlet extends GenericPortlet {
 	public void setClient(OnlineClient client) {
 		this.client = client;
 	}
-	
+
 	/*
-	 * Subfunctions
-	 * 
+	 * Private methods
 	 */
 
-	/** Executes a POST request.
+	/**
+	 * Retrieve the filename of contentDisposition. Return empty string ("")
+	 * if the matcher didn't find the group (filename=\"([^\"]+)\").
+	 * @param contentDisposition - {@link String}
+	 */
+	private String getFilename(String contentDisposition) {
+		Pattern p = Pattern.compile("filename=\"([^\"]+)\"");
+		Matcher matcher = p.matcher(contentDisposition);
+		return matcher.find() ? matcher.group(1) : "";
+	}
+
+	/** 
+	 * Executes a POST request.
 	 */
 	@SuppressWarnings("unchecked")
 	private byte[] executePost(PortletRequest request, URL httpReferer, PortletSession session, OnlineClient client) 
@@ -483,7 +486,7 @@ public class Rails286Portlet extends GenericPortlet {
 			log.debug("Saving route from httpReferer: "+httpReferer.toString());
 			session.setAttribute("railsRoute", httpReferer.toString(), PortletSession.PORTLET_SCOPE);
 		}
-		
+
 		// POST the parametersBody
 		// OnlineClient handles cases where POST redirects.
 		return client.post(parametersBody, files);
@@ -506,7 +509,7 @@ public class Rails286Portlet extends GenericPortlet {
 		// should servlet cookies be stored to the session? here they are not.
 
 		session.setAttribute("cookies", client.cookies, PortletSession.PORTLET_SCOPE);
-		
+
 		return client.get();
 	}
 
@@ -603,23 +606,44 @@ public class Rails286Portlet extends GenericPortlet {
 		// This is a weak symmetry-key algorithm.
 		// Security could be boosted by using private and public key pairs.
 		// http://en.wikipedia.org/wiki/Public-key_cryptography
-		if ( sessionSecret != null ) {
+		if (sessionSecret != null) {
 			Cookie _secretCookie = secretCookie(session);
 			cookies.put((String)_secretCookie.getName(), _secretCookie);
 		}
 
 		// UID cookie
-		if ( session.getAttribute("uid") != null ) {
+		if (session.getAttribute("uid") != null) {
 			Cookie _uidCookie = uidCookie(session);
 			cookies.put((String)_uidCookie.getName(), _uidCookie);
 		}
-
+		
+		// ResourceURL cookie
+		String resourceUrlValue = (String) session.getAttribute("resourceURL");
+		if (resourceUrlValue != null) {
+			Cookie resourceUrlCookie = resourceUrlCookie(session, resourceUrlValue);
+			cookies.put(resourceUrlCookie.getName(), resourceUrlCookie);
+		}
+		
 		log.debug(cookies.size() + " cookies");
 		return cookies;
 	}
 
-	/*
-  Cookie with session secret.
+	protected Cookie resourceUrlCookie(PortletSession session, String value){
+		URL base = (java.net.URL) session.getAttribute("railsBaseUrl");
+		String host = base.getHost();
+		
+		// Adding the resource url generated by liferay to achieve the serveResource method
+		return new Cookie(
+				   host,
+				   "Liferay_resourceUrl",
+				   value,
+				   "/",
+				   null,
+				   false);
+	}
+	
+	/**
+  	 *	Cookie with session secret.
 	 */
 	protected Cookie secretCookie(PortletSession session) {
 		// no. this is not the best way to handle this.
@@ -657,8 +681,8 @@ public class Rails286Portlet extends GenericPortlet {
 		}
 	}
 
-	/*
-  Cookie with UID.
+	/**
+  	 * Cookie with UID.
 	 */
 	protected Cookie uidCookie(PortletSession session) {
 		// no. this is not the best way to handle this.
@@ -667,7 +691,7 @@ public class Rails286Portlet extends GenericPortlet {
 		return new Cookie(
 				host,
 				"Liferay_UID",
-				(String)session.getAttribute("uid"),
+				(String) session.getAttribute("uid"),
 				"/",
 				null,
 				false);
