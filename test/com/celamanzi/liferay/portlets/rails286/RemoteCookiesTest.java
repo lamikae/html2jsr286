@@ -207,10 +207,10 @@ public class RemoteCookiesTest {
             
             Header[] responseHeaders = method.getResponseHeaders();
             //debugHeaders(responseHeaders);
-            assertEquals(8,responseHeaders.length);
+            assertEquals(9, responseHeaders.length);
                         
             sessionCookies = client.getState().getCookies();
-            assertEquals(1,sessionCookies.length);
+            assertEquals(1, sessionCookies.length);
             
             /** Read session data from response body (example):
              
@@ -342,7 +342,7 @@ public class RemoteCookiesTest {
             
             Header[] responseHeaders = method.getResponseHeaders();
             //debugHeaders(responseHeaders);
-            assertEquals(8,responseHeaders.length);
+            assertEquals(9, responseHeaders.length);
                         
             sessionCookies = client.getState().getCookies();
             assertEquals(1,sessionCookies.length);

@@ -126,13 +126,6 @@ public class BodyTagVisitor extends NodeVisitor
 			LinkTag link = (LinkTag)tag;
 			PortletURL newHref = portletUrl;
 
-			NodeList children = link.getChildren();
-			if (children.size() > 0) {
-				//         log.warn("Link has children tags -- there is a bug in handling them. Expect broken HTML.");
-				//         log.warn(tag.getText());
-			}
-
-
 			/** HTTP */
 			if ( (link.isHTTPLink()) && (!link.getLink().equals(""))) {
 				log.debug("Encountered a HTTPLink: " + link.getLink());

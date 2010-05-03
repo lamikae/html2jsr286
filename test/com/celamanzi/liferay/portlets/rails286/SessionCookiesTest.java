@@ -187,8 +187,6 @@ public class SessionCookiesTest {
         assertNotNull(cookies);
         assertEquals(4,cookies.length);
 
-
-
         HttpClient client = new HttpClient();
         assertNotNull(client);
         HttpState state = new HttpState();

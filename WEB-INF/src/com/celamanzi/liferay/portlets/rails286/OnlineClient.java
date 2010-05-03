@@ -144,7 +144,8 @@ public class OnlineClient {
 	throws HttpException, IOException
 	{
 		// Response body from the web server
-		byte[] responseBody = null;
+		byte[] responseBody = null ;
+
 		statusCode = -1;
 
 		HttpClient client = preparedClient();    
