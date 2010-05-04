@@ -126,7 +126,9 @@ public class RouteAnalyzer {
 
     //baseUrl.getPort() returns -1 if the port is not explicitly defined!!
     int port = baseUrl.getPort();
-    if (port == -1) { port = baseUrl.getDefaultPort(); }
+    if (port == -1) { 
+    	port = baseUrl.getDefaultPort(); 
+    }
 
     return new java.net.URL(
       baseUrl.getProtocol()+"://"+baseUrl.getHost()+":"+port+"/"+servlet+path
@@ -134,6 +136,10 @@ public class RouteAnalyzer {
   }
   
   public static boolean isAbsolutePath(String path){
+	  if (path == null) {
+		  return false;
+	  }
+	  
 	  Pattern pattern = Pattern.compile("^\\s*http");
 	  Matcher matcher = pattern.matcher(path);
 	  
