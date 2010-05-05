@@ -188,6 +188,8 @@ public class Rails286Portlet extends GenericPortlet {
 			fos.flush();
 			fos.close();
 
+			// This if is to avoid this call when in a test environment, because liferay test environment is too
+			// heavy and dirty to be implemented =[ (sorry...)
 			if (FileUtil.getFile() != null) {
 				PortletResponseUtil.sendFile(response, filename, new FileInputStream(file));
 			}
