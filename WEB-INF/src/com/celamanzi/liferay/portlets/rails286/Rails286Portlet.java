@@ -188,7 +188,9 @@ public class Rails286Portlet extends GenericPortlet {
 			fos.flush();
 			fos.close();
 
-			PortletResponseUtil.sendFile(response, filename, new FileInputStream(file));
+			if (FileUtil.getFile() != null) {
+				PortletResponseUtil.sendFile(response, filename, new FileInputStream(file));
+			}
 		}
 	}
 
@@ -373,7 +375,7 @@ public class Rails286Portlet extends GenericPortlet {
 		//}
 
 		try {
-			java.net.URL requestUrl = getRequestURL();;
+			java.net.URL requestUrl = getRequestURL();
 			Map<String,Cookie> cookies = getCookies(session);
 
 			// Retrieve servlet cookies.
