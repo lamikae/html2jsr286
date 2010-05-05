@@ -134,7 +134,8 @@ public class RemoteCookiesTest {
 		// assert that cookies were stored
 		Cookie[] cookies = (Cookie[])session.getAttribute("cookies");
 		assertNotNull(cookies);
-		assertEquals(1, cookies.length); // security cookie not added
+		// session_secret + _example_session
+		assertEquals(2, cookies.length); // security cookie not added
 
 		// re-cast
 		MockRenderResponse _response = (MockRenderResponse)response;
