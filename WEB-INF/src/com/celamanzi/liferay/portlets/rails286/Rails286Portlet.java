@@ -463,8 +463,12 @@ public class Rails286Portlet extends GenericPortlet {
 		// retrieve files
 		Map<String, Object[]> files = (Map<String, Object[]>) request.getAttribute("files");
 
+		// POST the parametersBody
+		// OnlineClient handles cases where POST redirects.
+		byte[] railsBytes = client.post(parametersBody, files);
+		
 		// store new cookies into PortletSession.
-		session.setAttribute("cookies", client.cookies, PortletSession.PORTLET_SCOPE);
+		session.setAttribute("cookies", client.getCookies(), PortletSession.PORTLET_SCOPE);
 
 		// do not leave the POST method hanging around in the session.
 		session.setAttribute("requestMethod", "get", PortletSession.PORTLET_SCOPE);
@@ -474,10 +478,8 @@ public class Rails286Portlet extends GenericPortlet {
 			log.debug("Saving route from httpReferer: "+httpReferer.toString());
 			session.setAttribute("railsRoute", httpReferer.toString(), PortletSession.PORTLET_SCOPE);
 		}
-
-		// POST the parametersBody
-		// OnlineClient handles cases where POST redirects.
-		return client.post(parametersBody, files);
+		
+		return railsBytes; 
 	}
 
 	/**
@@ -496,9 +498,10 @@ public class Rails286Portlet extends GenericPortlet {
 
 		// should servlet cookies be stored to the session? here they are not.
 
-		session.setAttribute("cookies", client.cookies, PortletSession.PORTLET_SCOPE);
+		byte[] railsBytes = client.get();
+		session.setAttribute("cookies", client.getCookies(), PortletSession.PORTLET_SCOPE);
 
-		return client.get();
+		return railsBytes;
 	}
 
 	/**

@@ -49,8 +49,10 @@ public class RemoteCookiesTest {
 	private final String railsJUnitURL = PortletTest.railsJUnitURL;
 
 	private Rails286Portlet portlet = new Rails286Portlet();
+	
 	private PortletConfig portletConfig = null;
 	private PortletContext portletContext = new MockPortletContext();
+	
 	private PortletSession session = null;
 	private String portletName = "__TEST__";
 
@@ -64,8 +66,12 @@ public class RemoteCookiesTest {
 	{
 		assertNotNull(portlet);
 		assertNotNull(portletContext);
-		MockPortletConfig _portletConfig = new MockPortletConfig(portletContext,portletName);
+		
+		MockPortletConfig _portletConfig = new MockPortletConfig(portletContext, portletName);
+		_portletConfig.addInitParameter("secret", PortletTest.sessionSecret);
+		
 		assertNotNull(_portletConfig);
+		
 		portletConfig = (PortletConfig)_portletConfig;
 
 		session = new MockPortletSession();
@@ -100,15 +106,15 @@ public class RemoteCookiesTest {
 		xpath = XPathFactory.newInstance().newXPath();
 		expr = null;
 		nodes = null;
-
 	}
-
 
 	@Test
 	/** High level portlet session cookie handling.
 	 */
 	public void test_portlet_session_cookie()
 	throws Exception {
+		
+		portlet = new Rails286Portlet();
 		portlet.init(portletConfig);
 
 		session.setAttribute("railsRoute",railsJUnitRoute+"/session_cookie");
@@ -163,8 +169,6 @@ public class RemoteCookiesTest {
 		nodes = TestHelpers.evalExpr(expr, doc);
 		assertEquals(1,nodes.getLength());
 		String _sessionId = nodes.item(0).getNodeValue();
-		//System.out.println(sessionId);
-		//System.out.println(_sessionId);
 
 		assertEquals(sessionId,_sessionId);
 	}

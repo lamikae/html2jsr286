@@ -99,6 +99,10 @@ public class OnlineClient {
 		return statusCode;
 	}
 	
+	public Cookie[] getCookies() {
+		return cookies;
+	}
+	
 	private void configureHeader(Header[] headers) {
 		setHeaders(headers);
 		this.contentType = getHeaderValue("Content-Type", getHeaders());

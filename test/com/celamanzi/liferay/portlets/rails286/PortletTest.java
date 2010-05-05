@@ -86,8 +86,6 @@ public class PortletTest {
         session.setAttribute("httpReferer",
                              null,
                              PortletSession.PORTLET_SCOPE);
-        
-      
     }
     
     
