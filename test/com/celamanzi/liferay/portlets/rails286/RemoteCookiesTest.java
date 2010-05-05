@@ -111,11 +111,7 @@ public class RemoteCookiesTest {
     /** High level portlet session cookie handling.
      */
     public void test_portlet_session_cookie()
-    throws 
-    Exception, IOException, PortletException,
-    ParserConfigurationException,
-    XPathExpressionException
-    {
+    throws Exception {
         portlet.init(portletConfig);
     
         session.setAttribute("railsRoute",railsJUnitRoute+"/session_cookie");
@@ -135,7 +131,7 @@ public class RemoteCookiesTest {
         // assert that cookies were stored
         Cookie[] cookies = (Cookie[])session.getAttribute("cookies");
         assertNotNull(cookies);
-        assertEquals(1,cookies.length); // security cookie not added
+        assertEquals(1, cookies.length); // security cookie not added
         
         // re-cast
         MockRenderResponse _response = (MockRenderResponse)response;

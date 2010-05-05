@@ -29,7 +29,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -87,14 +86,14 @@ import com.liferay.util.servlet.PortletResponseUtil;
  * http://ibmdw.blogspot.com/2009/04/jsr-268-portlets-standard-portlet-and.html
  * http://www.ibm.com/developerworks/websphere/library/techarticles/0803_hepper/0803_hepper.html
  *
- * This is not implemented yet.
- *
+ * Implemented @since 0.10.0
  *
  * @author Mikael Lammentausta
  */
 public class Rails286Portlet extends GenericPortlet {
 
-	/** Class variables and the logger.
+	/** 
+	 * Class variables and the logger.
 	 */
 	private final Log log = LogFactory.getLog(getClass().getName());
 
@@ -103,8 +102,8 @@ public class Rails286Portlet extends GenericPortlet {
 	protected int responseStatusCode = -1;
 
 	/** 
-    Base + Request URLs are set in the RenderFilter 
-    and are read from the PortletSession.
+	 * Base + Request URLs are set in the RenderFilter 
+	 * and are read from the PortletSession.
 	 */
 	private URL      railsBaseUrl  = null;
 	private String   servlet       = null;
@@ -125,10 +124,10 @@ public class Rails286Portlet extends GenericPortlet {
 		// store session secret to private instance variable
 		sessionKey    = config.getInitParameter("session_key");
 		sessionSecret = config.getInitParameter("secret");
+
 		if (sessionSecret == null) {
 			log.info("Session security not established");
-		}
-		else {
+		} else {
 			log.info("Session is secured by a shared secret");
 			log.debug("Session key: "+sessionKey);
 		}
@@ -136,10 +135,40 @@ public class Rails286Portlet extends GenericPortlet {
 		super.init(config);
 	}
 
-	public Map<String, String[]> getContainerRuntimeOptions() {
-		return this.getPortletConfig().getContainerRuntimeOptions();
+	/**
+	 * Main method, render(). Other portlet modes are not supported.
+	 *
+	 * Downloads the Rails HTML, runs the HTML processor and
+	 * inserts it into RenderResponse.
+	 * 
+	 * @since 0.10.0
+	 *  It uses the callRails method
+	 *  
+	 * @since 0.8.2
+	 * 	Split to subfunctions, cookie system...
+	 *
+	 * @since 0.6.1
+	 *  Changed to use Liferay 5.2.0 API.
+	 *
+	 */
+	public void render(RenderRequest request, RenderResponse response)
+	throws PortletException, IOException {
+
+		loggerInfo(request, response); 
+
+		byte[] railsBytes = callRails(request, response);
+		String outputHTML = processResponseBody(response, new String(railsBytes));
+
+		log.debug("Response status code: " +responseStatusCode);
+
+		response.setContentType("text/html");
+		PrintWriter out = response.getWriter();
+		out.println(outputHTML);
 	}
 
+	/**
+	 * Used to download files
+	 */
 	@Override
 	public void serveResource(ResourceRequest request, ResourceResponse response)
 	throws PortletException, IOException {
@@ -148,7 +177,7 @@ public class Rails286Portlet extends GenericPortlet {
 		log.debug("serveResource has been called");
 
 		byte[] railsBytes = callRails(request, response);
-		String filename = getFilename(client.getContentDisposition());
+		String filename = getFilename();
 
 		if (!filename.equals("")) {
 			File file = new File("../temp/" + filename);
@@ -163,9 +192,144 @@ public class Rails286Portlet extends GenericPortlet {
 		}
 	}
 
-	private byte[] callRails(PortletRequest request, PortletResponse response){
+	/** 
+	 * Handles POST requests.
+	 */
+	public void processAction(ActionRequest request, ActionResponse response)
+	throws PortletException, IOException {
 
-		URL      httpReferer   = null;
+		// In case of a multipart request, retrieve the files
+		if (PortletFileUpload.isMultipartContent(request)){
+			log.debug("Multipart request");
+			retrieveFiles(request);
+		}
+
+		/** 
+		 * Process an action from the web page.
+		 * This can be a classic HTML form or a JavaScript-generator form POST.
+		 */
+		if(request.getPortletMode().equals(PortletMode.VIEW)) {
+			log.debug("Received ActionRequest from the web page.");
+
+			/** 
+			 * Process the request parameters.
+			 * These are set in BodyTagVisitor.
+			 * The returned parameters "x-www-form-urlencoded" are decoded.
+			 */
+			Map<String,String[]> p = new HashMap<String,String[]>(request.getParameterMap());
+			// create a clone of the parameter Map
+			Map<String,String[]> params = new HashMap<String,String[]>(p);
+
+			// default to POST for actions
+			String actionMethod = (params.containsKey("originalActionMethod") ? 
+					params.remove("originalActionMethod")[0] : "post"
+			);
+
+			String actionUrl    = null;
+
+			// set the action URL
+			if (params.containsKey("originalActionUrl")) {
+				actionUrl = params.remove("originalActionUrl")[0];
+				log.debug("Received a form action: " + actionUrl);
+
+				// formulate NameValuePair[]
+				NameValuePair[] parametersBody = Rails286PortletFunctions.paramsToNameValuePairs(params);
+				debugParams(parametersBody);
+				// save the attributes to the RenderRequest (set custom parameters now..)
+				request.setAttribute("parametersBody",parametersBody);
+
+			} else {
+				log.warn("No action URL given! Halting action.");
+				actionUrl = (String) request.getParameter("railsRoute");
+				actionMethod = "get";
+			}
+			
+			request.setAttribute("requestMethod",actionMethod);
+			request.setAttribute("railsRoute",actionUrl);
+		}
+	}
+
+	public Map<String, String[]> getContainerRuntimeOptions() {
+		return this.getPortletConfig().getContainerRuntimeOptions();
+	}
+
+	public URL getRailsBaseUrl() {
+		return railsBaseUrl;
+	}
+
+	public void setRailsBaseUrl(URL railsBaseUrl) {
+		this.railsBaseUrl = railsBaseUrl;
+	}
+
+	public void setRailsBaseUrl(PortletSession session) {
+		setRailsBaseUrl((java.net.URL)session.getAttribute("railsBaseUrl"));
+	}
+
+	public String getServlet() {
+		return servlet;
+	}
+
+	public void setServlet(String servlet) {
+		this.servlet = servlet;
+	}
+
+	public void setServlet(PortletSession session) {
+		setServlet((String)session.getAttribute("servlet"));
+	}
+
+	public String getRailsRoute() {
+		return railsRoute;
+	}
+
+	public void setRailsRoute(String railsRoute) {
+		this.railsRoute = railsRoute;
+	}
+
+	public void setRailsRoute(PortletSession session) {
+		setRailsRoute((String)session.getAttribute("railsRoute"));
+	}
+
+	public OnlineClient getClient() {
+		return client;
+	}
+
+	public void setClient(OnlineClient client) {
+		this.client = client;
+	}
+
+	/**
+	 *	Cookie with session secret.
+	 */
+	protected Cookie secretCookie(PortletSession session) {
+		// no. this is not the best way to handle this.
+		URL base = (java.net.URL)session.getAttribute("railsBaseUrl");
+		String host = base.getHost();
+		return new Cookie(
+				host,
+				"session_secret",
+				sessionSecret, // instance variable
+				"/",
+				null,
+				false);
+	}
+
+	/**
+	 * Cookie with UID.
+	 */
+	protected Cookie uidCookie(PortletSession session) {
+		// no. this is not the best way to handle this.
+		URL base = (java.net.URL)session.getAttribute("railsBaseUrl");
+		String host = base.getHost();
+		return new Cookie(
+				host,
+				"Liferay_UID",
+				(String) session.getAttribute("uid"),
+				"/",
+				null,
+				false);
+	}
+
+	private byte[] callRails(PortletRequest request, PortletResponse response) throws PortletException{
 
 		/**
 		 * Session storage.
@@ -186,60 +350,30 @@ public class Rails286Portlet extends GenericPortlet {
 		 * Host and route.
 		 *
 		 * Gets the base URL and the route from the session.
-		 *
 		 */
-		setRailsBaseUrl((java.net.URL)session.getAttribute("railsBaseUrl"));
-		railsRoute = (String)session.getAttribute("railsRoute");
+		setRailsBaseUrl(session);
+		setRailsRoute(session);
+		setServlet(session);
 
-		/** TODO: cleanup!
+		String railsHost = getRailsBaseUrl().getHost();
 
-	    Move the checks from render() to RenderFilter, which will stop the whole process, and
-	    forward to another method altogether.
-		 */
+		byte[] railsBytes = new byte[]{};
 
-		// save the new path to session, needed for HTTP_REFERER,
-		// which is set in the RENDER FILTER
-		// -- breaks when using POST, and render filter should take care of this itself
-		//     session.setAttribute(
-		//         "railsRoute",
-		//          railsRoute,
-		//          PortletSession.PORTLET_SCOPE);
-
-		// get the host section from the base URL
-		String railsHost = null;
-		railsHost = getRailsBaseUrl().getHost();
-		//log.debug("railsHost in session: " + railsHost);
-
-		byte[] railsBytes    = {0};
+		// check the server and route
+		if (railsHost == null) {
+			throw new PortletException("The host is undefined!");
+		}
+		if (getRailsRoute() == null) {
+			log.warn( "The requested route is undefined" );
+			setRailsRoute("/");
+		}
+		// TODO: if the server is unreachable
+		//if () {
+		//  throw new PortletException("The server " + railsHost + " was unreachable.");
+		//}
 
 		try {
-			// check the server and route
-			if ( railsHost == null ) {
-				throw new PortletException("The host is undefined!");
-			}
-			// TODO: if the server is unreachable
-			//if () {
-			//  throw new PortletException("The server " + railsHost + " was unreachable.");
-			//}
-
-			if ( getRailsRoute() == null ) {
-				log.warn( "The requested route is undefined" );
-				setRailsRoute("/");
-			}
-
-			java.net.URL requestUrl    = null;
-
-			/** Form the request URL, 
-	      TODO : move to subfunction  */
-			setServlet((String)session.getAttribute("servlet"));
-			RouteAnalyzer ra = new RouteAnalyzer(getRailsBaseUrl(), getServlet());
-			try {
-				requestUrl = ra.getFullURL(getRailsRoute());
-			} catch (java.net.MalformedURLException e) {
-				log.error(e.getMessage());
-			}
-			log.debug("Request URL: "+requestUrl.toString());
-
+			java.net.URL requestUrl = getRequestURL();;
 			Map<String,Cookie> cookies = getCookies(session);
 
 			// Retrieve servlet cookies.
@@ -254,15 +388,11 @@ public class Rails286Portlet extends GenericPortlet {
 			 */
 
 			String requestMethod = getRequestMethod(session);
-			// get the referer
-			httpReferer = getHttpReferer(session);
-			// Language
+			URL httpReferer = getHttpReferer(session);
 			java.util.Locale locale = request.getLocale();
 
 			/**
-			 *
 			 * Execute the request
-			 *
 			 */
 			setClient(new OnlineClient(requestUrl,cookies,httpReferer,locale));
 
@@ -281,177 +411,44 @@ public class Rails286Portlet extends GenericPortlet {
 			}
 
 			// DELETE?
-
-			/** FAIL */
 			else {
 				throw new PortletException("Unknown request method: "+requestMethod);
 			}
 
-		} catch(Exception e) {
-				log.error(new String(railsBytes));
+		} catch(HttpException e) {
+			log.error("callRails: " + e.getMessage() + "\n" + new String(railsBytes));
+		} catch (IOException e) {
+			log.error("callRails: " + e.getMessage() + "\n" + new String(railsBytes));
 		}
 
 		// set the response status code (for tests)
-		responseStatusCode = client.statusCode;
-
+		responseStatusCode = client.getStatusCode();
 		return railsBytes;
 	}
 
-	/**
-	 * Main method, render(). Other portlet modes are not supported.
-	 *
-	 * Downloads the Rails HTML, runs the HTML processor and
-	 * inserts it into RenderResponse.
-	 *
-	 * This is still a horribly long function that could be split up to
-	 * subfunctions for clarity.
-	 *
-	 * @since 0.8.2
-	 * 	Split to subfunctions, cookie system...
-	 *
-	 * @since 0.6.1
-	 *   Changed to use Liferay 5.2.0 API.
-	 *
-	 */
-	public void render(RenderRequest request, RenderResponse response)
-	throws PortletException, IOException {
+	private java.net.URL getRequestURL(){
+		try {
+			RouteAnalyzer routeAnalyzer = new RouteAnalyzer(getRailsBaseUrl(), getServlet());
+			URL requestURL = routeAnalyzer.getFullURL(getRailsRoute());
+			log.debug("Request URL: "+requestURL.toString());
+			return requestURL;
 
-		if (log.isDebugEnabled()) {
-			log.debug("View "+response.getNamespace());
-			log.debug("Remote user: "+request.getRemoteUser());
-
-			if (request.getUserPrincipal() != null) {
-				// user principal is null in pre-prod
-				log.debug("User principal name: "+request.getUserPrincipal().getName());
-			}
-		} 
-
-		/* The preferences are never used.
-		 * PortletPreferences preferences = request.getPreferences();
-		 */
-
-		byte[] railsBytes = callRails(request, response);
-		RenderResponse renderResponse = (RenderResponse) response;
-		String outputHTML = processResponseBody(renderResponse, 
-				getRailsBaseUrl(), 
-				getServlet(), 
-				getRailsRoute(), 
-				new String(railsBytes));
-
-		log.debug("Response status code: " +responseStatusCode);
-
-		response.setContentType("text/html");
-		PrintWriter out = response.getWriter();
-		out.println(outputHTML);
-	}
-
-	// suppress request.getParameterMap unchecked cast for processAction,
-	// since it should always return <String,String[]>
-
-	/** 
-	 * Handles POST requests.
-	 */
-	public void processAction(ActionRequest request, ActionResponse response)
-	throws PortletException, IOException {
-
-		// In case of a multipart request, retrieve the files
-		if (PortletFileUpload.isMultipartContent(request)){
-			log.debug("Multipart request");
-			retrieveFiles(request);
+		} catch (java.net.MalformedURLException e) {
+			log.error("getRequestURL: " + e.getMessage());
 		}
-
-		/** Process an action from the web page.
-		 * This can be a classic HTML form or a JavaScript-generator form POST.
-		 */
-		if(request.getPortletMode().equals(PortletMode.VIEW)) {
-			log.debug("Received ActionRequest from the web page.");
-
-			String actionUrl    = null;
-			String actionMethod = null;
-
-			/** Process the request parameters.
-			 * These are set in BodyTagVisitor.
-			 * The returned parameters are "x-www-form-urlencoded" decoded.
-			 */
-			Map<String,String[]> p = new HashMap<String,String[]>(request.getParameterMap());
-			// create a clone of the parameter Map
-			Map<String,String[]> params = new HashMap<String,String[]>(p);
-
-			// default to POST for actions
-			actionMethod = (params.containsKey("originalActionMethod") ? 
-					params.remove("originalActionMethod")[0] : "post"
-			);
-			// set the action URL
-			if (params.containsKey("originalActionUrl")) {
-				actionUrl = params.remove("originalActionUrl")[0];
-				log.debug("Received a form action: " + actionUrl);
-
-				// formulate NameValuePair[]
-				NameValuePair[] parametersBody = Rails286PortletFunctions.paramsToNameValuePairs(params);
-				debugParams(parametersBody);
-				// save the attributes to the RenderRequest (set custom parameters now..)
-				request.setAttribute("parametersBody",parametersBody);
-
-			} else {
-				log.warn("No action URL given! Halting action.");
-				actionUrl = (String) request.getParameter("railsRoute");
-				actionMethod = "get";
-			}
-			request.setAttribute("requestMethod",actionMethod);
-			request.setAttribute("railsRoute",actionUrl);
-		}
-		/*
-    // Processes an internal portlet action from the doEdit() function.
-    else if(request.getPortletMode().equals(PortletMode.EDIT)) {
-		// not implemented
-    }
-		 */
+		return null;
 	}
-
-	public URL getRailsBaseUrl() {
-		return railsBaseUrl;
-	}
-
-	public void setRailsBaseUrl(URL railsBaseUrl) {
-		this.railsBaseUrl = railsBaseUrl;
-	}
-
-	public String getServlet() {
-		return servlet;
-	}
-
-	public void setServlet(String servlet) {
-		this.servlet = servlet;
-	}
-
-	public String getRailsRoute() {
-		return railsRoute;
-	}
-
-	public void setRailsRoute(String railsRoute) {
-		this.railsRoute = railsRoute;
-	}
-
-	public OnlineClient getClient() {
-		return client;
-	}
-
-	public void setClient(OnlineClient client) {
-		this.client = client;
-	}
-
-	/*
-	 * Private methods
-	 */
 
 	/**
 	 * Retrieve the filename of contentDisposition. Return empty string ("")
 	 * if the matcher didn't find the group (filename=\"([^\"]+)\").
+	 * 
 	 * @param contentDisposition - {@link String}
+	 * @return {@link String}
 	 */
-	private String getFilename(String contentDisposition) {
+	private String getFilename() {
 		Pattern p = Pattern.compile("filename=\"([^\"]+)\"");
-		Matcher matcher = p.matcher(contentDisposition);
+		Matcher matcher = p.matcher(getClient().getContentDisposition());
 		return matcher.find() ? matcher.group(1) : "";
 	}
 
@@ -517,43 +514,32 @@ public class Rails286Portlet extends GenericPortlet {
 	 * Create the {@link PageProcessor} and process the railsRoute.
 	 * 
 	 * @param response - {@link PortletResponse}
-	 * @param railsBaseUrl - {@link URL}
-	 * @param servlet - {@link String}
-	 * @param railsRoute - {@link String}
 	 * @param railsResponse - {@link String}
 	 * @return outputHTML - {@link String}
 	 */
-	private String processResponseBody(RenderResponse response, 
-			URL railsBaseUrl, 
-			String servlet, 
-			String railsRoute, 
-			String railsResponse) {
+	private String processResponseBody(RenderResponse response, String railsResponse) {
 
 		String outputHTML = "";
-		//log.debug("Response length: "+railsResponse.length());
 		if ( (railsResponse != null ) && (railsResponse.length() > 1) ) {
 			try {
-				//log.debug("Processing page");
-				// instantiate the PageProcessor
 				// PageProcessor => HeadProcessor, BodyTagVisitor (uses RouteAnalyzer)
-				PageProcessor p = new PageProcessor(railsResponse,servlet,response);
-				outputHTML   = p.process(railsBaseUrl,railsRoute);
+				PageProcessor p = new PageProcessor(railsResponse, getServlet(), response);
+				outputHTML   = p.process(getRailsBaseUrl(), getRailsRoute());
 
 				/** Set the portlet title by HTML title */
-				String title = p.title;
+				String title = p.getTitle();
 				log.debug("Title: "+title);
-				if ( title==null || title=="" ) {
-					response.setTitle( " " ); // nbsp, because Liferay post-processes blank strings
-				}
-				else { 
+
+				if (title == null || title.length() == 0) {
+					response.setTitle( "&nbsp;" ); // nbsp, because Liferay post-processes blank strings
+
+				} else { 
 					response.setTitle( title ); 
 				}
-			}
-			// p.process throws ParserException when input is invalid. Should it be catched?
-			catch (ParserException e) {
+			} catch (ParserException e) {
 				log.error(e.getMessage());
-			}
-			catch (IllegalStateException e) {
+
+			} catch (IllegalStateException e) {
 				log.error(e.getMessage());
 			}
 		}
@@ -642,22 +628,6 @@ public class Rails286Portlet extends GenericPortlet {
 				false);
 	}
 
-	/**
-	 *	Cookie with session secret.
-	 */
-	protected Cookie secretCookie(PortletSession session) {
-		// no. this is not the best way to handle this.
-		URL base = (java.net.URL)session.getAttribute("railsBaseUrl");
-		String host = base.getHost();
-		return new Cookie(
-				host,
-				"session_secret",
-				sessionSecret, // instance variable
-				"/",
-				null,
-				false);
-	}
-
 	private void retrieveFiles(ActionRequest request) throws IOException {
 		UploadPortletRequest uploadRequest = PortalUtil.getUploadPortletRequest(request);
 		Map<String, Object[]> files = new HashMap<String, Object[]>();
@@ -681,24 +651,19 @@ public class Rails286Portlet extends GenericPortlet {
 		}
 	}
 
-	/**
-	 * Cookie with UID.
-	 */
-	protected Cookie uidCookie(PortletSession session) {
-		// no. this is not the best way to handle this.
-		URL base = (java.net.URL)session.getAttribute("railsBaseUrl");
-		String host = base.getHost();
-		return new Cookie(
-				host,
-				"Liferay_UID",
-				(String) session.getAttribute("uid"),
-				"/",
-				null,
-				false);
+	/** Debug */
+	private void loggerInfo(RenderRequest request, RenderResponse response) {
+		if (log.isDebugEnabled()) {
+			log.debug("View "+response.getNamespace());
+			log.debug("Remote user: "+request.getRemoteUser());
+
+			if (request.getUserPrincipal() != null) {
+				// user principal is null in pre-prod
+				log.debug("User principal name: "+request.getUserPrincipal().getName());
+			}
+		}
 	}
 
-
-	/** Debug */
 	private void debugParams(NameValuePair[] parametersBody) {
 		log.debug(parametersBody.length + " parameters: --------------------");
 		for (int x=0 ; x<parametersBody.length ; x++) {

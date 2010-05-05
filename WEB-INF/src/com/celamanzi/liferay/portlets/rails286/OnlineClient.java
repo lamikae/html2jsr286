@@ -95,6 +95,10 @@ public class OnlineClient {
 		locale      = _locale;
 	}
 
+	public int getStatusCode() {
+		return statusCode;
+	}
+	
 	private void configureHeader(Header[] headers) {
 		setHeaders(headers);
 		this.contentType = getHeaderValue("Content-Type", getHeaders());
