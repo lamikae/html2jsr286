@@ -23,6 +23,7 @@
 
 package com.celamanzi.liferay.portlets.rails286;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -46,7 +47,19 @@ public class Rails286PortletFunctions {
 
 	private static final Log log = LogFactory.getLog(Rails286PortletFunctions.class);
 
+	public static java.net.URL getRequestURL(java.net.URL railsBaseURL, String servlet, String route){
+		try {
+			RouteAnalyzer routeAnalyzer = new RouteAnalyzer(railsBaseURL, servlet);
+			URL requestURL = routeAnalyzer.getFullURL(route);
+			log.debug("Request URL: "+requestURL.toString());
+			return requestURL;
 
+		} catch (java.net.MalformedURLException e) {
+			log.error("getRequestURL: " + e.getMessage());
+		}
+		return null;
+	}
+	
 	/** Transforms parameter Map to NameValuePair. */
 	protected static NameValuePair[] paramsToNameValuePairs(Map<String,String[]> params) {
 

@@ -427,16 +427,7 @@ public class Rails286Portlet extends GenericPortlet {
 	}
 
 	private java.net.URL getRequestURL(){
-		try {
-			RouteAnalyzer routeAnalyzer = new RouteAnalyzer(getRailsBaseUrl(), getServlet());
-			URL requestURL = routeAnalyzer.getFullURL(getRailsRoute());
-			log.debug("Request URL: "+requestURL.toString());
-			return requestURL;
-
-		} catch (java.net.MalformedURLException e) {
-			log.error("getRequestURL: " + e.getMessage());
-		}
-		return null;
+		return Rails286PortletFunctions.getRequestURL(getRailsBaseUrl(), getServlet(), getRailsRoute());
 	}
 
 	/**

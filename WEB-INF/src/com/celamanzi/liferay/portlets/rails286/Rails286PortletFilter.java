@@ -22,12 +22,10 @@
 
 package com.celamanzi.liferay.portlets.rails286;
 
-import java.util.Enumeration;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Enumeration;
 
 import javax.portlet.PortletException;
 import javax.portlet.PortletRequest;
@@ -37,7 +35,6 @@ import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
-
 import javax.portlet.filter.FilterChain;
 import javax.portlet.filter.FilterConfig;
 import javax.portlet.filter.RenderFilter;
@@ -45,9 +42,6 @@ import javax.portlet.filter.ResourceFilter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import java.net.URL;
-import java.net.MalformedURLException;
 
 
 /** Parses the Rails URL in the Portlet parameter.
@@ -60,11 +54,8 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 
 	/** Designated Logger for this class. */
 	private final Log log = LogFactory.getLog(getClass().getName());
-	private FilterConfig filterConfig;
 
 	/** the default rails URLs */
-	private java.net.URL defaultRailsBaseUrl = null;
-	private String       defaultRailsRoute = null;
 	public String host    = null;
 	public String servlet = null;
 	public String route   = null;
@@ -87,8 +78,6 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 	 */
 	@Override
 	public void init(final FilterConfig filterConfig) {
-		this.filterConfig = filterConfig;
-
 		// undefined and an empty string host is null
 		host = filterConfig.getInitParameter("host");
 		if ((host != null) && (host.equals(""))) { host = null; }
@@ -116,24 +105,25 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 	@Override
 	public void doFilter(ResourceRequest request, ResourceResponse response, FilterChain chain) 
 	throws IOException, PortletException {
-		
+
 		filterRails(request, response);
 		chain.doFilter(request, response);
 	}
 
 	/** Filter the RenderRequest attributes and parameters and fix up PortletSession
-      for the HttpClient request.
-
-  The order of preferences for the view URL:
-    1: Request params
-    2: request attributes
-    3: Session
-    4: fallback value
-
-  TODO: this needs cleanup. Just read/write appropriate values from the session.
-
-  The doFilter() method of a portlet filter may create customized request and response objects by using *RequestWrapper and *ResponseWrapper classes and passing these wrappers to the doFilter() method of FilterChain. 
-
+	 *  for the HttpClient request.
+	 *	
+	 *	The order of preferences for the view URL:
+	 *	1: Request params
+	 *	2: request attributes
+	 *	3: Session
+	 *	4: fallback value
+	 *
+	 *	TODO: this needs cleanup. Just read/write appropriate values from the session.
+	 *
+	 *	The doFilter() method of a portlet filter may create customized request and response 
+	 *  objects by using *RequestWrapper and *ResponseWrapper classes and passing these wrappers 
+	 *  to the doFilter() method of FilterChain. 
 	 */
 	public void doFilter(RenderRequest request, RenderResponse response, FilterChain chain)
 	throws IOException, PortletException {
@@ -151,25 +141,7 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 			debugRequest(request);
 		}
 
-		/** Base URL (host + servlet).
-		 *
-		 * Remove the last slash '/' from the base URL,
-		 * otherwise several things may fail in the TagVisitor
-		 */
-		String base = (
-				host == null ?
-						request.getScheme()+
-						"://"+
-						request.getServerName()+
-						":"+
-						request.getServerPort()+
-						"/"+
-						servlet :
-
-							host.replaceFirst("/$","")+"/"+servlet
-		);
-		URL railsBaseUrl = new java.net.URL(base);
-
+		URL railsBaseUrl = getRailsBaseURL(request);
 
 		String railsRoute    = null;
 		String requestMethod = "get";
@@ -187,9 +159,9 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 		}
 		else {
 			/** Request method. If POST via actionURL, this is set. */
-			if ( request.getAttribute("requestMethod") != null ) {
-				railsRoute = (String)request.getAttribute("railsRoute");
-				requestMethod = (String)request.getAttribute("requestMethod");
+			if (request.getAttribute("requestMethod") != null) {
+				railsRoute = (String) request.getAttribute("railsRoute");
+				requestMethod = (String) request.getAttribute("requestMethod");
 			}
 			else {
 				/** Set the route from request parameter "railsRoute".
@@ -199,28 +171,16 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 
 			/** Set the HTTP Referer from session */
 			if (session.getAttribute("railsRoute") != null) {
-				try {
-					String oldRoute = (String)session.getAttribute("railsRoute");
-					RouteAnalyzer ra = new RouteAnalyzer(railsBaseUrl,servlet);
-					httpReferer = ra.getFullURL(oldRoute);
-				}
-				catch (java.net.MalformedURLException e) {
-					log.error(e.getMessage());
-				}
-				catch (NullPointerException e) {
-					log.error(e.getMessage());
-				}
+				String oldRoute = (String)session.getAttribute("railsRoute");
+				httpReferer = Rails286PortletFunctions.getRequestURL(railsBaseUrl, servlet, oldRoute);
 				log.debug("Set HTTP referer: "+httpReferer.toString());
 			}
 		}
 
-
 		// railsRoute may contain variables to be replaced at runtime
 		railsRoute = Rails286PortletFunctions.decipherPath(railsRoute, request);
 
-
-		// For the cookies,
-		// get the UID from request 
+		// For the cookies, get the UID from request 
 		String uid = request.getRemoteUser();
 
 
@@ -278,19 +238,38 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 		}
 	}
 
+	/** Base URL (host + servlet).
+	 *
+	 * Remove the last slash '/' from the base URL,
+	 * otherwise several things may fail in the TagVisitor
+	 */
+	private String getBaseURL(PortletRequest request){
+		if (host == null) {
+			return request.getScheme()+"://"+
+			request.getServerName()+":"+
+			request.getServerPort()+"/"+servlet;
+		}
+		return host.replaceFirst("/$","")+"/"+servlet;
+	}
+
+	private java.net.URL getRailsBaseURL(PortletRequest request) throws MalformedURLException {
+		return new java.net.URL(getBaseURL(request));
+	}
+	
 	private String getResourceUrlValue(PortletResponse response){
 		if (response instanceof RenderResponse){
 			RenderResponse renderResponse = (RenderResponse) response; 
 			return renderResponse.createResourceURL().toString();
-			
+
 		} else if (response instanceof ResourceResponse) {
 			ResourceResponse resourceResponse = (ResourceResponse) response;
 			return resourceResponse.createResourceURL().toString();
 		}
 		return "";
 	}
-	
+
 	/** Debug */
+	@SuppressWarnings("unchecked")
 	private void debugRequest(PortletRequest request) {
 		log.debug("Request attributes -------v");
 		for (Enumeration e = request.getAttributeNames() ; e.hasMoreElements();) {
@@ -306,6 +285,7 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 	}
 
 	/** Debug */
+	@SuppressWarnings("unchecked")
 	private void debugSession(PortletSession session) {
 		log.debug("Session attributes -------v");
 		for (Enumeration e = session.getAttributeNames() ; e.hasMoreElements();) {
