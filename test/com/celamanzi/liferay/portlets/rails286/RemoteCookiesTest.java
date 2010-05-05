@@ -450,7 +450,7 @@ public class RemoteCookiesTest {
 		// assert that cookies were stored
 		Cookie[] cookies = (Cookie[])session.getAttribute("cookies");
 		assertNotNull(cookies);
-		assertEquals(3,cookies.length);
+		assertEquals(4,cookies.length); //session_secret + foo + bar + baz
 
 		session.setAttribute("railsRoute",railsJUnitRoute+"/foobarcookiestxt");
 		_request.setSession(session);
