@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2008,2009 Mikael Lammentausta
- *               2010 Mikael Lammentausta, Túlio Ornelas dos Santos
+ *               2010 Mikael Lammentausta, Tulio Ornelas dos Santos
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.portlet.PortletRequest;
-import javax.portlet.RenderRequest;
 
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.logging.Log;
@@ -59,8 +58,11 @@ public class Rails286PortletFunctions {
 		}
 		return null;
 	}
-	
-	/** Transforms parameter Map to NameValuePair. */
+
+	/** 
+	 * Transforms parameter Map to NameValuePair. 
+	 */
+	@SuppressWarnings("unchecked")
 	protected static NameValuePair[] paramsToNameValuePairs(Map<String,String[]> params) {
 
 		// create a new dynamic ArrayList
@@ -167,7 +169,7 @@ public class Rails286PortletFunctions {
 
 			try {
 				if (matcher.find()) {
-					
+
 					/*
 					 * UID - User ID
 					 */
@@ -193,7 +195,7 @@ public class Rails286PortletFunctions {
 						log.debug("Liferay UID: " + uid);
 						path = path.replaceAll(var,uid);
 					}
-					
+
 					/*
 					 * GID - Group ID
 					 */
@@ -216,7 +218,7 @@ public class Rails286PortletFunctions {
 						path = path.replaceAll(var,gid);
 					}
 				}
-				
+
 			} catch (NullPointerException e) {
 				log.error(e.getMessage());
 			}

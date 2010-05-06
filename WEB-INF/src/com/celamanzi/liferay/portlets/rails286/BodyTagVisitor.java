@@ -22,27 +22,27 @@
 
 package com.celamanzi.liferay.portlets.rails286;
 
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-
-import org.htmlparser.Parser;
-import org.htmlparser.Tag;
-import org.htmlparser.tags.*;
-import org.htmlparser.Text;
-
-import org.htmlparser.util.NodeList;
-import org.htmlparser.util.ParserException;
-import org.htmlparser.visitors.NodeVisitor;
+import java.util.regex.Pattern;
 
 import javax.portlet.PortletURL;
 import javax.portlet.RenderResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.htmlparser.Parser;
+import org.htmlparser.Tag;
+import org.htmlparser.tags.BodyTag;
+import org.htmlparser.tags.FormTag;
+import org.htmlparser.tags.ImageTag;
+import org.htmlparser.tags.LinkTag;
+import org.htmlparser.util.NodeList;
+import org.htmlparser.util.ParserException;
+import org.htmlparser.visitors.NodeVisitor;
 
 
-public class BodyTagVisitor extends NodeVisitor
-{
+public class BodyTagVisitor extends NodeVisitor {
+	
 	private final Log log = LogFactory.getLog(getClass().getName());
 
 	private java.net.URL baseUrl      = null;
@@ -53,39 +53,47 @@ public class BodyTagVisitor extends NodeVisitor
 	private PortletURL   actionUrl    = null; // needed to set form actions
 	private String       namespace    = "";
 
-
-	//   BodyTagVisitor( java.net.URL bu, String rp, String id ) {
-	//     baseUrl      = bu;
-	//     requestPath  = rp;
-	//     documentPath = "/";
-	//     namespace    = id;
-	//   }
-
-	/** Takes in RenderResponse and extracts portletUrl and actionUrl */
-	public BodyTagVisitor( java.net.URL bu, String s, String rp, String ns, RenderResponse resp ) {
-		baseUrl      = bu;
-		servlet      = s;
-		requestPath  = rp;
+	/** 
+	 * Takes in RenderResponse and extracts portletUrl and actionUrl 
+	 */
+	public BodyTagVisitor(java.net.URL baseUrl, 
+						  String servlet, 
+						  String requestPath, 
+						  String namespace, 
+						  RenderResponse response) {
+		
+		this.baseUrl      = baseUrl;
+		this.servlet      = servlet;
+		this.requestPath  = requestPath;
 		documentPath = "/";
-		namespace    = ns;
-		if ( resp != null ) {
-			portletUrl   = resp.createRenderURL();
-			actionUrl    = resp.createActionURL();
+		this.namespace    = namespace;
+		if (response != null) {
+			portletUrl   = response.createRenderURL();
+			actionUrl    = response.createActionURL();
 		}
 	}
 
-	/** alternative that takes portletUrl directly */
-	public BodyTagVisitor( java.net.URL bu, String s, String rp, String ns, PortletURL pu, PortletURL actionURL ) {
-		baseUrl      = bu;
-		servlet      = s;
-		requestPath  = rp;
+	/** 
+	 * alternative that takes portletUrl directly 
+	 */
+	public BodyTagVisitor(java.net.URL baseUrl, 
+						  String servlet, 
+						  String requestpath, 
+						  String namespace, 
+						  PortletURL portletUrl, 
+						  PortletURL actionURL) {
+		
+		this.baseUrl      = baseUrl;
+		this.servlet      = servlet;
+		this.requestPath  = requestpath;
 		documentPath = "/";
-		namespace    = ns;
-		portletUrl   = pu;
-		actionUrl    = actionURL;
+		this.namespace    = namespace;
+		this.portletUrl   = portletUrl;
+		this.actionUrl    = actionURL;
 	}
 
-	/** Recurses to every HTML tag.
+	/** 
+	 * Recurses to every HTML tag.
 	 * This function converts the hyperlinks to parameters in the portletUrl.
 	 * The RenderFilter picks this parameter, stores it to session and launches an
 	 * http request. GET works fine, POST has some problems.
@@ -93,11 +101,10 @@ public class BodyTagVisitor extends NodeVisitor
 	 * It is possible to escape the portlet link by adding "exit_portlet=true"
 	 * to the HTTP request parameters. (www.example.com?exit_portlet=true)
 	 */
-	public void visitTag (Tag tag)
-	{
+	public void visitTag (Tag tag) {
+		
 		//log.debug("Encountered a " + tag.getClass()); // Floods the debug channel
 		RouteAnalyzer ra = new RouteAnalyzer(baseUrl,servlet);
-
 
 		Pattern pattern = null;
 		Matcher matcher = null;
@@ -121,8 +128,8 @@ public class BodyTagVisitor extends NodeVisitor
 		 * - skip if parameter 'exit_portlet=true'.
 		 */
 		//     else if ((tag instanceof LinkTag) && (portletUrl != null))
-		else if (tag instanceof LinkTag)
-		{
+		else if (tag instanceof LinkTag) {
+			
 			LinkTag link = (LinkTag)tag;
 			PortletURL newHref = portletUrl;
 
@@ -133,7 +140,6 @@ public class BodyTagVisitor extends NodeVisitor
 				String route = null;
 				String onclick = null;
 				String newLink = null;
-
 
 				// skip Ajax links with href="#"
 				pattern = Pattern.compile("^#$");
@@ -153,8 +159,8 @@ public class BodyTagVisitor extends NodeVisitor
 					href = baseUrl + href;
 				}
 
-
-				/** Exiting portlet?
+				/** 
+				 * Exiting portlet?
 				 *
 				 * - check if the parameter 'exit_portlet' is 'true'.
 				 *   => return the link as such, ie. not wrapped in PortletURL.
@@ -339,12 +345,10 @@ public class BodyTagVisitor extends NodeVisitor
 			String formAction = frm.getFormLocation();
 			log.debug("Encountered a " + method + " FormTag to action: " + formAction);
 
-
-
-			/** Exiting portlet?
+			/** 
+			 * Exiting portlet?
 			 * Yes, this is a duplicate from the LinkTag handling.
 			 * Not good, not good at all.
-			 *
 			 */
 			String exit_param = "exit_portlet=(true|false)";
 			pattern = Pattern.compile(exit_param);
@@ -361,12 +365,11 @@ public class BodyTagVisitor extends NodeVisitor
 				return;
 			}
 
-
 			/** RouteAnalyzer */
 			try {
 				formAction = ra.getRequestRoute(formAction);
-			}
-			catch (java.net.MalformedURLException e) {
+			
+			} catch (java.net.MalformedURLException e) {
 				log.error(e.getMessage());
 			}
 
@@ -400,11 +403,9 @@ public class BodyTagVisitor extends NodeVisitor
 				}
 				frm.setChildren(inputs);
 			}
-		}
-
-
-		else // other specific tags and generic TagNode objects
-		{
+		
+		// other specific tags and generic TagNode objects
+		} else {
 		}
 	}
 

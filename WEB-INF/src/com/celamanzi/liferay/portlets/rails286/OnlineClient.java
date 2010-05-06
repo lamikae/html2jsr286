@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2009 Mikael Lammentausta
- *               2010 Mikael Lammentausta, Túlio Ornelas dos Santos
+ *               2010 Mikael Lammentausta, Tulio Ornelas dos Santos
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,17 +53,9 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-
 public class OnlineClient {
 
 	private final Log log = LogFactory.getLog(getClass().getName());
-
-	private final String host    = "http://localhost:3000";
-	private final String servlet = "";
-
-	private final String railsJUnitRoute = "/caterpillar/test_bench/junit";
-
-	private final String railsJUnitURL = host+servlet+railsJUnitRoute;
 
 	private static int retries = 0;
 	private static int timeout = 30000;
@@ -72,14 +64,12 @@ public class OnlineClient {
 	private String contentType;
 	private String contentDisposition;
 
-	// TODO: annotate getters
-	protected URL      requestURL  = null;
-	protected int      statusCode  = -1;
+	private URL      requestURL  = null;
+	private int      statusCode  = -1;
 
-	// TODO: annotate setters + getters
-	protected Cookie[] cookies     = null;
-	protected URL      httpReferer = null;
-	protected Locale   locale      = null;
+	private Cookie[] cookies     = null;
+	private URL      httpReferer = null;
+	private Locale   locale      = null;
 
 	public OnlineClient(URL _requestURL) {
 		requestURL  = _requestURL;
@@ -103,20 +93,10 @@ public class OnlineClient {
 		return cookies;
 	}
 	
-	private void configureHeader(Header[] headers) {
-		setHeaders(headers);
-		this.contentType = getHeaderValue("Content-Type", getHeaders());
-		this.contentDisposition = getHeaderValue("Content-Disposition", getHeaders());
+	public void setCookies(Cookie[] cookies) {
+		this.cookies = cookies;
 	}
-
-	private void setHeaders(Header[] headers){
-		this.headers = new ArrayList<Header>();
-
-		for(Header header : headers){
-			this.headers.add(header);
-		}
-	}
-
+	
 	public ArrayList<Header> getHeaders(){
 		return headers;
 	}
@@ -129,28 +109,16 @@ public class OnlineClient {
 		return contentDisposition;
 	}
 
-	private String getHeaderValue(String name, ArrayList<Header> headers) {
-		for (Header header : headers) {
-			if (header.getName().equals(name)){
-				return header.getValue();
-			}
-
-		}
-		return "";
-	}
-
 	/** GET
 	 *
 	 * Instantiates HttpClient, prepares it with session cookies,
 	 * executes the request and returns the response body.
 	 *
-	 * TODO: set response headers to internal protected variable.
-	 * 
 	 * @since 0.8.0
 	 */
 	protected byte[] get()
-	throws HttpException, IOException
-	{
+	throws HttpException, IOException {
+		
 		// Response body from the web server
 		byte[] responseBody = null ;
 
@@ -163,8 +131,6 @@ public class OnlineClient {
 		HttpMethod _method = (HttpMethod)method;
 		method = (GetMethod)prepareMethodHeaders(_method);
 
-		//debugHeaders(method.getRequestHeaders());
-
 		log.debug("GET request URL: " + requestURL.toString());
 
 		try {
@@ -175,15 +141,14 @@ public class OnlineClient {
 			if (statusCode != HttpStatus.SC_OK) {
 				log.error("Request failed: " + method.getStatusLine());
 				throw new HttpException(method.getStatusLine().toString());
-			}
-			else {
+			
+			} else {
 				log.debug("Status code: " + method.getStatusLine());
 
 				// Read the response body
 				responseBody = method.getResponseBody();
-				//method.getRequestHeader('');
 
-				// Keep the headers for future usage (render phase)
+				// Keep the headers for future usage (render or resource phase)
 				configureHeader(method.getResponseHeaders());
 
 				// Get session cookies
@@ -192,7 +157,6 @@ public class OnlineClient {
 			}
 
 		} finally {
-			// Release the connection
 			method.releaseConnection();
 		}
 
@@ -230,8 +194,9 @@ public class OnlineClient {
 			method.setRequestBody(parametersBody);
 
 			// Provide custom retry handler is necessary
-			method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, 
-					new DefaultHttpMethodRetryHandler(3, false));
+			method.getParams().setParameter(
+				HttpMethodParams.RETRY_HANDLER,	new DefaultHttpMethodRetryHandler(3, false)
+			);
 		}
 
 		try {
@@ -247,33 +212,35 @@ public class OnlineClient {
 			{
 
 				// get Location
-				String location = ((Header)method.getResponseHeader("Location")).getValue();
+				String location = ((Header) method.getResponseHeader("Location")).getValue();
 				requestURL = new URL(location);
 				log.debug("POST status code: " + method.getStatusLine());
 				log.debug("Redirect to location: "+location);
 
 				// server may add another cookie before redirect..
 				cookies = client.getState().getCookies();
-				//log.debug("Stored "+cookies.length+" cookies.");
 
 				// Note that this GET overwrites the previous POST method,
 				// so it should set statusCode and cookies correctly.
 				responseBody = get();
-			}
-			else {
+			
+			} else {
 				// the original POST method was OK, pass
 				// No more redirects! Response should be 200 OK
 				if (statusCode != HttpStatus.SC_OK) {
 					log.error("Method failed: " + method.getStatusLine());
 					throw new HttpException(method.getStatusLine().toString());
-				}
-				else {
+				
+				} else {
 					log.debug("POST status code: " + method.getStatusLine());
 				}
 
 				// Read the response body.
 				responseBody = method.getResponseBody();
 
+				// Keep the headers for future usage (render or resource phase)
+				configureHeader(method.getResponseHeaders());
+				
 				// Get session cookies
 				cookies = client.getState().getCookies();
 			}
@@ -294,8 +261,7 @@ public class OnlineClient {
 	 *
 	 * @since 0.8.0
 	 */
-	protected HttpState preparedHttpState()
-	{
+	protected HttpState preparedHttpState() {
 		HttpState state = new HttpState();
 
 		if (cookies != null) {
@@ -311,21 +277,10 @@ public class OnlineClient {
 		return state;
 	}
 
-	protected void debugCookies(Cookie[] cookies) {
-		log.debug( "Cookie inspector found "+cookies.length+" cookies ------v");
-		for (Cookie cookie : cookies)
-			log.debug(cookie.toString()
-					+ ", domain=" + cookie.getDomain()
-					+ ", path=" + cookie.getPath()
-					+ ", max-age=" + cookie.getExpiryDate()
-					+ ", secure=" + cookie.getSecure());
-		log.debug( "----------------------------");
-	}
-
-	/** Prepares client.
+	/** 
+	 * Prepares client.
 	 */
-	protected HttpClient preparedClient()
-	{
+	protected HttpClient preparedClient() {
 		// Create an instance of HttpClient and prepare it
 		HttpClient client = new HttpClient();
 
@@ -351,8 +306,7 @@ public class OnlineClient {
 	 *
 	 * @since 0.8.0
 	 */
-	protected HttpMethod prepareMethodHeaders(HttpMethod method)
-	{
+	protected HttpMethod prepareMethodHeaders(HttpMethod method) {
 		// Insert the HTTP Referer
 		if (httpReferer != null ) {
 			log.debug("HTTP referer: "+httpReferer.toString());
@@ -405,6 +359,17 @@ public class OnlineClient {
 		method.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, false);
 	}
 
+	protected void debugCookies(Cookie[] cookies) {
+		log.debug( "Cookie inspector found "+cookies.length+" cookies ------v");
+		for (Cookie cookie : cookies)
+			log.debug(cookie.toString()
+					+ ", domain=" + cookie.getDomain()
+					+ ", path=" + cookie.getPath()
+					+ ", max-age=" + cookie.getExpiryDate()
+					+ ", secure=" + cookie.getSecure());
+		log.debug( "----------------------------");
+	}
+	
 	private NameValuePair[] removeFileParams(NameValuePair[] parametersBody, Map<String, Object[]> files){
 		List<NameValuePair> list = new ArrayList<NameValuePair>();
 
@@ -458,11 +423,28 @@ public class OnlineClient {
 		}
 	}
 
-	private void debugHeaders(Header[] headers) {
-		log.debug("Headers:");
-		for (Header h : headers)
-			log.debug(h.toString().trim());
+	private String getHeaderValue(String name, ArrayList<Header> headers) {
+		for (Header header : headers) {
+			if (header.getName().equals(name)){
+				return header.getValue();
+			}
+
+		}
+		return "";
+	}
+	
+	private void configureHeader(Header[] headers) {
+		setHeaders(headers);
+		this.contentType = getHeaderValue("Content-Type", getHeaders());
+		this.contentDisposition = getHeaderValue("Content-Disposition", getHeaders());
 	}
 
+	private void setHeaders(Header[] headers){
+		this.headers = new ArrayList<Header>();
+
+		for(Header header : headers){
+			this.headers.add(header);
+		}
+	}
 
 }
