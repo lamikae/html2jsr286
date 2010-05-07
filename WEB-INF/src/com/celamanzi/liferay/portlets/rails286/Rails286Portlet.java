@@ -29,10 +29,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,6 +41,7 @@ import javax.portlet.GenericPortlet;
 import javax.portlet.PortletConfig;
 import javax.portlet.PortletException;
 import javax.portlet.PortletMode;
+import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
 import javax.portlet.PortletSession;
@@ -61,16 +60,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.htmlparser.util.ParserException;
 
-import com.liferay.portal.SystemException;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.model.PortletPreferences;
-import com.liferay.portal.service.PortletPreferencesLocalServiceUtil;
-import com.liferay.portal.service.PortletServiceUtil;
-import com.liferay.portal.service.persistence.PortletUtil;
-import com.liferay.portal.theme.PortletDisplay;
-import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.util.servlet.PortletResponseUtil;
 
@@ -266,25 +257,6 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		//}
 	}
 
-	private PortletPreferences getPortletPreferences(RenderRequest request) {
-		ThemeDisplay themeDisplay = (ThemeDisplay) request.getAttribute(WebKeys.THEME_DISPLAY);
-		PortletDisplay portletDisplay= themeDisplay.getPortletDisplay();
-		String portletId= portletDisplay.getId();
-
-		try {
-			List<PortletPreferences> portletPreferences = PortletPreferencesLocalServiceUtil.getPortletPreferences();
-			for (PortletPreferences pf : portletPreferences) {
-				if (pf.getPortletId().equals(portletId)){
-					return pf;
-				}
-			}
-		} catch (SystemException e) {
-			log.error("getPortletPreferences: "+ e.getMessage());
-		}
-
-		return null;
-	}
-
 	public Map<String, String[]> getContainerRuntimeOptions() {
 		return this.getPortletConfig().getContainerRuntimeOptions();
 	}
@@ -414,7 +386,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 
 		try {
 			java.net.URL requestUrl = getRequestURL();
-			Map<String,Cookie> cookies = getCookies(session);
+			Map<String,Cookie> cookies = getCookies(session,request);
 
 			// Retrieve servlet cookies.
 			// Author Reinaldo Silva
@@ -439,17 +411,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			/**
 			 * GET
 			 */
-			
-			//TODO
-			if (requestMethod.equals("get")) {
-				javax.portlet.PortletPreferences preferences = request.getPreferences();
-				
-				Enumeration<String> names = preferences.getNames();
-				while (names.hasMoreElements()) {
-					String string = (String) names.nextElement();
-					log.info(">>>>>>>>>> "+ string+"="+ preferences.getValue(string, null));
-				}
-				
+			if (requestMethod.equals("get")) {			
 				railsBytes = executeGet(session, getClient());
 			}
 
@@ -528,11 +490,8 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		if(request.getPortletMode().equals(PortletMode.EDIT) && request instanceof RenderRequest){
 			javax.portlet.PortletPreferences preferences = request.getPreferences();
 
-			StringBuilder parameters = new StringBuilder();
-
 			for (NameValuePair nameValue : parametersBody) {
 				if (nameValue.getName().endsWith(PREFERENCES_SUFIX)){
-					parameters.append(nameValue.getName()+"="+ nameValue.getValue()+";");
 					try {
 						preferences.setValue(nameValue.getName(), nameValue.getValue());
 					} catch (ReadOnlyException e) {
@@ -569,14 +528,6 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		}
 
 		return railsBytes; 
-	}
-
-	private void updatePortletPreferences(PortletPreferences portletPreferences) {
-		try {
-			PortletPreferencesLocalServiceUtil.updatePortletPreferences(portletPreferences, true);
-		} catch (SystemException e) {
-			log.error("updatePortletPreferences: "+ e.getMessage());
-		}
 	}
 
 	/**
@@ -666,7 +617,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	 * In this method they are handled in HashMap.
 	 *
 	 */
-	private Map<String, Cookie> getCookies(PortletSession session) {
+	private Map<String, Cookie> getCookies(PortletSession session, PortletRequest request) {
 		Map<String, Cookie> cookies = new HashMap<String, Cookie>();
 		// get cookies from PortletSession to HashMap
 		if (session.getAttribute("cookies") != null) {
@@ -700,11 +651,41 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			Cookie resourceUrlCookie = resourceUrlCookie(session, resourceUrlValue);
 			cookies.put(resourceUrlCookie.getName(), resourceUrlCookie);
 		}
-
+		
+		Cookie preferencesCookie = preferencesCookie(session, request);
+		cookies.put(preferencesCookie.getName(), preferencesCookie);
+		
 		log.debug(cookies.size() + " cookies");
+		
 		return cookies;
 	}
 
+	private Cookie preferencesCookie(PortletSession session, PortletRequest request){
+		URL base = (java.net.URL) session.getAttribute("railsBaseUrl");
+		String host = base.getHost();
+		// Adding the resource url generated by liferay to achieve the serveResource method
+		return new Cookie(
+				host,
+				"Liferay_preferences",
+				preferencesToString(request.getPreferences()),
+				"/",
+				null,
+				false);
+	}
+	
+	private String preferencesToString(PortletPreferences portletPreferences){
+		Enumeration<String> names = portletPreferences.getNames();
+		
+		StringBuilder builder = new StringBuilder();
+		
+		while (names.hasMoreElements()) {
+			String key = (String) names.nextElement();
+			builder.append(key+"="+portletPreferences.getValue(key, null)+";");
+		}
+		
+		return builder.toString();
+	}
+	
 	protected Cookie resourceUrlCookie(PortletSession session, String value){
 		URL base = (java.net.URL) session.getAttribute("railsBaseUrl");
 		String host = base.getHost();
