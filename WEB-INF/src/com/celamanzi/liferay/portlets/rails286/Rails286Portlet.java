@@ -29,7 +29,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,10 +46,12 @@ import javax.portlet.PortletMode;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
 import javax.portlet.PortletSession;
+import javax.portlet.ReadOnlyException;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
+import javax.portlet.ValidatorException;
 
 import org.apache.commons.fileupload.portlet.PortletFileUpload;
 import org.apache.commons.httpclient.Cookie;
@@ -56,8 +61,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.htmlparser.util.ParserException;
 
+import com.liferay.portal.SystemException;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.model.PortletPreferences;
+import com.liferay.portal.service.PortletPreferencesLocalServiceUtil;
+import com.liferay.portal.service.PortletServiceUtil;
+import com.liferay.portal.service.persistence.PortletUtil;
+import com.liferay.portal.theme.PortletDisplay;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.util.servlet.PortletResponseUtil;
 
@@ -90,7 +103,7 @@ import com.liferay.util.servlet.PortletResponseUtil;
  *
  * @author Mikael Lammentausta
  */
-public class Rails286Portlet extends GenericPortlet {
+public class Rails286Portlet extends GenericPortlet implements PreferencesAttributes{
 
 	/** 
 	 * Class variables and the logger.
@@ -208,49 +221,68 @@ public class Rails286Portlet extends GenericPortlet {
 			retrieveFiles(request);
 		}
 
+		log.debug("Received ActionRequest from the web page.");
+
+		/** 
+		 * Process the request parameters.
+		 * These are set in BodyTagVisitor.
+		 * The returned parameters "x-www-form-urlencoded" are decoded.
+		 */
+		Map<String,String[]> p = new HashMap<String,String[]>(request.getParameterMap());
+		// create a clone of the parameter Map
+		Map<String,String[]> params = new HashMap<String,String[]>(p);
+
 		/** 
 		 * Process an action from the web page.
 		 * This can be a classic HTML form or a JavaScript-generator form POST.
 		 */
-		if(request.getPortletMode().equals(PortletMode.VIEW)) {
-			log.debug("Received ActionRequest from the web page.");
+		//if(request.getPortletMode().equals(PortletMode.VIEW)) {
+		// default to POST for actions
+		String actionMethod = (params.containsKey("originalActionMethod") ? 
+				params.remove("originalActionMethod")[0] : "post"
+		);
 
-			/** 
-			 * Process the request parameters.
-			 * These are set in BodyTagVisitor.
-			 * The returned parameters "x-www-form-urlencoded" are decoded.
-			 */
-			Map<String,String[]> p = new HashMap<String,String[]>(request.getParameterMap());
-			// create a clone of the parameter Map
-			Map<String,String[]> params = new HashMap<String,String[]>(p);
+		String actionUrl    = null;
 
-			// default to POST for actions
-			String actionMethod = (params.containsKey("originalActionMethod") ? 
-					params.remove("originalActionMethod")[0] : "post"
-			);
+		// set the action URL
+		if (params.containsKey("originalActionUrl")) {
+			actionUrl = params.remove("originalActionUrl")[0];
+			log.debug("Received a form action: " + actionUrl);
 
-			String actionUrl    = null;
+			// formulate NameValuePair[]
+			NameValuePair[] parametersBody = Rails286PortletFunctions.paramsToNameValuePairs(params);
+			debugParams(parametersBody);
+			// save the attributes to the RenderRequest (set custom parameters now..)
+			request.setAttribute("parametersBody",parametersBody);
 
-			// set the action URL
-			if (params.containsKey("originalActionUrl")) {
-				actionUrl = params.remove("originalActionUrl")[0];
-				log.debug("Received a form action: " + actionUrl);
-
-				// formulate NameValuePair[]
-				NameValuePair[] parametersBody = Rails286PortletFunctions.paramsToNameValuePairs(params);
-				debugParams(parametersBody);
-				// save the attributes to the RenderRequest (set custom parameters now..)
-				request.setAttribute("parametersBody",parametersBody);
-
-			} else {
-				log.warn("No action URL given! Halting action.");
-				actionUrl = (String) request.getParameter("railsRoute");
-				actionMethod = "get";
-			}
-			
-			request.setAttribute("requestMethod",actionMethod);
-			request.setAttribute("railsRoute",actionUrl);
+		} else {
+			log.warn("No action URL given! Halting action.");
+			actionUrl = (String) request.getParameter("railsRoute");
+			actionMethod = "get";
 		}
+
+		request.setAttribute("requestMethod",actionMethod);
+		request.setAttribute("railsRoute",actionUrl);
+		//}
+	}
+
+	private PortletPreferences getPortletPreferences(RenderRequest request) {
+		ThemeDisplay themeDisplay = (ThemeDisplay) request.getAttribute(WebKeys.THEME_DISPLAY);
+		PortletDisplay portletDisplay= themeDisplay.getPortletDisplay();
+		String portletId= portletDisplay.getId();
+
+		try {
+			List<PortletPreferences> portletPreferences = PortletPreferencesLocalServiceUtil.getPortletPreferences();
+			for (PortletPreferences pf : portletPreferences) {
+				if (pf.getPortletId().equals(portletId)){
+					return pf;
+				}
+			}
+		} catch (SystemException e) {
+			log.error("getPortletPreferences: "+ e.getMessage());
+		}
+
+		return null;
 	}
 
 	public Map<String, String[]> getContainerRuntimeOptions() {
@@ -359,6 +391,10 @@ public class Rails286Portlet extends GenericPortlet {
 		setRailsRoute(session);
 		setServlet(session);
 
+		if (request.getPortletMode().equals(PortletMode.EDIT)){ 
+			definePreferencesURL();
+		}
+
 		String railsHost = getRailsBaseUrl().getHost();
 
 		byte[] railsBytes = new byte[]{};
@@ -403,7 +439,17 @@ public class Rails286Portlet extends GenericPortlet {
 			/**
 			 * GET
 			 */
+			
+			//TODO
 			if (requestMethod.equals("get")) {
+				javax.portlet.PortletPreferences preferences = request.getPreferences();
+				
+				Enumeration<String> names = preferences.getNames();
+				while (names.hasMoreElements()) {
+					String string = (String) names.nextElement();
+					log.info(">>>>>>>>>> "+ string+"="+ preferences.getValue(string, null));
+				}
+				
 				railsBytes = executeGet(session, getClient());
 			}
 
@@ -428,6 +474,21 @@ public class Rails286Portlet extends GenericPortlet {
 		// set the response status code (for tests)
 		responseStatusCode = client.getStatusCode();
 		return railsBytes;
+	}
+
+	private void definePreferencesURL() {
+		Pattern pattern = Pattern.compile("^/[^/]*/[^/]*");
+		Matcher matcher = pattern.matcher(getRailsRoute());
+
+		String route = getRailsRoute();
+
+		if (matcher.matches()){
+			String[] routes = getRailsRoute().split("/");
+
+			route = "/"+ routes[1];
+		}
+
+		setRailsRoute(route+"/"+PREFERENCES_METHOD);
 	}
 
 	private java.net.URL getRequestURL(){
@@ -464,13 +525,37 @@ public class Rails286Portlet extends GenericPortlet {
 			debugParams(parametersBody);
 		}
 
+		if(request.getPortletMode().equals(PortletMode.EDIT) && request instanceof RenderRequest){
+			javax.portlet.PortletPreferences preferences = request.getPreferences();
+
+			StringBuilder parameters = new StringBuilder();
+
+			for (NameValuePair nameValue : parametersBody) {
+				if (nameValue.getName().endsWith(PREFERENCES_SUFIX)){
+					parameters.append(nameValue.getName()+"="+ nameValue.getValue()+";");
+					try {
+						preferences.setValue(nameValue.getName(), nameValue.getValue());
+					} catch (ReadOnlyException e) {
+						log.error(e.getMessage());
+					}
+				}
+			}
+
+			try {
+				preferences.store();
+			} catch (ValidatorException e) {
+				log.error(e.getMessage());
+			}
+
+		}
+		
 		// retrieve files
 		Map<String, Object[]> files = (Map<String, Object[]>) request.getAttribute("files");
 
 		// POST the parametersBody
 		// OnlineClient handles cases where POST redirects.
 		byte[] railsBytes = client.post(parametersBody, files);
-		
+
 		// store new cookies into PortletSession.
 		session.setAttribute("cookies", client.getCookies(), PortletSession.PORTLET_SCOPE);
 
@@ -482,8 +567,16 @@ public class Rails286Portlet extends GenericPortlet {
 			log.debug("Saving route from httpReferer: "+httpReferer.toString());
 			session.setAttribute("railsRoute", httpReferer.toString(), PortletSession.PORTLET_SCOPE);
 		}
-		
+
 		return railsBytes; 
+	}
+
+	private void updatePortletPreferences(PortletPreferences portletPreferences) {
+		try {
+			PortletPreferencesLocalServiceUtil.updatePortletPreferences(portletPreferences, true);
+		} catch (SystemException e) {
+			log.error("updatePortletPreferences: "+ e.getMessage());
+		}
 	}
 
 	/**
