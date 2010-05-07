@@ -243,6 +243,30 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			// formulate NameValuePair[]
 			NameValuePair[] parametersBody = Rails286PortletFunctions.paramsToNameValuePairs(params);
 			debugParams(parametersBody);
+			
+			// Retrieving preference parameters and store them on liferay
+			if(request.getPortletMode().equals(PortletMode.EDIT)){
+				javax.portlet.PortletPreferences preferences = request.getPreferences();
+
+				for (NameValuePair nameValue : parametersBody) {
+					if (nameValue.getName().endsWith(PREFERENCES_SUFIX)){
+						try {
+							log.info("Name: " + nameValue.getName() + " - Value: " + nameValue.getValue());
+							preferences.setValue(nameValue.getName(), nameValue.getValue());
+						} catch (ReadOnlyException e) {
+							log.error(e.getMessage());
+						}
+					}
+				}
+
+				try {
+					preferences.store();
+				} catch (ValidatorException e) {
+					log.error(e.getMessage());
+				}
+
+			}
+			
 			// save the attributes to the RenderRequest (set custom parameters now..)
 			request.setAttribute("parametersBody",parametersBody);
 
@@ -487,27 +511,6 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			debugParams(parametersBody);
 		}
 
-		if(request.getPortletMode().equals(PortletMode.EDIT) && request instanceof RenderRequest){
-			javax.portlet.PortletPreferences preferences = request.getPreferences();
-
-			for (NameValuePair nameValue : parametersBody) {
-				if (nameValue.getName().endsWith(PREFERENCES_SUFIX)){
-					try {
-						preferences.setValue(nameValue.getName(), nameValue.getValue());
-					} catch (ReadOnlyException e) {
-						log.error(e.getMessage());
-					}
-				}
-			}
-
-			try {
-				preferences.store();
-			} catch (ValidatorException e) {
-				log.error(e.getMessage());
-			}
-
-		}
-		
 		// retrieve files
 		Map<String, Object[]> files = (Map<String, Object[]>) request.getAttribute("files");
 
@@ -653,6 +656,9 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		}
 		
 		Cookie preferencesCookie = preferencesCookie(session, request);
+		
+		log.info("Preferences: " + preferencesCookie.getValue());
+		
 		cookies.put(preferencesCookie.getName(), preferencesCookie);
 		
 		log.debug(cookies.size() + " cookies");
@@ -680,7 +686,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		
 		while (names.hasMoreElements()) {
 			String key = (String) names.nextElement();
-			builder.append(key+"="+portletPreferences.getValue(key, null)+";");
+			builder.append(key+"="+portletPreferences.getValue(key, null)+"#");
 		}
 		
 		return builder.toString();
