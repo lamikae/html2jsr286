@@ -134,8 +134,8 @@ public class RemoteCookiesTest {
 		// assert that cookies were stored
 		Cookie[] cookies = (Cookie[])session.getAttribute("cookies");
 		assertNotNull(cookies);
-		// session_secret + _example_session
-		assertEquals(2, cookies.length); // security cookie not added
+		// session_secret + _example_session + preferences cookie
+		assertEquals(3, cookies.length); // security cookie not added
 
 		// re-cast
 		MockRenderResponse _response = (MockRenderResponse)response;
@@ -451,7 +451,7 @@ public class RemoteCookiesTest {
 		// assert that cookies were stored
 		Cookie[] cookies = (Cookie[])session.getAttribute("cookies");
 		assertNotNull(cookies);
-		assertEquals(4,cookies.length); //session_secret + foo + bar + baz
+		assertEquals(5,cookies.length); //session_secret + preferences + foo + bar + baz
 
 		session.setAttribute("railsRoute",railsJUnitRoute+"/foobarcookiestxt");
 		_request.setSession(session);
@@ -509,7 +509,7 @@ public class RemoteCookiesTest {
 		// assert that cookies were stored
 		Cookie[] cookies = (Cookie[])session.getAttribute("cookies");
 		assertNotNull(cookies);
-		assertEquals(4,cookies.length);
+		assertEquals(5,cookies.length);
 
 		session.setAttribute("railsRoute",railsJUnitRoute+"/foobarcookiestxt_auth");
 		_request.setSession(session);

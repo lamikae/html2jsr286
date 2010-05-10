@@ -224,31 +224,92 @@ public class PortletTest {
 		if (download.exists()){
 			download.delete();
 		}
-		
+
 		portlet.init(portletConfig);
 
 		session.setAttribute("railsBaseUrl",new URL(host));
 		session.setAttribute("servlet",servlet);
 		session.setAttribute("railsRoute",railsJUnitRoute+"/download_image");
-		
-        MockResourceRequest request = new MockResourceRequest();
+
+		MockResourceRequest request = new MockResourceRequest();
 		request.setSession(session);
-		
+
 		MockResourceResponse response = new MockResourceResponse();
-		
+
 		portlet.serveResource(request, response);
-		
+
 		download = new File("../temp/jake_sully.jpg");
 		InputStream isOriginal = new FileInputStream(original);
 		InputStream isDownload = new FileInputStream(download);
-		
+
 		int read = 0;
 		while((read = isOriginal.read()) != -1) {
 			assertEquals(read, isDownload.read());
 		}
 		download.delete();
 	}
+
+	@Test
+	public void test_renderInEditMode() throws Exception {
+		portlet.init(portletConfig);
+		session.setAttribute("railsRoute", railsJUnitRoute); //preferences
+		
+		MockRenderRequest _request = new MockRenderRequest(PortletMode.EDIT);
+		_request.setSession(session);
+		RenderRequest request = (RenderRequest)_request;
+		assertNotNull(request);
+
+		RenderResponse response = new MockRenderResponse();
+		assertNotNull(response);
+
+		portlet.render(request,response);
+
+		URL _baseUrl = (URL) session.getAttribute("railsBaseUrl");
+		assertNotNull(_baseUrl);
+		assertEquals(new URL(host+"/"+servlet), _baseUrl);
+
+		assertEquals(railsJUnitRoute+"/preferences", portlet.getRailsRoute());
+		
+		String _servlet = (String)session.getAttribute("servlet");
+		assertNotNull(_servlet);
+		assertEquals(servlet, _servlet);
+
+		String _route = (String) session.getAttribute("railsRoute");
+		assertNotNull(_route);
+		assertEquals(railsJUnitRoute, _route);
+
+		String _method = (String) session.getAttribute("requestMethod");
+		assertNull(_method);
+
+		assertNull(session.getAttribute("httpReferer"));
+		assertEquals("Preferences view\n", ((MockRenderResponse)response).getContentAsString());
+	}
 	
+	@Test
+	public void test_processActionInEditMode() throws Exception {
+		portlet.init(portletConfig);
+		session.setAttribute("railsRoute", railsJUnitRoute); //preferences
+		
+		MockActionRequest request = new MockActionRequest(PortletMode.EDIT);
+		ActionResponse response = new MockActionResponse();
+		request.setSession(session);
+
+		request.addParameter("originalActionUrl", railsJUnitRoute+"/preferences");
+		request.addParameter("originalActionMethod", "post");
+		
+		portlet.processAction(request,response);
+		
+		MockRenderRequest renderRequest = new MockRenderRequest(PortletMode.EDIT);
+		MockRenderResponse renderResponse = new MockRenderResponse();
+		renderRequest.setSession(session);
+		
+		renderRequest.setAttribute("requestMethod", "post");
+		renderRequest.setAttribute("railsRoute", railsJUnitRoute+"/preferences");
+		
+		portlet.render(renderRequest, renderResponse);
+		assertEquals("Preferences view\n", renderResponse.getContentAsString());
+	}
+
 }
 
 

@@ -356,6 +356,39 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				null,
 				false);
 	}
+	
+	/**
+	 * Creates the preference cookie (Liferay_preferences) with the values of request.getPreferences().
+	 * It will encode the generated value (key=value;key=value;...) with UTF-8.
+	 * 
+	 * @see Rails286Porltlet#preferencesToString
+	 * 
+	 * @param session - {@link PortletSession}
+	 * @param request - {@link PortletRequest}
+	 * @return {@link Cookie}
+	 */
+	private Cookie preferencesCookie(PortletSession session, PortletRequest request){
+		URL base = (java.net.URL) session.getAttribute("railsBaseUrl");
+		String host = base.getHost();
+
+		String value = preferencesToString(request.getPreferences());
+		try {
+			// Cookies do not accept space, brackets, parentheses, equals signs, commas, and a lot of chars, so the only
+			// solution was encoding the content. UTF-8 was suggested as the better character encoding for this, 
+			// but if something goes wrong we will send the raw value.
+			value = URLEncoder.encode(value, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			log.error("preferencesCookie: " + e.getMessage());
+		}
+
+		return new Cookie(
+				host,
+				"Liferay_preferences",
+				value,
+				"/",
+				null,
+				false);
+	}
 
 	private byte[] callRails(PortletRequest request, PortletResponse response) throws PortletException{
 
@@ -383,10 +416,6 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		setRailsRoute(session);
 		setServlet(session);
 
-		if (request.getPortletMode().equals(PortletMode.EDIT)){ 
-			definePreferencesURL();
-		}
-
 		String railsHost = getRailsBaseUrl().getHost();
 
 		byte[] railsBytes = new byte[]{};
@@ -399,6 +428,13 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			log.warn( "The requested route is undefined" );
 			setRailsRoute("/");
 		}
+		
+		if (request.getPortletMode().equals(PortletMode.EDIT)){ 
+			log.debug("Edit mode, defining preferences URL");
+			definePreferencesURL();
+			log.debug("RailsRoute: " + getRailsRoute());
+		}
+		
 		// TODO: if the server is unreachable
 		//if () {
 		//  throw new PortletException("The server " + railsHost + " was unreachable.");
@@ -492,7 +528,6 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		Matcher matcher = pattern.matcher(getRailsRoute());
 
 		String route = getRailsRoute();
-
 		if (matcher.matches()){
 			String[] routes = getRailsRoute().split("/");
 
@@ -687,39 +722,6 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		log.debug(cookies.size() + " cookies");
 
 		return cookies;
-	}
-
-	/**
-	 * Creates the preference cookie (Liferay_preferences) with the values of request.getPreferences().
-	 * It will encode the generated value (key=value;key=value;...) with UTF-8.
-	 * 
-	 * @see Rails286Porltlet#preferencesToString
-	 * 
-	 * @param session - {@link PortletSession}
-	 * @param request - {@link PortletRequest}
-	 * @return {@link Cookie}
-	 */
-	private Cookie preferencesCookie(PortletSession session, PortletRequest request){
-		URL base = (java.net.URL) session.getAttribute("railsBaseUrl");
-		String host = base.getHost();
-
-		String value = preferencesToString(request.getPreferences());
-		try {
-			// Cookies do not accept space, brackets, parentheses, equals signs, commas, and a lot of chars, so the only
-			// solution was encoding the content. UTF-8 was suggested as the better character encoding for this, 
-			// but if something goes wrong we will send the raw value.
-			value = URLEncoder.encode(value, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			log.error("preferencesCookie: " + e.getMessage());
-		}
-
-		return new Cookie(
-				host,
-				"Liferay_preferences",
-				value,
-				"/",
-				null,
-				false);
 	}
 
 	/**

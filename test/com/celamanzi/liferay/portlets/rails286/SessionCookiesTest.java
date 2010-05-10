@@ -181,7 +181,7 @@ public class SessionCookiesTest {
 		// 3 from Rails, 1 with session_secret
 		Cookie[] cookies = (Cookie[])session.getAttribute("cookies");
 		assertNotNull(cookies);
-		assertEquals(4,cookies.length);
+		assertEquals(5,cookies.length);
 
 		HttpClient client = new HttpClient();
 		assertNotNull(client);
