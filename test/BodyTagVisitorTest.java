@@ -201,7 +201,41 @@ public class BodyTagVisitorTest {
 
 	public void testFormWithoutActionUrl() {}
 
-	public void testFormPOST() {}
+    @Test
+    public void testFormPOST()
+    throws Exception, XPathExpressionException
+    {
+        // yay for Java multiline strings...
+        String html = "<html><body>"+
+        "<form action=\"/caterpillar/test_bench/http_methods/post\" method=\"post\">"+
+        "  <p>"+
+        "    <input id=\"msg\" name=\"msg\" size=\"42\" type=\"text\" value=\"jääneekö unicode matkalle..\" />"+
+        "  </p>"+
+        "</form>"+
+        "</body></html>";
+
+        NodeList body = TestHelpers.getBody(html);
+        body.visitAllNodesWith(visitor); // visit all nodes
+        //System.out.println(body.toHtml());
+
+        Document doc = TestHelpers.html2doc(body.toHtml());
+        // actionURL
+        expr = xpath.compile("//form/@action");
+        nodes = TestHelpers.evalExpr(expr, doc);
+        assertEquals(1,nodes.getLength());
+        assertEquals("http://localhost/mockportlet?urlType=action",nodes.item(0).getNodeValue());
+
+        // actual form action URL + method
+        nodes = doc.getElementsByTagName("input");
+        assertEquals(3,nodes.getLength());
+        assertEquals("msg", nodes.item(0).getAttributes().getNamedItem("name").getNodeValue());
+        assertEquals(
+             namespace+"originalActionUrl",
+             nodes.item(1).getAttributes().getNamedItem("name").getNodeValue());
+        assertEquals(
+             "caterpillar/test_bench/http_methods/post",
+             nodes.item(1).getAttributes().getNamedItem("value").getNodeValue());
+    }
 
 	public void testFormPUT() {}
 

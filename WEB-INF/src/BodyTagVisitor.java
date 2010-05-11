@@ -337,17 +337,19 @@ public class BodyTagVisitor extends NodeVisitor
     /**
      * Convert forms, only if actionUrl is defined
      */
-    else if ((tag instanceof FormTag) && (actionUrl != null))
-//    else if ((tag instanceof FormTag) )
+    else if (tag instanceof FormTag)
     {
-      FormTag frm = (FormTag)tag;
-      String method = frm.getFormMethod();
-      //String formAction = frm.extractFormLocn();
-      String formAction = frm.getFormLocation();
-      log.debug("Encountered a " + method + " FormTag to action: " + formAction);
+        if (actionUrl == null) {
+            log.warn("Form action cannot be manipulated - portlet actionURL is null");
+            return;
+        }
+        FormTag frm = (FormTag)tag;
+        String method = frm.getFormMethod();
+        //String formAction = frm.extractFormLocn();
+        String formAction = frm.getFormLocation();
+        log.debug("form " + method + " to action: " + formAction);
+        log.debug(frm.toString());
 
-        
-        
         /** Exiting portlet?
          * Yes, this is a duplicate from the LinkTag handling.
          * Not good, not good at all.
