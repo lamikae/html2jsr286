@@ -1,5 +1,7 @@
 package com.celamanzi.liferay.portlets.rails286;
 
+import java.net.URL;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -7,48 +9,37 @@ import static org.junit.Assert.*;
 
 import com.celamanzi.liferay.portlets.rails286.PageProcessor;
 
+
 /** Tests PageProcessor.
  */
 public class PageProcessorTest {
 
-	private java.net.URL baseUrl = null;
+    private URL baseUrl = null;
+    private final String host    = PortletTest.host;
+    private final String servlet = PortletTest.servlet;
 
-	private String servlet = "";
-	private String route = "/";
+    private final String railsTestBenchRoute = PortletTest.railsTestBenchRoute;
+    private final String railsJUnitRoute = PortletTest.railsJUnitRoute;
+    private final String railsJUnitURL = PortletTest.railsJUnitURL;
 
-	private String html = null;
-	private PageProcessor pp = null;
+    private String namespace = "__TEST_PORTLET__";
 
-	private String namespace = "__TEST_PORTLET__";
+    private String html = null;
+    private PageProcessor pp = null;
 
 	@Before
 	public void setTestServer()
 	throws java.net.MalformedURLException {
-		baseUrl = new java.net.URL("http://localhost:3000");
+		baseUrl = new URL(host+"/"+servlet);
 	}
 
-// 	@Test
-// 	public void process_invalid_url() {
-// 		try {
-// //       String html    = OnlineUtils.getWebPage( host + servlet + path, null );
-// 		String html = "<html><head></head></html>";
-// 		String servlet = "";
-// 		String path    = "";
-// 
-// 		PageProcessor p = new PageProcessor(html,servlet);
-	/*	} catch (Exception e) {
-			AssertionError ae = new AssertionError("");
-			ae.initCause(e);
-			throw ae;
-		}
-	*/
-// 	}
 
 	@Test
 	public void process_empty_head() throws org.htmlparser.util.ParserException
 	{
 		html = "<html><head></head></html>";
 		pp = new PageProcessor(html,servlet,namespace);
+		String route = "/";
 		String output = pp.process(baseUrl,route);
 		TestHelpers.assertPageRegexp(output,"<div id=\""+namespace+"_head\">[\\n ]*</div>");
 	}
@@ -58,11 +49,11 @@ public class PageProcessorTest {
 	{
 		html = "<html><body></body></html>";
 		pp = new PageProcessor(html,servlet,namespace);
+		String route = "/";
 		String output = pp.process(baseUrl,route);
 		// assert a new head tag..
 		TestHelpers.assertPageRegexp(output,"<div id=\""+namespace+"_head\">[\\n ]*</div>");
 		TestHelpers.assertPageRegexp(output,"<div id=\""+namespace+"_body\">[\\n ]*</div>");
-// 		System.out.println(output);
 	}
 
 	@Test
@@ -70,9 +61,9 @@ public class PageProcessorTest {
 	{
 		html = "this is not HTML";
 		pp = new PageProcessor(html,servlet);
+		String route = "/";
 		String output = pp.process(baseUrl,route);
 		assertEquals(html,output);
 	}
-
 
 }
