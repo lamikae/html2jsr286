@@ -96,7 +96,7 @@ import com.liferay.util.servlet.PortletResponseUtil;
  *
  * @author Mikael Lammentausta
  */
-public class Rails286Portlet extends GenericPortlet implements PreferencesAttributes{
+public class Rails286Portlet extends GenericPortlet implements PreferencesAttributes, PublicRenderParameterAttributes {
 
 	/** 
 	 * Class variables and the logger.
@@ -249,6 +249,9 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			if(request.getPortletMode().equals(PortletMode.EDIT)){
 				savePreferences(request, parametersBody);
 			}
+			
+			// Sending public render parameters
+			publishRenderParameters(response, parametersBody);
 
 			// save the attributes to the RenderRequest (set custom parameters now..)
 			request.setAttribute("parametersBody", parametersBody);
@@ -484,9 +487,11 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			}
 
 		} catch(HttpException e) {
-			log.error("callRails: " + e.getMessage() + "\n" + new String(railsBytes));
+			log.error("callRails: HttpException: " + e.getMessage() + "\n" + new String(railsBytes));
+			railsBytes = e.getMessage().getBytes();
 		} catch (IOException e) {
-			log.error("callRails: " + e.getMessage() + "\n" + new String(railsBytes));
+			log.error("callRails: IOException: " + e.getMessage() + "\n" + new String(railsBytes));
+			railsBytes = e.getMessage().getBytes();
 		}
 
 		// set the response status code (for tests)
@@ -517,6 +522,20 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			preferences.store();
 		} catch (ValidatorException e) {
 			log.error("savePreferences: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * TODO: Javadoc
+	 * @param response - {@link ActionResponse}
+	 * @param parametersBody - {@link NameValuePair[]}
+	 */
+	private void publishRenderParameters(ActionResponse response, NameValuePair[] parametersBody) {
+		for(NameValuePair param : parametersBody) {
+			if(param.getName().endsWith(PUBLIC_RENDER_PARAMETER_SUFIX)) {
+				String name = param.getName().replaceAll(PUBLIC_RENDER_PARAMETER_SUFIX, "");
+				response.setRenderParameter(name, param.getValue());
+			}
 		}
 	}
 
@@ -743,7 +762,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 
 		return builder.toString();
 	}
-
+	
 	private void retrieveFiles(ActionRequest request) throws IOException {
 		UploadPortletRequest uploadRequest = PortalUtil.getUploadPortletRequest(request);
 		Map<String, Object[]> files = new HashMap<String, Object[]>();
