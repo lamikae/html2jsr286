@@ -166,7 +166,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		String outputHTML = processResponseBody(response, new String(railsBytes));
 
 		log.debug("Response status code: " + responseStatusCode);
-
+		
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
 		out.println(outputHTML);
@@ -526,7 +526,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	}
 	
 	/**
-	 * TODO: Javadoc
+	 * Adds public parameters to all portlets
 	 * @param response - {@link ActionResponse}
 	 * @param parametersBody - {@link NameValuePair[]}
 	 */
