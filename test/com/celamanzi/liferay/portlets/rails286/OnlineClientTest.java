@@ -233,7 +233,7 @@ public class OnlineClientTest {
 		assertNotNull(client);
 
 		NameValuePair[] params = {
-				new NameValuePair("normal_param", "importância") //require UTF-8 encode
+				new NameValuePair("normal_param", "import√¢ncia") //require UTF-8 encode
 		};
 
 		File file = new File("test/resources/jake_sully.jpg");

@@ -49,10 +49,10 @@ public class RemoteCookiesTest {
 	private final String railsJUnitURL = PortletTest.railsJUnitURL;
 
 	private Rails286Portlet portlet = new Rails286Portlet();
-	
+
 	private PortletConfig portletConfig = null;
 	private PortletContext portletContext = new MockPortletContext();
-	
+
 	private PortletSession session = null;
 	private String portletName = "__TEST__";
 
@@ -66,12 +66,12 @@ public class RemoteCookiesTest {
 	{
 		assertNotNull(portlet);
 		assertNotNull(portletContext);
-		
+
 		MockPortletConfig _portletConfig = new MockPortletConfig(portletContext, portletName);
 		_portletConfig.addInitParameter("secret", PortletTest.sessionSecret);
-		
+
 		assertNotNull(_portletConfig);
-		
+
 		portletConfig = (PortletConfig)_portletConfig;
 
 		session = new MockPortletSession();
@@ -113,7 +113,7 @@ public class RemoteCookiesTest {
 	 */
 	public void test_portlet_session_cookie()
 	throws Exception {
-		
+
 		portlet = new Rails286Portlet();
 		portlet.init(portletConfig);
 
@@ -202,9 +202,7 @@ public class RemoteCookiesTest {
 			int statusCode = client.executeMethod(method);
 			assertEquals(200,statusCode);
 
-
 			Header[] responseHeaders = method.getResponseHeaders();
-			//debugHeaders(responseHeaders);
 			assertEquals(9, responseHeaders.length);
 
 			sessionCookies = client.getState().getCookies();
@@ -378,47 +376,47 @@ public class RemoteCookiesTest {
 
 		/* do NOT set any cookies!
 		 */
-		 HttpState initialState = new HttpState();
-		 client.setState(initialState);
+		HttpState initialState = new HttpState();
+		client.setState(initialState);
 
-		 //System.out.println("New request headers (without cookies), going to Rails");
-		 //debugHeaders(method.getRequestHeaders());
-
-
-		 try {
-			 // Execute the method.
-			 int statusCode = client.executeMethod(method);
-			 assertEquals(200,statusCode);
-
-			 Cookie[] _sessionCookies = client.getState().getCookies();
-			 assertEquals(1,_sessionCookies.length);
-			 assertFalse(sessionCookies[0].toExternalForm().equals(
-					 _sessionCookies[0].toExternalForm()));
-			 // cookies match!
-
-			 byte[] responseBody = method.getResponseBody();
-			 String xml = new String(responseBody);
-			 //System.out.println(xml);
-			 Document doc = TestHelpers.html2doc(xml);
-			 assertNotNull(doc);
-
-			 expr = xpath.compile("//id/text()");
-			 nodes = TestHelpers.evalExpr(expr, doc);
-			 assertEquals(1,nodes.getLength());
-			 String _sessionId = nodes.item(0).getNodeValue();
-
-			 // test that the session does not match
-			 assertFalse(sessionId.equals(_sessionId));
+		//System.out.println("New request headers (without cookies), going to Rails");
+		//debugHeaders(method.getRequestHeaders());
 
 
-		 } catch (HttpException e) {
-			 fail(e.getMessage());
-		 } catch (IOException e) {
-			 fail(e.getMessage());
-		 } finally {
-			 // Release the connection.
-			 method.releaseConnection();
-		 }
+		try {
+			// Execute the method.
+			int statusCode = client.executeMethod(method);
+			assertEquals(200,statusCode);
+
+			Cookie[] _sessionCookies = client.getState().getCookies();
+			assertEquals(1,_sessionCookies.length);
+			assertFalse(sessionCookies[0].toExternalForm().equals(
+					_sessionCookies[0].toExternalForm()));
+			// cookies match!
+
+			byte[] responseBody = method.getResponseBody();
+			String xml = new String(responseBody);
+			//System.out.println(xml);
+			Document doc = TestHelpers.html2doc(xml);
+			assertNotNull(doc);
+
+			expr = xpath.compile("//id/text()");
+			nodes = TestHelpers.evalExpr(expr, doc);
+			assertEquals(1,nodes.getLength());
+			String _sessionId = nodes.item(0).getNodeValue();
+
+			// test that the session does not match
+			assertFalse(sessionId.equals(_sessionId));
+
+
+		} catch (HttpException e) {
+			fail(e.getMessage());
+		} catch (IOException e) {
+			fail(e.getMessage());
+		} finally {
+			// Release the connection.
+			method.releaseConnection();
+		}
 
 	}
 

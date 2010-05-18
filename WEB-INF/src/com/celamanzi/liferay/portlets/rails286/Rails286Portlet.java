@@ -185,7 +185,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		byte[] railsBytes = callRails(request, response);
 		String filename = getFilename();
 
-		if (!filename.equals("")) {
+		if (filename != null && !filename.equals("")) {
 			File file = new File("../temp/" + filename);
 
 			FileOutputStream fos = new FileOutputStream(file);
@@ -526,7 +526,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	}
 	
 	/**
-	 * Adds public parameters to all portlets
+	 * Publish public parameters to all portlets
 	 * @param response - {@link ActionResponse}
 	 * @param parametersBody - {@link NameValuePair[]}
 	 */
@@ -568,8 +568,14 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	 * @return {@link String}
 	 */
 	private String getFilename() {
+		String contentDisposition = getClient().getContentDisposition();
+		
+		if (contentDisposition == null) {
+			return null;
+		}
+		
 		Pattern p = Pattern.compile("filename=\"([^\"]+)\"");
-		Matcher matcher = p.matcher(getClient().getContentDisposition());
+		Matcher matcher = p.matcher(contentDisposition);
 		return matcher.find() ? matcher.group(1) : "";
 	}
 

@@ -22,6 +22,7 @@ import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
 import org.apache.commons.httpclient.Cookie;
+import org.apache.commons.httpclient.NameValuePair;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.portlet.MockActionRequest;
@@ -220,6 +221,12 @@ public class PortletTest {
 	@Test
 	public void test_serveResource() throws Exception {
 		File original = new File("test/resources/jake_sully.jpg");
+		
+		File directory = new File("../temp/");
+		if (!directory.exists()){
+			directory.mkdirs();
+		}
+		
 		File download = new File("../temp/jake_sully.jpg");
 		if (download.exists()){
 			download.delete();
@@ -246,7 +253,9 @@ public class PortletTest {
 		while((read = isOriginal.read()) != -1) {
 			assertEquals(read, isDownload.read());
 		}
+		
 		download.delete();
+		directory.delete();
 	}
 
 	@Test
@@ -308,6 +317,35 @@ public class PortletTest {
 		
 		portlet.render(renderRequest, renderResponse);
 		assertEquals("Preferences view\n", renderResponse.getContentAsString());
+	}
+	
+	@Test
+	public void test_processActionWithPublicRenderParameters() throws Exception {
+		portlet.init(portletConfig);
+		session.setAttribute("railsRoute", railsJUnitRoute);
+		
+		MockActionRequest request = new MockActionRequest();
+		
+		// Public render parameters need to have the _prp sufix in their names
+		request.addParameter("tag_prp", "public render parameter value");
+		request.addParameter("param", "common value");
+		
+		MockActionResponse response = new MockActionResponse();
+		request.setSession(session);
+
+		request.addParameter("originalActionUrl", railsJUnitRoute+"/public_render_parameters");
+		request.addParameter("originalActionMethod", "post");
+
+		portlet.processAction(request, response);
+		
+		assertEquals(1, response.getRenderParameterMap().size());
+		
+		// The sufix _prp is removed when the value is treated
+		assertEquals("public render parameter value", response.getRenderParameter("tag"));
+		
+		// The attributes remain in prp parametersBody
+		NameValuePair[] parametersBody = (NameValuePair[]) request.getAttribute("parametersBody");
+		assertEquals(2, parametersBody.length);
 	}
 
 }
