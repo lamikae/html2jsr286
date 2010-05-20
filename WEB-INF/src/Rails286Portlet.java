@@ -344,6 +344,10 @@ public class Rails286Portlet extends GenericPortlet {
       */
     if(request.getPortletMode().equals(PortletMode.VIEW)) {
       log.debug("Received ActionRequest from the web page.");
+      log.debug("Request character encoding: "+ request.getCharacterEncoding());
+      log.debug("http.protocol.content-charset: " + System.getProperty("http.protocol.content-charset"));
+      // TODO: request may be UTF-8, but the form data may be in different
+      // encoding, set by <form accept-charset="..">
 
       String actionUrl    = null;
       String actionMethod = null;
