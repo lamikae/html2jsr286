@@ -20,6 +20,8 @@ import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
 import org.apache.commons.httpclient.Cookie;
+import org.apache.commons.httpclient.NameValuePair;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockMultipartFile;
@@ -246,6 +248,25 @@ public class PortletTest {
 	  
 	  */
   }
+
+    @Test
+    public void test_unicode_parameters_processAction() throws PortletException, IOException
+    {
+        portlet.init(portletConfig);
+
+        MockActionRequest request = new MockActionRequest();
+        request.setSession(session);
+        request.setContentType("application/x-www-form-urlencoded");
+
+        request.setParameter("originalActionUrl", "/");
+        request.setParameter("postcode", "è");
+
+        ActionResponse response = new MockActionResponse();
+        portlet.processAction(request, response);
+
+        NameValuePair[] m = (NameValuePair[])request.getAttribute("parametersBody");
+        assertEquals("name=postcode, value=è", m[0].toString());
+    }
 
 }
 
