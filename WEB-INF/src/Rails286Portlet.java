@@ -144,15 +144,14 @@ public class Rails286Portlet extends GenericPortlet {
   public void render(RenderRequest request, RenderResponse response)
   throws PortletException, IOException {
     if (log.isDebugEnabled()) {
+      log.debug("View "+response.getNamespace());
       try {
-        log.debug("View "+response.getNamespace());
-        //log.debug(request.getAuthType());
         log.debug("Remote user: "+request.getRemoteUser());
-        // user principal is null in pre-prod
-        log.debug("User principal name: "+request.getUserPrincipal().getName());
+        //log.debug("User principal name: "+request.getUserPrincipal().getName());
+        //log.debug(request.getAuthType());
       }
       catch (java.lang.NullPointerException e) {
-        log.error(e.getMessage());
+        log.error("No user "+e.getMessage());
       }
     } 
 	  
