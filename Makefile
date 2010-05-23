@@ -64,6 +64,8 @@ test: compile
 	$(jarlib)/portal-service-$(liferay).jar:\
 	$(jarlib)/servlet-api-2.4.jar:\
 	$(jarlib)/htmlparser-1.6.jar:\
+	$(jarlib)/nekohtml-1.9.14.jar:\
+	$(jarlib)/xerces_2_5_0.jar:\
 	$(jarlib)/log4j-1.2.15.jar:\
 	$(jarlib)/junit-4.6.jar:\
 	$(jarlib)/spring-test-2.5.6.jar:\

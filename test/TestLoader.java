@@ -18,7 +18,8 @@ import org.junit.runners.Suite.SuiteClasses;
 	PortletFunctionsTest.class,
 	AuthorizationTest.class,
 	RemoteCookiesTest.class,
-	SessionCookiesTest.class
+	SessionCookiesTest.class,
+	XslTest.class
 })
 
 public class TestLoader {

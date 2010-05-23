@@ -27,6 +27,8 @@
     	<pathelement location="WEB-INF/lib/commons-logging.jar"/>
     	<pathelement location="WEB-INF/lib/commons-fileupload-1.2.1.jar"/>
     	<pathelement location="WEB-INF/lib/htmlparser-1.6.jar"/>
+    	<pathelement location="WEB-INF/lib/nekohtml-1.9.14.jar"/>
+    	<pathelement location="WEB-INF/lib/xerces_2_5_0.jar"/>
     	<pathelement location="WEB-INF/lib/junit-4.6.jar"/>
     	<pathelement location="WEB-INF/lib/log4j-1.2.15.jar"/>
     	<pathelement location="WEB-INF/lib/portal-service-5.2.3.jar"/>
