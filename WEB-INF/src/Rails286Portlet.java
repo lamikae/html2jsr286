@@ -457,7 +457,7 @@ public class Rails286Portlet extends GenericPortlet {
   }
   
   /**
-   * Create the {@link PageProcessor} and process the railsRoute.
+   * Create the {@link PageProcessor} and process the remote response HTML.
    * 
    * @param response - {@link RenderResponse}
    * @param railsBaseUrl - {@link URL}
@@ -466,42 +466,43 @@ public class Rails286Portlet extends GenericPortlet {
    * @param railsResponse - {@link String}
    * @return outputHTML - {@link String}
    */
-  private String processResponseBody(RenderResponse response, 
-		  						     URL railsBaseUrl, 
-		  						     String servlet, 
-		  						     String railsRoute, 
-		  						     String railsResponse) {
-	  
-	  String outputHTML = null;
-    //log.debug("Response length: "+railsResponse.length());
-	  if ( (railsResponse != null ) && (railsResponse.length() > 1) ) {
-		  try {
-			  //log.debug("Processing page");
-			  // instantiate the PageProcessor
-			  // PageProcessor => HeadProcessor, BodyTagVisitor (uses RouteAnalyzer)
-			  PageProcessor p = new PageProcessor(railsResponse,servlet,response);
-			  outputHTML   = p.process(railsBaseUrl,railsRoute);
-
-			  /** Set the portlet title by HTML title */
-			  String title = p.title;
-			  log.debug("Title: "+title);
-			  if ( title==null || title=="" ) {
-				  response.setTitle( " " ); // nbsp, because Liferay post-processes blank strings
-			  }
-			  else { 
-				  response.setTitle( title ); 
-			  }
-		  }
-		  // p.process throws ParserException when input is invalid. Should it be catched?
-		  catch (ParserException e) {
+	private String processResponseBody(
+		RenderResponse response, 
+		URL railsBaseUrl, 
+		String servlet, 
+		String railsRoute, 
+		String railsResponse)
+	{
+		String outputHTML = null;
+		//log.debug("Response length: "+railsResponse.length());
+		if ( (railsResponse != null ) && (railsResponse.length() > 1) ) {
+			try {
+				//log.debug("Processing page");
+				// instantiate the PageProcessor
+				// PageProcessor => HeadProcessor, BodyTagVisitor (uses RouteAnalyzer)
+				PageProcessor p = new PageProcessor(railsResponse,servlet,response);
+				outputHTML   = p.process(railsBaseUrl,railsRoute);
+				
+				/** Set the portlet title by HTML title */
+				String title = p.title;
+				log.debug("Title: "+title);
+				if ( title==null || title=="" ) {
+					response.setTitle( " " ); // nbsp, because Liferay post-processes blank strings
+				}
+				else { 
+					response.setTitle( title ); 
+				}
+			}
+			// p.process throws ParserException when input is invalid. Should it be catched?
+			catch (ParserException e) {
 			  log.error(e.getMessage());
-		  }
-		  catch (IllegalStateException e) {
+			}
+			catch (IllegalStateException e) {
 			  log.error(e.getMessage());
-		  }
-	  }
-	  return outputHTML;
-  }
+			}
+		}
+		return outputHTML;
+	}
   
   /**
    * Select the request method (GET or POST).
