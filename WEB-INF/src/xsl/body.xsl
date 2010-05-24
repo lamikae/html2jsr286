@@ -15,6 +15,22 @@
       omit-xml-declaration="yes"/>
 
 
+    <xsl:param name="namespace" />
+    <xsl:param name="location" />
+    <xsl:param name="query" />
+    <xsl:param name="base" />
+
+
+    <!-- Fetch some info from head, and all of body -->
+    <xsl:template match="*[local-name()='html']">
+        <div id="{$namespace}_body">
+		<!--
+            <xsl:apply-templates select="*[local-name()='head']/link"/>
+            <xsl:apply-templates select="*[local-name()='head']/style"/>
+            <xsl:apply-templates select="*[local-name()='body']"/>
+			-->
+        </div>
+    </xsl:template>
 
     <!-- Copy through everything that hasn't been modified by the processor -->
     <xsl:template match="text()|@*|*">

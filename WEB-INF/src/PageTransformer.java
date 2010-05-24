@@ -40,7 +40,7 @@ public class PageTransformer {
     private Transformer transformer = null;
     private XMLReader parser;
 
-    private final Log log = LogFactory.getLog(getClass().getName());
+    private static final Log log = LogFactory.getLog(PageTransformer.class);
 
     /**
      * Define available XSLT stylesheets.
@@ -110,8 +110,18 @@ public class PageTransformer {
         StringWriter responseWriter = new StringWriter();
 
         Transformer transformer = instance.transformer;
-		//transformer.setParameter("session", session); // tai lambda tai jotain...
-		transformer.transform(new SAXSource(new InputSource(new StringReader(html))), new StreamResult(responseWriter));
+
+		String[] params = { "namespace", "location", "query", "base" };
+		for (String param : params) {
+			String attr = (String) session.getAttribute(param);
+			if (attr != null) {
+				log.debug(param+": "+attr);
+				transformer.setParameter(param,attr);
+			}
+		}
+
+		SAXSource src = new SAXSource(new InputSource(new StringReader(html)));
+		transformer.transform(src, new StreamResult(responseWriter));
         return responseWriter;
     }
 

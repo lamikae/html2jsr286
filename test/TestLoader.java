@@ -19,7 +19,8 @@ import org.junit.runners.Suite.SuiteClasses;
 	AuthorizationTest.class,
 	RemoteCookiesTest.class,
 	SessionCookiesTest.class,
-	XslTest.class
+	XslTest.class,
+	PageTransformerTest.class
 })
 
 public class TestLoader {
