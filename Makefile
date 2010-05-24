@@ -17,6 +17,7 @@ all: compile list
 clean:
 	-find $(classes) -name *.class -exec rm -f {} \;
 	if [ -e test/classes ]; then rm -rf test/classes/* ; fi
+	if [ -e WEB-INF/classes ]; then rm -rf WEB-INF/classes/* ; fi
 	if [ -e build ]; then rm -rf build; fi
 
 compile: clean
@@ -38,6 +39,8 @@ compile: clean
 	$(jarlib)/servlet-api-2.4.jar:\
 	$(jarlib)/htmlparser-1.6.jar" ;\
 	javac WEB-INF/src/*.java -target jsr14 -Xlint:unchecked -Xlint:deprecation -d $(classes)
+	mkdir WEB-INF/classes/com/celamanzi/liferay/portlets/rails286/xsl
+	cp WEB-INF/src/xsl/*.xsl WEB-INF/classes/com/celamanzi/liferay/portlets/rails286/xsl/
 
 #xargs javac -target jsr14 -d classes/ <<< `find src/ -name *.java`
 

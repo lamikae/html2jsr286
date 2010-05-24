@@ -6,6 +6,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+
 import java.io.StringReader;
 import java.io.StringWriter;
 
@@ -21,11 +22,38 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 
+import org.springframework.mock.web.portlet.MockPortletSession;
+import javax.portlet.PortletSession;
+
+import org.htmlparser.util.ParserException;
+import javax.xml.transform.TransformerException;
+import org.xml.sax.SAXException;
+import java.io.IOException;
+
 
 /** Adapted from Portletbridges.
  */
 public class XslTest {
 
+    @Test
+    public void testProcess()
+    throws TransformerException, SAXException, IOException {
+        // yay for Java multiline strings...
+        String html = "<html><head>" +
+		"<title>Portlet title</title>" +
+		"</head>" +
+		"<body>" +
+        "Hello world" +
+        "</body></html>";
+        
+		PortletSession session = (PortletSession) new MockPortletSession();
+
+        StringWriter out = PageTransformer.transform(html,session);
+        System.out.println(out);
+        
+    
+    }
+    
     @Test
     public void testXsl()
     throws TransformerException, SAXNotRecognizedException, SAXNotSupportedException {
