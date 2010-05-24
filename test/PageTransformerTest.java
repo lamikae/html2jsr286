@@ -26,7 +26,6 @@ import org.xml.sax.InputSource;
 import org.cyberneko.html.parsers.DOMParser;
 
 
-
 import com.celamanzi.liferay.portlets.rails286.PageTransformer;
 
 
@@ -77,8 +76,10 @@ public class PageTransformerTest {
 		assertEquals(html,output.toString());
 	}
 
-	@Test
-	public void title()
+	//@Test
+    /** The following tags can be added to the head section: <base>, <link>, <meta>, <script>, <style>,  and <title>.
+     */
+	public void head_title()
 	throws TransformerException, SAXException, IOException {
 		// yay for Java multiline strings...
 		String html = "<html><head>" +
@@ -88,8 +89,8 @@ public class PageTransformerTest {
 		"Hello world" +
 		"</body></html>";
 		
-		StringWriter out = PageTransformer.transform(html,session);
-		//System.out.println(out);
+		PageTransformer.transform(html,session);
+		assertEquals("Portlet title", session.getAttribute("title"));
 	}
     
 	
