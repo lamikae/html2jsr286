@@ -28,8 +28,27 @@ import org.xml.sax.SAXException;
 import org.xml.sax.InputSource;
 import java.io.StringReader;
 
+import org.apache.commons.httpclient.HttpException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+
 /** Helpers */
 public class TestHelpers {
+
+	private static final String host    = PortletTest.host;
+    private static final String servlet = PortletTest.servlet;
+    private static final String railsTestBenchRoute = PortletTest.railsTestBenchRoute;
+
+	protected static String getTestBench(String route)
+	throws MalformedURLException, HttpException, IOException, Exception {
+		OnlineClient client = new OnlineClient(
+			new URL(host+servlet+railsTestBenchRoute+route));
+		byte[] body = client.get();
+		assertEquals(200,client.statusCode);
+
+		return new String(body);
+	}
 
 	protected static void assertPageRegexp(String page, String regexp)
 	{
