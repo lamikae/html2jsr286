@@ -329,8 +329,8 @@ public class Rails286Portlet extends GenericPortlet {
   public static String fromMiscoded1252toUnicode(String cp1252)
   {
     try {
-      byte[] b = cp1252.getBytes("UTF-8");
-      return new String(b, "windows-1252");
+      byte[] b = cp1252.getBytes("windows-1252");
+      return new String(b, "UTF-8");
     } catch (Exception e)
     {
       System.err.println(e);
