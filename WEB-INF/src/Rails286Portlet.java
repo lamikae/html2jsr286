@@ -372,10 +372,15 @@ public class Rails286Portlet extends GenericPortlet {
        */
       String encoding = request.getParameter("_encoding_");
       if (encoding != null) {
-        log.debug(request.getProperty("User-Agent"));
-        log.debug(request.getProperty("Accept-Encoding"));
         log.debug("Encoding: "+encoding);
       }
+      else {
+        encoding = "UTF-8";
+      }
+
+      log.debug(request.getProperty("User-Agent"));
+      log.debug(request.getProperty("Accept-Encoding"));
+      log.debug(request.getProperty("Accept-Charset"));
 
       /** Process the request parameters.
         * These are set in BodyTagVisitor.
