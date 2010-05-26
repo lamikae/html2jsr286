@@ -29,6 +29,9 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Iterator;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -321,13 +324,27 @@ public class Rails286Portlet extends GenericPortlet {
     out.println( outputHTML );
   }
 
+
+  public static String fromMiscoded1252toUnicode(String cp1252)
+  {
+    try {
+      byte[] b = cp1252.getBytes("ISO8859-1");
+      return new String(b, "windows-1252");
+    } catch (Exception e)
+    {
+      System.err.println(e);
+      return null;
+    }
+  }
+
+
   // suppress request.getParameterMap unchecked cast for processAction,
   // since it should always return <String,String[]>
+  @SuppressWarnings("unchecked")
 
   /** 
    * Handles POST requests.
    */
-  @SuppressWarnings("unchecked")
   public void processAction(ActionRequest request, ActionResponse response)
   throws PortletException, IOException {
 
@@ -351,13 +368,46 @@ public class Rails286Portlet extends GenericPortlet {
       String actionUrl    = null;
       String actionMethod = null;
 
+      /** Proprietary _encoding_ hack.
+       */
+      String encoding = request.getParameter("_encoding_");
+      if (encoding != null) {
+        log.debug(request.getProperty("User-Agent"));
+        log.debug(request.getProperty("Accept-Encoding"));
+        log.debug("Encoding: "+encoding);
+      }
+
       /** Process the request parameters.
         * These are set in BodyTagVisitor.
         * The returned parameters are "x-www-form-urlencoded" decoded.
         */
-      Map<String,String[]> p = new HashMap<String,String[]>(request.getParameterMap());
-      // create a clone of the parameter Map
-      Map<String,String[]> params = new HashMap<String,String[]>(p);
+      Map<String,String[]> params = new HashMap<String,String[]>();
+      Map<String,String[]> hm = new HashMap<String,String[]>(request.getParameterMap());
+      Set set = hm.entrySet();
+      Iterator i = set.iterator();
+      while(i.hasNext()){
+        Map.Entry entry = (Map.Entry)i.next();
+
+        /** IE6 hack.
+         * If the page charset is UTF8, but the form accept-encoding is ISO-8859-x,
+         * IE sends CP1252 encoded data.
+         *
+         * @see http://www.alanflavell.org.uk/charset/form-i18n.html
+         */
+        if (encoding.equals("CP1252")) {
+          log.debug("IE hack activated");
+          String[] values = (String[])entry.getValue();
+          for (int x=0; x<values.length ; x++) {
+            String param = values[x];
+            log.debug(entry.getKey() + " : " + param );
+            values[x] = fromMiscoded1252toUnicode(param);
+          }
+          params.put((String)entry.getKey(), values);
+        }
+        else {
+          params.put((String)entry.getKey(), (String[])entry.getValue());
+        }
+      }
 
       // default to POST for actions
       actionMethod = (params.containsKey("originalActionMethod") ? 
