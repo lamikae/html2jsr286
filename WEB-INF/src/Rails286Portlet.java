@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Iterator;
+import java.util.Enumeration;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -328,7 +329,7 @@ public class Rails286Portlet extends GenericPortlet {
   public static String fromMiscoded1252toUnicode(String cp1252)
   {
     try {
-      byte[] b = cp1252.getBytes("ISO8859-1");
+      byte[] b = cp1252.getBytes("UTF-8");
       return new String(b, "windows-1252");
     } catch (Exception e)
     {
@@ -381,7 +382,12 @@ public class Rails286Portlet extends GenericPortlet {
       log.debug(request.getProperty("User-Agent"));
       log.debug(request.getProperty("Accept-Encoding"));
       log.debug(request.getProperty("Accept-Charset"));
-
+      log.debug("Request attributes -------v");
+      for (Enumeration e = request.getAttributeNames() ; e.hasMoreElements();) {
+        String a = (String)e.nextElement();
+        log.debug(a+": "+request.getAttribute(a));
+      }
+      
       /** Process the request parameters.
         * These are set in BodyTagVisitor.
         * The returned parameters are "x-www-form-urlencoded" decoded.
@@ -404,8 +410,9 @@ public class Rails286Portlet extends GenericPortlet {
           String[] values = (String[])entry.getValue();
           for (int x=0; x<values.length ; x++) {
             String param = values[x];
-            log.debug(entry.getKey() + " : " + param );
+            log.debug("Converting "+entry.getKey()+": "+param);
             values[x] = fromMiscoded1252toUnicode(param);
+            log.debug(entry.getKey() + ": " + values[x] );
           }
           params.put((String)entry.getKey(), values);
         }
