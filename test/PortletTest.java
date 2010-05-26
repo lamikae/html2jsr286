@@ -268,6 +268,33 @@ public class PortletTest {
         assertEquals("name=postcode, value=è", m[0].toString());
     }
 
+  @Test
+  /** If document type is UTF-8, but the form accept-charset is ISO-8859-1,
+   * IE will happily send data encoded as "Windows-1252".
+   */
+  public void test_processAction_IEhack() throws PortletException, IOException
+  {
+    portlet.init(portletConfig);
+
+    MockActionRequest request = new MockActionRequest();
+    request.setSession(session);
+    request.setContentType("application/x-www-form-urlencoded");
+
+    request.setParameter("originalActionUrl", "/");
+    request.setParameter("postcode", new String("è".getBytes("UTF-8"), "windows-1252"));
+    request.setParameter("_encoding_", "CP1252");
+
+    ActionResponse response = new MockActionResponse();
+    portlet.processAction(request, response);
+
+    NameValuePair[] params = (NameValuePair[])request.getAttribute("parametersBody");
+    for (NameValuePair p : params) {
+      if (p.getName() == "postcode") {
+        assertEquals("è", (String)p.getValue());
+      }
+    }
+  }
+
 }
 
 
