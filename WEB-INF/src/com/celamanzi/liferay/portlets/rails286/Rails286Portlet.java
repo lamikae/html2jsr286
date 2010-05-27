@@ -116,7 +116,6 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	private String   railsRoute    = null;
 
 	private OnlineClient client  = null;
-	private PortletConfig config;
 
 	/** 
 	 * Portlet initialization at portal startup.
@@ -127,8 +126,6 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				"Initializing Rails-portlet "+config.getPortletName()+
 				" (version "+PortletVersion.PORTLET_VERSION+")"
 		);
-		
-		this.config = config;
 		
 		// store session secret to private instance variable
 		sessionKey    = config.getInitParameter("session_key");
@@ -437,7 +434,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		
 		if (request.getPortletMode().equals(PortletMode.EDIT)){ 
 			log.debug("Edit mode, defining preferences URL");
-			definePreferencesURL();
+			definePreferencesURL(session);
 			log.debug("RailsRoute: " + getRailsRoute());
 		}
 		
@@ -545,8 +542,8 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	/**
 	 * Changes the railsRoute attribute to ensure that the preference method will be called.
 	 */
-	private void definePreferencesURL() {
-		setRailsRoute(config.getInitParameter(PREFERENCES_ROUTE));
+	private void definePreferencesURL(PortletSession session) {
+		setRailsRoute((String) session.getAttribute(PREFERENCES_ROUTE));
 	}
 
 	private java.net.URL getRequestURL(){

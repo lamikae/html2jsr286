@@ -59,6 +59,7 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 	public String host    = null;
 	public String servlet = null;
 	public String route   = null;
+	private String preferencesRoute = null;
 
 	/** Constructors */
 	public Rails286PortletFilter() {}
@@ -84,12 +85,14 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 
 		// undefined servlets are an empty string
 		servlet = filterConfig.getInitParameter("servlet");
-		if (servlet==null) { servlet = ""; }
+		if (servlet == null) { servlet = ""; }
 
 		// undefined route is "/"
 		route = filterConfig.getInitParameter("route");
-		if (route==null) { route = "/"; }
+		if (route == null) { route = "/"; }
 
+		preferencesRoute = filterConfig.getInitParameter(PreferencesAttributes.PREFERENCES_ROUTE);
+		
 		if (log.isDebugEnabled()) {
 			log.debug("Host: "+host);
 			log.debug("Servlet: "+servlet);
@@ -224,6 +227,11 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 					getResourceUrlValue(response),
 					PortletSession.PORTLET_SCOPE);
 
+			session.setAttribute(
+					PreferencesAttributes.PREFERENCES_ROUTE,
+					preferencesRoute,
+					PortletSession.PORTLET_SCOPE);
+			
 		} catch (IllegalStateException e) {
 			log.error( e.getMessage() );
 			throw e;
