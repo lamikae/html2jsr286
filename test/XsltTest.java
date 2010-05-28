@@ -33,7 +33,7 @@ import java.io.IOException;
 
 /** Adapted from Portletbridges.
  */
-public class XslTest {
+public class XsltTest {
 
     @Test
     public void testProcess()
