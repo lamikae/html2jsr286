@@ -202,6 +202,9 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			if (FileUtil.getFile() != null) {
 				PortletResponseUtil.sendFile(response, filename, new FileInputStream(file));
 			}
+			/**
+			 Perhaps a way to test Liferay is to create a new "page" that has the test bench portlet.
+			 */
 		}
 	}
 
@@ -210,7 +213,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	 */
 	public void processAction(ActionRequest request, ActionResponse response)
 	throws PortletException, IOException {
-        log.debug("Received ActionRequest from the web page.");
+		log.debug("ActionRequest from the browser");
 		log.debug("Request character encoding: "+ request.getCharacterEncoding());
 		log.debug("http.protocol.content-charset: " + System.getProperty("http.protocol.content-charset"));
 		// request may be UTF-8, but the form data may be in different
