@@ -1,8 +1,8 @@
 name='rails-portlet'
 jarlib=WEB-INF/lib
 classes=WEB-INF/classes
-version=`awk -F\" /String\ PORTLET_VERSION/{'print $$2'} WEB-INF/src/PortletVersion.java`
-liferay_v=`grep 'LIFERAY_VERSION' WEB-INF/src/PortletVersion.java | grep -o .,. | tr ',' '.'`
+version=`awk -F\" /String\ PORTLET_VERSION/{'print $$2'} WEB-INF/src/com/celamanzi/liferay/portlets/rails286/PortletVersion.java`
+liferay_v=`grep 'LIFERAY_VERSION' WEB-INF/src/com/celamanzi/liferay/portlets/rails286/PortletVersion.java | grep -o .,. | tr ',' '.'`
 pkgdir=..
 hotdeploydir='/usr/local/liferay/tomcat/webapps/ROOT/WEB-INF/classes'
 
@@ -20,6 +20,9 @@ clean:
 	if [ -e build ]; then rm -rf build; fi
 
 compile: clean
+	ant compile
+
+compile_old: clean
 	if [ ! -e $(classes) ]; then mkdir $(classes); fi
 	#
 	###################### compiling all Java classes
@@ -36,8 +39,9 @@ compile: clean
 	$(jarlib)/portal-kernel.jar:\
 	$(jarlib)/portal-service-$(liferay).jar:\
 	$(jarlib)/servlet-api-2.4.jar:\
+	$(jarlib)/java-util.jar:\
 	$(jarlib)/htmlparser-1.6.jar" ;\
-	javac WEB-INF/src/*.java -target jsr14 -Xlint:unchecked -Xlint:deprecation -d $(classes)
+	javac WEB-INF/src/com/celamanzi/liferay/portlets/rails286/*.java -target jsr14 -Xlint:unchecked -Xlint:deprecation -d $(classes)
 
 #xargs javac -target jsr14 -d classes/ <<< `find src/ -name *.java`
 
@@ -47,7 +51,10 @@ list:
 	#
 	tree $(classes)
 
-test: compile
+test:
+	ant -f build_test.xml 
+
+test_old: compile
 	#
 	###################### running tests
 	#
