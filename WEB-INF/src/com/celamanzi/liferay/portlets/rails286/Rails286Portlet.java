@@ -33,7 +33,10 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -207,6 +210,14 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	 */
 	public void processAction(ActionRequest request, ActionResponse response)
 	throws PortletException, IOException {
+        log.debug("Received ActionRequest from the web page.");
+		log.debug("Request character encoding: "+ request.getCharacterEncoding());
+		log.debug("http.protocol.content-charset: " + System.getProperty("http.protocol.content-charset"));
+		// request may be UTF-8, but the form data may be in different
+		// encoding, set by <form accept-charset="..">
+
+		String actionUrl    = null;
+		String actionMethod = null;
 
 		// In case of a multipart request, retrieve the files
 		if (PortletFileUpload.isMultipartContent(request)){
@@ -214,28 +225,61 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			retrieveFiles(request);
 		}
 
-		log.debug("Received ActionRequest from the web page.");
-
-		/** 
-		 * Process the request parameters.
-		 * These are set in BodyTagVisitor.
-		 * The returned parameters "x-www-form-urlencoded" are decoded.
+		/** Proprietary _encoding_ hack.
+		 * Caterpillar will be able to set a hidden form parameter
+		 * "_encoding_", by JavaScript, if the browser is IE.
 		 */
-		Map<String,String[]> p = new HashMap<String,String[]>(request.getParameterMap());
-		// create a clone of the parameter Map
-		Map<String,String[]> params = new HashMap<String,String[]>(p);
+		String encoding = request.getParameter("_encoding_");
+		if (encoding != null) {
+			log.debug("Encoding: "+encoding);
+		}
+		else {
+			encoding = "UTF-8";
+		}
+		//log.debug(request.getProperty("Accept-Encoding"));
+		//log.debug(request.getProperty("Accept-Charset"));
+
+		/** Process the request parameters.
+		 * These are set in BodyTagVisitor.
+		 * The returned parameters are "x-www-form-urlencoded" decoded.
+		 */
+		Map<String,String[]> params = new HashMap<String,String[]>();
+		Map<String,String[]> hm = new HashMap<String,String[]>(request.getParameterMap());
+		Set set = hm.entrySet();
+		Iterator i = set.iterator();
+		while(i.hasNext()){
+			Map.Entry entry = (Map.Entry)i.next();
+
+			/** IE hack.
+			 * If the page charset is UTF8, but the form accept-encoding is ISO-8859-x,
+			 * IE sends CP1252 encoded data.
+			 *
+			 * @see http://www.alanflavell.org.uk/charset/form-i18n.html
+			 */
+			if (encoding.equals("CP1252")) {
+				//log.debug("IE hack activated");
+				String[] values = (String[])entry.getValue();
+				for (int x=0; x<values.length ; x++) {
+					String param = values[x];
+					log.debug("Converting "+entry.getKey()+": "+param);
+					values[x] = Rails286PortletFunctions.fromMiscoded1252toUnicode(param);
+					log.debug(entry.getKey() + ": " + values[x] );
+				}
+				params.put((String)entry.getKey(), values);
+			}
+			else {
+				params.put((String)entry.getKey(), (String[])entry.getValue());
+			}
+		}
 
 		/** 
 		 * Process an action from the web page.
 		 * This can be a classic HTML form or a JavaScript-generator form POST.
 		 */
 		// default to POST for actions
-		String actionMethod = (params.containsKey("originalActionMethod") ? 
-				params.remove("originalActionMethod")[0] : "post"
+		actionMethod = (params.containsKey("originalActionMethod") ? 
+			params.remove("originalActionMethod")[0] : "post"
 		);
-
-		String actionUrl    = null;
-
 		// set the action URL
 		if (params.containsKey("originalActionUrl")) {
 			actionUrl = params.remove("originalActionUrl")[0];

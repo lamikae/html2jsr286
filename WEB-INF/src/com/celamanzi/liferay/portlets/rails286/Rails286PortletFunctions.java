@@ -249,4 +249,20 @@ public class Rails286PortletFunctions {
 		return newPath;
 	}
 
+	/**
+	 * Fix broken CP1252 encoding, sent by IE if form post charset is
+	 * set to ISO-8859-1.
+	 */
+	public static String fromMiscoded1252toUnicode(String cp1252)
+	{
+		try {
+			byte[] b = cp1252.getBytes("windows-1252");
+			return new String(b, "UTF-8");
+		} catch (Exception e)
+		{
+			log.error(e);
+			return null;
+		}
+	}
+
 }
