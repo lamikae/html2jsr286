@@ -435,6 +435,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			setRailsRoute("/");
 		}
 		
+		// are we in EDIT mode?
 		if (request.getPortletMode().equals(PortletMode.EDIT)){ 
 			log.debug("Edit mode, defining preferences URL");
 			definePreferencesURL(session);
@@ -484,9 +485,9 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				railsBytes = executePost(request, httpReferer, session, getClient());
 			}
 
-			// DELETE?
+			// OPTIONS, HEAD, DELETE, TRACE, CONNECT
 			else {
-				throw new PortletException("Unknown request method: "+requestMethod);
+				throw new PortletException("Unsupported HTTP method: "+requestMethod);
 			}
 
 		} catch(HttpException e) {
