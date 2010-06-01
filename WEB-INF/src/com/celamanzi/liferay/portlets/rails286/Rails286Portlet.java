@@ -228,52 +228,8 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			retrieveFiles(request);
 		}
 
-		/** Proprietary _encoding_ hack.
-		 * Caterpillar will be able to set a hidden form parameter
-		 * "_encoding_", by JavaScript, if the browser is IE.
-		 */
-		String encoding = request.getParameter("_encoding_");
-		if (encoding != null) {
-			log.debug("Encoding: "+encoding);
-		}
-		else {
-			encoding = "UTF-8";
-		}
-		//log.debug(request.getProperty("Accept-Encoding"));
-		//log.debug(request.getProperty("Accept-Charset"));
-
-		/** Process the request parameters.
-		 * These are set in BodyTagVisitor.
-		 * The returned parameters are "x-www-form-urlencoded" decoded.
-		 */
-		Map<String,String[]> params = new HashMap<String,String[]>();
-		Map<String,String[]> hm = new HashMap<String,String[]>(request.getParameterMap());
-		Set set = hm.entrySet();
-		Iterator i = set.iterator();
-		while(i.hasNext()){
-			Map.Entry entry = (Map.Entry)i.next();
-
-			/** IE hack.
-			 * If the page charset is UTF8, but the form accept-encoding is ISO-8859-x,
-			 * IE sends CP1252 encoded data.
-			 *
-			 * @see http://www.alanflavell.org.uk/charset/form-i18n.html
-			 */
-			if (encoding.equals("CP1252")) {
-				//log.debug("IE hack activated");
-				String[] values = (String[])entry.getValue();
-				for (int x=0; x<values.length ; x++) {
-					String param = values[x];
-					log.debug("Converting "+entry.getKey()+": "+param);
-					values[x] = Rails286PortletFunctions.fromMiscoded1252toUnicode(param);
-					log.debug(entry.getKey() + ": " + values[x] );
-				}
-				params.put((String)entry.getKey(), values);
-			}
-			else {
-				params.put((String)entry.getKey(), (String[])entry.getValue());
-			}
-		}
+		// retrieve parameters
+		Map<String,String[]> params = Rails286PortletFunctions.mapRequestParameters(request);
 
 		/** 
 		 * Process an action from the web page.
