@@ -19,15 +19,14 @@ package org.springframework.mock.web.portlet;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.Map;
 import java.util.Vector;
 
-
 import javax.portlet.PortletConfig;
-import javax.portlet.filter.FilterConfig;
 import javax.portlet.PortletContext;
+import javax.portlet.filter.FilterConfig;
 
 import org.springframework.util.Assert;
 
@@ -44,6 +43,7 @@ public class MockPortletConfig implements PortletConfig,FilterConfig {
 
 	private final String portletName;
 
+	@SuppressWarnings("unchecked")
 	private final HashMap resourceBundles = new HashMap();
 
 	private final Properties initParameters = new Properties();
@@ -82,25 +82,21 @@ public class MockPortletConfig implements PortletConfig,FilterConfig {
 		this.portletName = portletName;
 	}
 
-	
 	public String getPortletName() {
 		return this.portletName;
 	}
-	
+
 	public PortletContext getPortletContext() {
 		return this.portletContext;
 	}
-	
-    // unchecked call to put(K,V) as a member of the raw type java.util.HashMap
-    @SuppressWarnings("unchecked")
 
+	// unchecked call to put(K,V) as a member of the raw type java.util.HashMap
+
+	@SuppressWarnings("unchecked")
 	public void setResourceBundle(Locale locale, ResourceBundle resourceBundle) {
 		Assert.notNull(locale, "Locale must not be null");
 		this.resourceBundles.put(locale, resourceBundle);
 	}
-    
-    @SuppressWarnings("")
-
 
 	public ResourceBundle getResourceBundle(Locale locale) {
 		Assert.notNull(locale, "Locale must not be null");
@@ -117,46 +113,43 @@ public class MockPortletConfig implements PortletConfig,FilterConfig {
 		return this.initParameters.getProperty(name);
 	}
 
-  
-  /** baked on top stable spring release 2.x */
-  
-  
-  public Enumeration<String> getInitParameterNames() {
-    Vector<String> v = new Vector<String>();
-    
-    for(Enumeration e = this.initParameters.keys() ; e.hasMoreElements() ;) {
-      v.add((String)e.nextElement());
-    }
-    return v.elements();
-  }
-  
-  public Enumeration<java.util.Locale> getSupportedLocales() {
-    return null;
-  }
-  
-  public java.util.Enumeration<javax.xml.namespace.QName> getProcessingEventQNames() {
-    return null;
-  }
+	/** baked on top stable spring release 2.x */
 
-  
-  public java.util.Enumeration<javax.xml.namespace.QName> getPublishingEventQNames() {
-    return null;
-  }
-  
-  public java.lang.String getDefaultNamespace() {
-    return "";
-  }
-  
-  public java.util.Enumeration<String> getPublicRenderParameterNames() {
-    return null;
-  }
-    
-  public String getFilterName() {
-      return this.portletName;
-  }
-  
-  public Map<String, String[]> getContainerRuntimeOptions() {
-    return null;
-  }
-  
+	@SuppressWarnings("unchecked")
+	public Enumeration<String> getInitParameterNames() {
+		Vector<String> v = new Vector<String>();
+
+		for(Enumeration e = this.initParameters.keys() ; e.hasMoreElements() ;) {
+			v.add((String)e.nextElement());
+		}
+		return v.elements();
+	}
+
+	public Enumeration<java.util.Locale> getSupportedLocales() {
+		return null;
+	}
+
+	public java.util.Enumeration<javax.xml.namespace.QName> getProcessingEventQNames() {
+		return null;
+	}
+
+	public java.util.Enumeration<javax.xml.namespace.QName> getPublishingEventQNames() {
+		return null;
+	}
+
+	public java.lang.String getDefaultNamespace() {
+		return "";
+	}
+
+	public java.util.Enumeration<String> getPublicRenderParameterNames() {
+		return null;
+	}
+
+	public String getFilterName() {
+		return this.portletName;
+	}
+
+	public Map<String, String[]> getContainerRuntimeOptions() {
+		return null;
+	}
 }

@@ -1,21 +1,30 @@
 package com.celamanzi.liferay.portlets.rails286;
 
-import java.util.Enumeration;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import java.io.IOException;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
+
+import javax.portlet.PortletContext;
+import javax.portlet.PortletException;
+import javax.portlet.PortletMode;
+import javax.portlet.PortletSession;
+import javax.portlet.RenderRequest;
+import javax.portlet.RenderResponse;
+import javax.portlet.filter.FilterChain;
+import javax.portlet.filter.FilterConfig;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.portlet.MockPortletConfig;
+import org.springframework.mock.web.portlet.MockPortletSession;
+import org.springframework.mock.web.portlet.MockRenderRequest;
 
-import org.springframework.mock.web.portlet.*;
-import org.springframework.mock.web.*;
-import javax.portlet.*;
-import javax.portlet.filter.*;
-
-import com.celamanzi.liferay.portlets.rails286.Rails286PortletRenderFilter;
+import com.celamanzi.liferay.portlets.rails286.mock.MockRenderResponse;
 
 public class RenderFilterTest {
     
@@ -23,7 +32,7 @@ public class RenderFilterTest {
     public String servlet  = "servlet";
     public String route    = "some/route?params";
     
-    private Rails286PortletRenderFilter filter = new Rails286PortletRenderFilter();
+    private Rails286PortletFilter filter = new Rails286PortletFilter();
     private FilterConfig filterConfig = null;
     private PortletContext portletContext = null;
     private PortletSession session = null;

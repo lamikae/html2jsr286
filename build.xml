@@ -1,91 +1,101 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
 
 	Version: 0.1
 
 -->
-<project basedir="." default="test" name="rails-portlet">
-             
-		<!--
-			################################################################################################################
-			Properties for the build process; Change the parameters you need
-		-->                                                 
-		
-    <property name="junit.output.dir" value="junit"/> <!-- This folder holds a complete report of the execution -->
+<project default="package" name="compile and pack the project">
 
-    <property name="debuglevel" value="source,lines,vars"/>
-    <property name="target" value="1.5"/>
-    <property name="source" value="1.5"/>    
-       
-		<!-- The Runner class -->
-		<property name="test.loader.dir" value="com.celamanzi.liferay.portlets.rails286.TestLoader"/>
-                
-    <path id="test.classpath">
-    	<pathelement location="bin"/>
-    	<pathelement location="WEB-INF/lib/commons-codec-1.3.jar"/>
-    	<pathelement location="WEB-INF/lib/commons-httpclient-3.1.jar"/>
-    	<pathelement location="WEB-INF/lib/commons-logging.jar"/>
-    	<pathelement location="WEB-INF/lib/commons-fileupload-1.2.1.jar"/>
-    	<pathelement location="WEB-INF/lib/htmlparser-1.6.jar"/>
-    	<pathelement location="WEB-INF/lib/junit-4.6.jar"/>
-    	<pathelement location="WEB-INF/lib/log4j-1.2.15.jar"/>
-    	<pathelement location="WEB-INF/lib/portal-service-5.2.3.jar"/>
-    	<pathelement location="WEB-INF/lib/portal-kernel.jar"/>
-    	<pathelement location="WEB-INF/lib/portlet-2.0.jar"/>
-    	<pathelement location="WEB-INF/lib/servlet-api-2.4.jar"/>
-    	<pathelement location="WEB-INF/lib/spring-core-2.5.6.jar"/>
-    	<pathelement location="WEB-INF/lib/spring-webmvc-2.5.6.jar"/>
-    	<pathelement location="WEB-INF/lib/spring-webmvc-portlet-2.5.6.jar"/>
-    	<pathelement location="WEB-INF/lib/spring-test-2.5.6.jar"/>
-    </path>
-                
+	<!--
+		################################################################################################################
+		Properties for the build process; Change the parameters you need
+	-->
+	<property name="src.dir" value="WEB-INF/src" />
+	<property name="lib.dir" value="WEB-INF/lib" />
+	<property name="metainf.dir" value="META-INF" />
+	<property name="build.dir" value="build" />
+	<property name="package.name" value="rails-portlet" />
+	<!-- This is the path of PortletVersion.java file -->
+	<property name="version.file" 
+  					value="WEB-INF/src/com/celamanzi/liferay/portlets/rails286/PortletVersion.java" />
+  <property name="readme.path" value="README.rdoc" />
+	<!-- The liferay version -->
+	<property name="liferay" value="5.2.3" />
+
+	<!--
+		################################################################################################################
+		Classpath builder, this builder could include all jar files inside the directory defined by
+		lib.dir property or use the files listed. Take a look of portal-service jar, with the default 
+		include we use the liferay property to include the correct file.
+	-->
+
+	<path id="build.classpath">
 		<!--
-			################################################################################################################
-			Tasks to compile, test and generate a report of the project
+		<fileset dir="${lib.dir}" includes="**/*.jar"/>
 		-->
-		
-    <target name="init">  
-			<delete dir="junit" /> <!-- Report dir -->
-    	<delete dir="bin" />
-			<mkdir dir="bin" />
-    </target>
+		<fileset dir="${lib.dir}" includes="portlet-1.0.jar"/>
+		<fileset dir="${lib.dir}" includes="portlet-2.0.jar"/>
+		<fileset dir="${lib.dir}" includes="commons-logging.jar"/>    
+		<fileset dir="${lib.dir}" includes="commons-fileupload-1.2.1.jar"/>    
+		<fileset dir="${lib.dir}" includes="commons-io-1.4.jar"/>
+		<fileset dir="${lib.dir}" includes="portal-impl.jar"/>
+		<fileset dir="${lib.dir}" includes="portal-kernel.jar" />
+		<fileset dir="${lib.dir}" includes="commons-httpclient-3.1.jar"/>
+		<fileset dir="${lib.dir}" includes="servlet-api-2.4.jar"/>
+		<fileset dir="${lib.dir}" includes="htmlparser-1.6.jar"/>
+		<fileset dir="${lib.dir}" includes="portal-service-${liferay}.jar"/>
+		<fileset dir="${lib.dir}" includes="util-java.jar"/>
+	</path>
 
-    <target name="compile" depends="init">           
-	
-        <echo message="${ant.project.name}: ${ant.file}"/>
-				<!-- Compile src -->
-        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
-            <src path="WEB-INF/src"/>
-            <classpath refid="test.classpath"/>
-        </javac>      
-                        
-				<!-- Compile test src -->
-        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
-            <src path="test"/>
-            <classpath refid="test.classpath"/>
-        </javac>            
+	<!--
+		################################################################################################################
+		Tasks to compile and pack the project
+	-->
 
-    </target>
+	<target name="init" description="create the build dir">
+		<delete dir="${build.dir}" />
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${build.dir}/META-INF" />
+	</target>
 
-    <target name="test" depends="compile">   
-	                           
-				<!-- Execute JUnit -->
-        <mkdir dir="${junit.output.dir}"/>
-        <junit fork="yes" printsummary="withOutAndErr">
-            <formatter type="xml"/>
-            <test name="${test.loader.dir}" todir="${junit.output.dir}"/>
-            <classpath refid="test.classpath"/>
-        </junit>
-                              
-				<!-- Generate some html report with the result -->
-				<echo message="Generating report"/>
-				<junitreport todir="${junit.output.dir}">
-            <fileset dir="${junit.output.dir}">
-                <include name="TEST-*.xml"/>
-            </fileset>
-            <report format="frames" todir="${junit.output.dir}"/>
-        </junitreport>    
+	<target name="compile" depends="init" description="compile everything">
+		<!-- compilation process -->
+		<javac srcdir="${src.dir}" destdir="${build.dir}">
+			<classpath refid="build.classpath" />
+			<compilerarg value="-Xlint:unchecked"/>
+			<compilerarg value="-Xlint:deprecation"/>
+		</javac>
 
-    </target>
+		<copy file="${readme.path}" todir="${build.dir}"/>
+
+		<copy todir="${build.dir}/META-INF">
+			<fileset dir="${metainf.dir}" />
+		</copy>
+
+		<!-- extract the version number with awk, use version.file property -->
+		<exec executable="awk" 
+					output="${build.dir}/VERSION">
+			<arg value="-F\&quot;" />
+			<arg value="/PORTLET_VERSION/{print $2}" />
+			<arg value="${version.file}" />
+		</exec>
+
+	</target>
+
+	<target name="package" depends="compile" description="Pack the compiled classes">
+		<tstamp/>
+		<!-- needed for TODAY -->
+		<manifest file="MANIFEST.MF">
+			<attribute name="Built-Date" value="${TODAY}"/>
+		</manifest>
+
+		<loadfile property="version_number" srcFile="${build.dir}/VERSION"/>
+		<jar destfile="${build.dir}/${package.name}-${version_number}.jar"
+				 basedir="${build.dir}"
+				 manifest="MANIFEST.MF">
+		</jar>
+
+		<delete file="MANIFEST.MF"/>
+	</target>
 
 </project>

@@ -22,6 +22,11 @@ public class RouteAnalyzerTest {
 
 
 	@Test
+	/**
+	 * @TODO Needs refactoring
+	 * Tests cases are not organized nor clear. Absolute url behaviour must also be
+	 * documented.
+	 */
 	public void test_getRequestRoute()
 	throws java.net.MalformedURLException
 	{
@@ -30,7 +35,7 @@ public class RouteAnalyzerTest {
 		String route = null;
 
 		// RouteAnalyzer without servlet
-		RouteAnalyzer ra = new RouteAnalyzer(baseUrl); // no servlet
+		RouteAnalyzer ra = new RouteAnalyzer(baseUrl);
 		assertNotNull(ra);
 		//  -"- with servlet
 		RouteAnalyzer ra_srvl = new RouteAnalyzer(baseUrl,servlet);
@@ -41,30 +46,26 @@ public class RouteAnalyzerTest {
 			"/a/b/c",
 			"/a/b/c?d=e"
 		};
-
+		
+		// relative paths
 		for(int i=0;i<paths.length;i++){
 			path  = paths[i]; // includes query parameters
 
 			// TODO: both tests with and without baseUrl
 
 			// test without servlet
-			// url:   http://baseUrl/path
-			url = baseUrl.toString() + path;
+			// url:   path
+			url = path;
 			route = ra.getRequestRoute(url);
 			assertNotNull(route);
 			assertEquals(path,route);
 
-			route = null;
-
 			// test with servlet
-			// url:   http://baseUrl/servlet/path
-			url = baseUrl.toString() + "/" + servlet + path;
+			// url:   servlet/path
+			url = servlet + path;
 			route = ra_srvl.getRequestRoute(url);
 			assertNotNull(route);
 			assertEquals(path,route);
-
-			route = null;
-
 		}
 
 		/* special cases */
@@ -79,13 +80,13 @@ public class RouteAnalyzerTest {
 		assertEquals("",route);
 
 		// plain baseurl (no slash)
-		route = ra.getRequestRoute(baseUrl.toString());
-		assertNotNull(route);
-		assertEquals("/",route);
+		// route = ra.getRequestRoute(baseUrl.toString());
+		// assertNotNull(route);
+		// assertEquals("/",route);
 
-		route = ra_srvl.getRequestRoute(baseUrl.toString()+"/"+servlet);
-		assertNotNull(route);
-		assertEquals("/",route);
+		//route = ra_srvl.getRequestRoute(baseUrl.toString()+"/"+servlet);
+		//assertNotNull(route);
+		//assertEquals("/",route);
 
 		// url:   (relative file)
 		// route: index.html

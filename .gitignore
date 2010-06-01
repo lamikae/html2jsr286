@@ -1,4 +1,8 @@
+.DS_Store
 WEB-INF/classes/
 bin/
 junit/
 test/classes/
+.classpath
+.project
+build/
