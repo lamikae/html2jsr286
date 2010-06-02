@@ -49,15 +49,8 @@ public class PageTransformer {
     private PageTransformer()
     throws TransformerConfigurationException {
 		transformer = loadXsl("body").newTransformer();
-		transformer.setParameter("html2jsr286", new XslFunctions());
-        /*
-        ns = etree.FunctionNamespace('http://github.com/youleaf/django-marionet')
-        ns.prefix = "marionet"
-        ns['link'] = PageProcessor.link
-        ns['image'] = PageProcessor.image
-        ns['href'] = PageProcessor.href
-        ns['form'] = PageProcessor.form
-        */
+		// the stylesheet contains the "format" namespace
+		// for tag format functions.
 	}
     
 	private Templates loadXsl(String sheet)
@@ -101,6 +94,7 @@ public class PageTransformer {
         StringWriter responseWriter = new StringWriter();
 
 		Transformer transformer = instance.transformer;
+		/** XXX: append metadata from portlet-session
 		for (String param : params) {
 			String attr = (String) session.getAttribute(param);
 			if (attr != null) {
@@ -108,9 +102,11 @@ public class PageTransformer {
 				transformer.setParameter(param,attr);
 			}
 		}
+		 */
 
 		SAXSource src = new SAXSource(new InputSource(new StringReader(html)));
 		transformer.transform(src, new StreamResult(responseWriter));
 		return responseWriter;
 	}
+
 }
