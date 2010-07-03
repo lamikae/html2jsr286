@@ -10,6 +10,7 @@
       standalone="no"
       omit-xml-declaration="yes"/>
 
+	<!--
     <xsl:variable
         name="session"
         select="//*[local-name()='portlet-session']" />
@@ -19,7 +20,10 @@
     <xsl:variable
         name="baseurl"
         select="//*[local-name()='portlet-session']/@baseURL" />
-
+	-->
+	<xsl:param name="session" />
+	<xsl:param name="namespace" />
+	<xsl:param name="baseurl" />
 
     <!-- Fetch some info from head, and all of body -->
     <xsl:template match="*[local-name()='html']">
@@ -40,7 +44,7 @@
 
     <!-- Rewrite links -->
     <xsl:template match="*[local-name()='a']">
-        <xsl:copy-of select="format:link()"/>
+        <xsl:copy-of select="format:link(.,$session)"/>
     </xsl:template>
 
     <!-- Copy through everything that hasn't been modified by the processor -->

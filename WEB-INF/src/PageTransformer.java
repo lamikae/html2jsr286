@@ -25,6 +25,13 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import javax.portlet.PortletSession;
 
 import org.apache.commons.logging.Log;
@@ -103,10 +110,35 @@ public class PageTransformer {
 			}
 		}
 		 */
-
-		SAXSource src = new SAXSource(new InputSource(new StringReader(html)));
-		transformer.transform(src, new StreamResult(responseWriter));
-		return responseWriter;
+		try {
+			Document doc = html2doc("<portlet-session />");
+			log.debug(doc);
+			Node session_node = (Node)doc.getFirstChild();
+			log.debug(session_node);
+			transformer.setParameter("session", session_node);
+			
+			SAXSource src = new SAXSource(new InputSource(new StringReader(html)));
+			transformer.transform(src, new StreamResult(responseWriter));
+			return responseWriter;
+		}
+		catch (Exception e) {
+			log.error(e.getMessage());
+			return null;
+		}
 	}
 
+	protected static Document html2doc(String input)
+	throws SAXException, IOException, ParserConfigurationException
+	{
+		DocumentBuilder builder = null;
+		DocumentBuilderFactory domFactory =
+		DocumentBuilderFactory.newInstance();
+		domFactory.setNamespaceAware(true);
+		builder = domFactory.newDocumentBuilder();
+		return builder.parse(
+							 new InputSource(new StringReader(input))
+							 );
+	}
+	
 }
+
