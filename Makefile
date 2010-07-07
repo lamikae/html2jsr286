@@ -4,7 +4,7 @@ classes=WEB-INF/classes
 version=`awk -F\" /String\ PORTLET_VERSION/{'print $$2'} WEB-INF/src/com/celamanzi/liferay/portlets/rails286/PortletVersion.java`
 liferay_v=`grep 'LIFERAY_VERSION' WEB-INF/src/com/celamanzi/liferay/portlets/rails286/PortletVersion.java | grep -o .,. | tr ',' '.'`
 pkgdir=..
-hotdeploydir='/usr/local/liferay/tomcat/webapps/ROOT/WEB-INF/classes'
+hotdeploydir=/usr/local/liferay/tomcat/webapps/ROOT/WEB-INF/classes
 
 # version of Liferay's portal-service jar
 #liferay=5.1.1
@@ -83,7 +83,7 @@ test_old: compile
 
 hotdeploy: compile
 	rm -rf $(hotdeploydir)/com/celamanzi/liferay/portlets/rails286/
-	cp -r WEB-INF/classes/com $(hotdeploydir)
+	cp -r build/com $(hotdeploydir)
 
 help:
 	@echo "To compile classes:"
