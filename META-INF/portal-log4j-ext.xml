@@ -12,7 +12,7 @@
     <priority value="INFO" />
   </category>
 
-  <category name="com.celamanzi.liferay.portlets.rails286.Rails286PortletRenderFilter">
+  <category name="com.celamanzi.liferay.portlets.rails286.Rails286PortletFilter">
     <priority value="INFO" />
   </category>
 
