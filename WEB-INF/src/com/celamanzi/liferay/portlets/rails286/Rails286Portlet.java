@@ -181,7 +181,18 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		super.serveResource(request, response);
 
 		log.debug("serveResource has been called");
+		
+		// Retrieve the parameters
+		Map<String, String[]> params = getParams(request);
+		NameValuePair[] parametersBody = Rails286PortletFunctions.paramsToNameValuePairs(params);
 
+		String actionMethod = (params.containsKey("originalActionMethod") ? 
+				params.remove("originalActionMethod")[0] : "post"
+		);
+		
+		request.getPortletSession(true).setAttribute("requestMethod", actionMethod);
+		request.setAttribute("parametersBody", parametersBody);
+		
 		byte[] railsBytes = callRails(request, response);
 		String filename = getFilename();
 
@@ -221,9 +232,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		 * These are set in BodyTagVisitor.
 		 * The returned parameters "x-www-form-urlencoded" are decoded.
 		 */
-		Map<String,String[]> p = new HashMap<String,String[]>(request.getParameterMap());
-		// create a clone of the parameter Map
-		Map<String,String[]> params = new HashMap<String,String[]>(p);
+		Map<String, String[]> params = getParams(request);
 
 		/** 
 		 * Process an action from the web page.
@@ -391,6 +400,12 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				"/",
 				null,
 				false);
+	}
+	
+	private Map<String, String[]> getParams(PortletRequest request) {
+		Map<String,String[]> p = new HashMap<String,String[]>(request.getParameterMap());
+		// create a clone of the parameter Map
+		return new HashMap<String,String[]>(p);
 	}
 
 	private byte[] callRails(PortletRequest request, PortletResponse response) throws PortletException{
