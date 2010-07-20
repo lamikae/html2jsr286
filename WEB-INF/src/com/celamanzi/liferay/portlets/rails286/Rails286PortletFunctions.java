@@ -25,6 +25,7 @@ package com.celamanzi.liferay.portlets.rails286;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,56 @@ public class Rails286PortletFunctions {
 			log.error("getRequestURL: " + e.getMessage());
 		}
 		return null;
+	}
+
+	/** Process the request parameters.
+	 * These are set in BodyTagVisitor.
+	 * The returned parameters are "x-www-form-urlencoded" decoded.
+	 */
+	@SuppressWarnings("unchecked")
+	public static Map<String,String[]> mapRequestParameters(PortletRequest request) {
+		/** Proprietary _encoding_ hack.
+		 * Caterpillar will be able to set a hidden form parameter
+		 * "_encoding_", by JavaScript, if the browser is IE.
+		 */
+		String encoding = request.getParameter("_encoding_");
+		if (encoding != null) {
+			log.debug("Encoding: "+encoding);
+		}
+		else {
+			encoding = "UTF-8";
+		}
+		//log.debug(request.getProperty("Accept-Encoding"));
+		//log.debug(request.getProperty("Accept-Charset"));
+
+		Map<String,String[]> params = new HashMap<String,String[]>();
+
+		Iterator i = request.getParameterMap().entrySet().iterator();
+		while(i.hasNext()){
+			Map.Entry entry = (Map.Entry)i.next();
+
+			/** IE hack.
+			 * If the page charset is UTF8, but the form accept-encoding is ISO-8859-x,
+			 * IE sends CP1252 encoded data.
+			 *
+			 * @see http://www.alanflavell.org.uk/charset/form-i18n.html
+			 */
+			if (encoding.equals("CP1252")) {
+				//log.debug("IE hack activated");
+				String[] values = (String[])entry.getValue();
+				for (int x=0; x<values.length ; x++) {
+					String param = values[x];
+					log.debug("Converting "+entry.getKey()+": "+param);
+					values[x] = fromMiscoded1252toUnicode(param);
+					log.debug(entry.getKey() + ": " + values[x] );
+				}
+				params.put((String)entry.getKey(), values);
+			}
+			else {
+				params.put((String)entry.getKey(), (String[])entry.getValue());
+			}
+		}
+		return params;
 	}
 
 	/** 
@@ -247,6 +298,22 @@ public class Rails286PortletFunctions {
 		log.debug("Path after cleanup (withour Rails wildcards): " + newPath);
 
 		return newPath;
+	}
+
+	/**
+	 * Fix broken CP1252 encoding, sent by IE if form post charset is
+	 * set to ISO-8859-1.
+	 */
+	public static String fromMiscoded1252toUnicode(String cp1252)
+	{
+		try {
+			byte[] b = cp1252.getBytes("windows-1252");
+			return new String(b, "UTF-8");
+		} catch (Exception e)
+		{
+			log.error(e);
+			return null;
+		}
 	}
 
 }

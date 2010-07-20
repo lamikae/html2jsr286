@@ -1,0 +1,6 @@
+To debug the portlet code on Liferay:
+
+1. Copy META-INF to Liferay CLASSPATH. With Tomcat the recommended location would be $TOMCAT_ROOT/webapps/ROOT/WEB-INF/classes/.
+2. Modify the file META-INF/portal-log4j-ext.xml to enable DEBUG logging for classes you want to debug.
+3. Restart Liferay and watch the logs.
+

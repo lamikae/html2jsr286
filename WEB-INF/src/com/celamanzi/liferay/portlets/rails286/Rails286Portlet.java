@@ -182,14 +182,15 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 
 		log.debug("serveResource has been called");
 		
-		// Retrieve the parameters
-		Map<String, String[]> params = getParams(request);
+		// Retrieve parameters
+		Map<String, String[]> params = Rails286PortletFunctions.mapRequestParameters(request);
 		NameValuePair[] parametersBody = Rails286PortletFunctions.paramsToNameValuePairs(params);
 
 		String actionMethod = (params.containsKey("originalActionMethod") ? 
 				params.remove("originalActionMethod")[0] : "post"
 		);
 		
+		// Adding the parameters to request for callRails
 		request.getPortletSession(true).setAttribute("requestMethod", actionMethod);
 		request.setAttribute("parametersBody", parametersBody);
 		
@@ -205,11 +206,14 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			fos.flush();
 			fos.close();
 
-			// This if is to avoid this call when in a test environment, because liferay test environment is too
+			// This "if" is to avoid this call when in a test environment, because liferay test environment is too
 			// heavy and dirty to be implemented =[ (sorry...)
 			if (FileUtil.getFile() != null) {
 				PortletResponseUtil.sendFile(response, filename, new FileInputStream(file));
 			}
+			/**
+			 Perhaps a way to test Liferay is to create a new "page" that has the test bench portlet.
+			 */
 		}
 	}
 
@@ -218,6 +222,14 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	 */
 	public void processAction(ActionRequest request, ActionResponse response)
 	throws PortletException, IOException {
+		log.debug("ActionRequest from the browser");
+		log.debug("Request character encoding: "+ request.getCharacterEncoding());
+		log.debug("http.protocol.content-charset: " + System.getProperty("http.protocol.content-charset"));
+		// request may be UTF-8, but the form data may be in different
+		// encoding, set by <form accept-charset="..">
+
+		String actionUrl    = null;
+		String actionMethod = null;
 
 		// In case of a multipart request, retrieve the files
 		if (PortletFileUpload.isMultipartContent(request)){
@@ -225,26 +237,17 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			retrieveFiles(request);
 		}
 
-		log.debug("Received ActionRequest from the web page.");
-
-		/** 
-		 * Process the request parameters.
-		 * These are set in BodyTagVisitor.
-		 * The returned parameters "x-www-form-urlencoded" are decoded.
-		 */
-		Map<String, String[]> params = getParams(request);
+		// retrieve parameters
+		Map<String,String[]> params = Rails286PortletFunctions.mapRequestParameters(request);
 
 		/** 
 		 * Process an action from the web page.
 		 * This can be a classic HTML form or a JavaScript-generator form POST.
 		 */
 		// default to POST for actions
-		String actionMethod = (params.containsKey("originalActionMethod") ? 
-				params.remove("originalActionMethod")[0] : "post"
+		actionMethod = (params.containsKey("originalActionMethod") ? 
+			params.remove("originalActionMethod")[0] : "post"
 		);
-
-		String actionUrl    = null;
-
 		// set the action URL
 		if (params.containsKey("originalActionUrl")) {
 			actionUrl = params.remove("originalActionUrl")[0];
@@ -402,12 +405,6 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				false);
 	}
 	
-	private Map<String, String[]> getParams(PortletRequest request) {
-		Map<String,String[]> p = new HashMap<String,String[]>(request.getParameterMap());
-		// create a clone of the parameter Map
-		return new HashMap<String,String[]>(p);
-	}
-
 	private byte[] callRails(PortletRequest request, PortletResponse response) throws PortletException{
 
 		/**
@@ -447,6 +444,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			setRailsRoute("/");
 		}
 		
+		// are we in EDIT mode?
 		if (request.getPortletMode().equals(PortletMode.EDIT)){ 
 			log.debug("Edit mode, defining preferences URL");
 			definePreferencesURL(session);
@@ -496,9 +494,9 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				railsBytes = executePost(request, httpReferer, session, getClient());
 			}
 
-			// DELETE?
+			// OPTIONS, HEAD, DELETE, TRACE, CONNECT
 			else {
-				throw new PortletException("Unknown request method: "+requestMethod);
+				throw new PortletException("Unsupported HTTP method: "+requestMethod);
 			}
 
 		} catch(HttpException e) {

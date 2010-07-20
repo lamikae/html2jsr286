@@ -1,5 +1,7 @@
 package com.celamanzi.liferay.portlets.rails286;
 
+import java.net.URL;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -32,24 +34,29 @@ TODO: test standard HTML4 and HTML5 tags.
 
 */
 public class BodyTagVisitorTest {
-	java.net.URL baseUrl = null;
-	String servlet      = "";
-	String requestPath  = "request/path";
-	String documentPath = "/";
-	private String namespace = "__TEST_PORTLET__";
-	PortletURL portletURL   = null;
+    private URL baseUrl = null;
+    private final String host    = PortletTest.host;
+    private final String servlet = PortletTest.servlet;
+
+    private final String railsTestBenchRoute = PortletTest.railsTestBenchRoute;
+    private final String railsJUnitRoute = PortletTest.railsJUnitRoute;
+    private final String railsJUnitURL = PortletTest.railsJUnitURL;
+
+    private String namespace = "__TEST_PORTLET__";
+
+    PortletURL portletURL   = null;
     PortletURL actionURL    = null; 
-	NodeVisitor visitor = null;
-	XPath xpath = null;
-	XPathExpression expr = null;
-	org.w3c.dom.NodeList nodes = null;
+    NodeVisitor visitor = null;
+    XPath xpath = null;
+    XPathExpression expr = null;
+    org.w3c.dom.NodeList nodes = null;
 
 
 	@Before
 	public void setTestServer()
 	throws java.net.MalformedURLException
 	{
-		baseUrl = new java.net.URL("http://localhost:3000");
+		baseUrl = new URL(host+"/"+servlet);
         
         javax.portlet.PortalContext portalContext = new MockPortalContext();
         
@@ -62,17 +69,17 @@ public class BodyTagVisitorTest {
         actionURL = (PortletURL)_actionURL;
         assertNotNull(actionURL);
 
-        visitor = new BodyTagVisitor(baseUrl, servlet, requestPath, namespace, portletURL, actionURL);
+        visitor = new BodyTagVisitor(baseUrl, servlet, railsJUnitRoute, namespace, portletURL, actionURL);
 		assertNotNull(visitor);
 		xpath = XPathFactory.newInstance().newXPath();
 		nodes = null;
-        
-    }
+	}
 
 
 	@Test
 	public void testEmptyBody()
-	throws Exception {
+	throws Exception
+	{
 		String html = "<html><body></body></html>";
 		NodeList body = TestHelpers.getBody(html);
 		body.visitAllNodesWith(visitor); // visit all nodes
@@ -91,12 +98,11 @@ public class BodyTagVisitorTest {
 	TODO: link formation cannot be tested properly without PortletURL.
 	*/
 
-    @Test
+	@Test
 	public void testLinkExitPortletParameterGET()
-	throws Exception,
-        XPathExpressionException
-    {
-		String url = baseUrl.toString()+"/"+requestPath;
+	throws Exception, XPathExpressionException
+	{
+		String url = railsJUnitURL;
         String url_with_extra_param = url+"?exit_portlet=true";
 		String html = "<html><body>"+
         "<a href=\""+url_with_extra_param+"\" alt=\"alt_txt\">Link text</a>"+
@@ -111,14 +117,13 @@ public class BodyTagVisitorTest {
 		nodes = TestHelpers.evalExpr(expr, doc);
 		assertEquals(1,nodes.getLength());
         assertEquals(url,nodes.item(0).getNodeValue());
-    }
+	}
 
-    @Test
+	@Test
 	public void testLinkExitPortletParameterPOST()
-	throws Exception,
-        XPathExpressionException
-    {
-		String url = baseUrl.toString()+"/"+requestPath;
+	throws Exception, XPathExpressionException
+	{
+		String url = railsJUnitURL;
         String url_with_extra_param = url+"?exit_portlet=true";
         String form = "<form action=\""+url_with_extra_param+"\" enctype=\"multipart/form-data\" "+
             "id=\"form_id\" method=\"post\" onsubmit=\"someJavaScript(); return true;\">"+
@@ -136,17 +141,15 @@ public class BodyTagVisitorTest {
 		nodes = TestHelpers.evalExpr(expr, doc);
 		assertEquals(1,nodes.getLength());
         assertEquals(url,nodes.item(0).getNodeValue());
-        
-    }
+	}
 
 	public void testLinkAmpersandAndSlashValidity() {}
 
 	@Test
 	public void testLinkHTTP()
-	throws Exception,
-		XPathExpressionException
+	throws Exception, XPathExpressionException
 	{
-		String url = baseUrl.toString()+"/"+requestPath;
+		String url = railsJUnitURL;
 		String html = "<html><body>"+
 			"<a href=\""+url+"\" alt=\"alt_txt\">Link text</a>"+
 			"</body></html>";
@@ -165,7 +168,6 @@ public class BodyTagVisitorTest {
 		nodes = TestHelpers.evalExpr(expr, doc);
 		assertEquals(1,nodes.getLength());
 		assertEquals("alt_txt",nodes.item(0).getNodeValue());
-
 
 // 		for (int i = 0; i < nodes.getLength(); i++) {
 // 			System.out.println(nodes.item(i).getNodeValue());
@@ -199,7 +201,41 @@ public class BodyTagVisitorTest {
 
 	public void testFormWithoutActionUrl() {}
 
-	public void testFormPOST() {}
+    @Test
+    public void testFormPOST()
+    throws Exception, XPathExpressionException
+    {
+        // yay for Java multiline strings...
+        String html = "<html><body>"+
+        "<form action=\"/caterpillar/test_bench/http_methods/post\" method=\"post\">"+
+        "  <p>"+
+        "    <input id=\"msg\" name=\"msg\" size=\"42\" type=\"text\" value=\"jääneekö unicode matkalle..\" />"+
+        "  </p>"+
+        "</form>"+
+        "</body></html>";
+
+        NodeList body = TestHelpers.getBody(html);
+        body.visitAllNodesWith(visitor); // visit all nodes
+        //System.out.println(body.toHtml());
+
+        Document doc = TestHelpers.html2doc(body.toHtml());
+        // actionURL
+        expr = xpath.compile("//form/@action");
+        nodes = TestHelpers.evalExpr(expr, doc);
+        assertEquals(1,nodes.getLength());
+        assertEquals("http://localhost/mockportlet?urlType=action",nodes.item(0).getNodeValue());
+
+        // actual form action URL + method
+        nodes = doc.getElementsByTagName("input");
+        assertEquals(3,nodes.getLength());
+        assertEquals("msg", nodes.item(0).getAttributes().getNamedItem("name").getNodeValue());
+        assertEquals(
+             namespace+"originalActionUrl",
+             nodes.item(1).getAttributes().getNamedItem("name").getNodeValue());
+        assertEquals(
+             "caterpillar/test_bench/http_methods/post",
+             nodes.item(1).getAttributes().getNamedItem("value").getNodeValue());
+    }
 
 	public void testFormPUT() {}
 
