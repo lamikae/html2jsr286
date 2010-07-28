@@ -12,16 +12,16 @@ The Rails response is being processed by [HTML Parser](http://htmlparser.sourcef
 	
 == How to set the temp directory of your portal
          
-	The temp directory is defined within the following order:
-	1 - Search for the system environment variable LIFERAY_PORTAL_TEMP
-	2 - Using the catalina.base Java property 
-	3 - Falling back to '../temp' when none of the above were found
-	
-	Step 2 is the most used case because is automatically defined for tomcat containers
+The temp directory is defined within the following order:
+1 - Search for the system environment variable LIFERAY_PORTAL_TEMP
+2 - Using the catalina.base Java property 
+3 - Falling back to '../temp' when none of the above were found
 
-  Create the system variable LIFERAY_PORTAL_TEMP with the path, for example:
-    export LIFERAY_PORTAL_TEMP=/opt/liferay/tomcat/temp
-		or
-		export LIFERAY_PORTAL_TEMP=/tmp
-		or even
-		[ -z "LIFERAY_PORTAL_TEMP" ] && export LIFERAY_PORTAL_TEMP=/tmp
+Step 2 is the most used case because is automatically defined for tomcat containers
+
+Create the system variable LIFERAY_PORTAL_TEMP with the path, for example:
+  export LIFERAY_PORTAL_TEMP=/opt/liferay/tomcat/temp
+or
+  export LIFERAY_PORTAL_TEMP=/tmp
+or even
+  [ -z "LIFERAY_PORTAL_TEMP" ] && export LIFERAY_PORTAL_TEMP=/tmp
