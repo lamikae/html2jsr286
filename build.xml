@@ -18,7 +18,7 @@
 	<!-- This is the path of PortletVersion.java file -->
 	<property name="version.file" 
   					value="WEB-INF/src/com/celamanzi/liferay/portlets/rails286/PortletVersion.java" />
-  <property name="readme.path" value="README.rdoc" />
+    <property name="readme.path" value="README.rdoc" />
 	<!-- The liferay version -->
 	<property name="liferay" value="5.2.3" />
 

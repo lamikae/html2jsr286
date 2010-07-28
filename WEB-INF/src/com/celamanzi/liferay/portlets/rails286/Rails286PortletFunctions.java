@@ -38,6 +38,8 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.liferay.portal.kernel.util.PropsUtil;
+
 
 /**
 	Shared static functions.
@@ -46,7 +48,50 @@ import org.apache.commons.logging.LogFactory;
 public class Rails286PortletFunctions {
 
 	private static final Log log = LogFactory.getLog(Rails286PortletFunctions.class);
-
+	private static String tempPath;
+	
+	static {
+		// Inicializing singleton tempPath
+		getTempPath();
+	}
+	
+	/**
+	 * The getTempPath method will search for LIFERAY_PORTAL_TEMP variable on environment,
+	 * if the method not find our variable the catalina.base property will be used. The last attempt is
+	 * the path '../temp' that will work if you have started the server inside the bin folder.
+	 */
+	public static String getTempPath(){
+		if (tempPath != null) {
+			log.debug("TempPath: " + tempPath);
+			return tempPath;
+		}
+		
+		tempPath = System.getenv("LIFERAY_PORTAL_TEMP");
+		if (tempPath != null && tempPath.length() > 0){
+			tempPath = tempPath.replaceAll("/\\Z", "");
+			log.info("Using LIFERAY_PORTAL_TEMP variable for tempPath, defined path: " + tempPath);
+			return tempPath;
+		}
+		
+		// In case of catalina (tomcat)
+		try {
+			String catalinaDir = PropsUtil.get("catalina.base");
+			if (catalinaDir != null && catalinaDir.length() > 0){
+				catalinaDir = catalinaDir.replaceAll("/\\Z", "");
+				tempPath = catalinaDir + "/temp";
+				log.info("Using catalina.base for tempPath, defined path: " + tempPath);
+				return tempPath;
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+		
+		// default one
+		tempPath = "../temp";
+		log.info("Using '../temp' as tempPath, this is a not very good aproach. Be aware");
+		return tempPath;
+	}
+	
 	public static java.net.URL getRequestURL(java.net.URL railsBaseURL, String servlet, String route){
 		try {
 			RouteAnalyzer routeAnalyzer = new RouteAnalyzer(railsBaseURL, servlet);

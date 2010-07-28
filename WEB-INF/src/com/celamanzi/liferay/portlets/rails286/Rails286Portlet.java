@@ -116,16 +116,13 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	private String   railsRoute    = null;
 
 	private OnlineClient client  = null;
-
+	
 	/** 
 	 * Portlet initialization at portal startup.
 	 */
 	@Override
 	public void init(PortletConfig config) throws PortletException {
-		log.info(
-				"Initializing Rails-portlet "+config.getPortletName()+
-				" (version "+PortletVersion.PORTLET_VERSION+")"
-		);
+		log.info("Initializing Rails-portlet " + config.getPortletName() + " (version "+PortletVersion.PORTLET_VERSION+")");
 		
 		// store session secret to private instance variable
 		sessionKey    = config.getInitParameter("session_key");
@@ -137,7 +134,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			log.info("Session is secured by a shared secret");
 			log.debug("Session key: "+sessionKey);
 		}
-
+		
 		super.init(config);
 	}
 
@@ -198,18 +195,33 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		String filename = getFilename();
 
 		if (filename != null && !filename.equals("")) {
-			File file = new File("../temp/" + filename);
-
-			FileOutputStream fos = new FileOutputStream(file);
-			fos.write(railsBytes);
-
-			fos.flush();
-			fos.close();
-
-			// This "if" is to avoid this call when in a test environment, because liferay test environment is too
-			// heavy and dirty to be implemented =[ (sorry...)
-			if (FileUtil.getFile() != null) {
-				PortletResponseUtil.sendFile(response, filename, new FileInputStream(file));
+			
+			File file = null;
+			try {
+				
+				file = new File(Rails286PortletFunctions.getTempPath() + "/" + filename);
+				
+				FileOutputStream fos = new FileOutputStream(file);
+				fos.write(railsBytes);
+				
+				fos.flush();
+				fos.close();
+	
+				// This "if" is to avoid this call when in a test environment, because liferay test environment is too
+				// heavy and dirty to be implemented =[ (sorry...)
+				if (FileUtil.getFile() != null) {
+					PortletResponseUtil.sendFile(response, filename, new FileInputStream(file));
+				}
+				
+				if (!file.delete()){
+					log.error("Failed to delete file " + file.getAbsolutePath());
+				}
+			
+			} catch(IOException e) {
+				log.error("Exception: " + e.getMessage());
+				if (file != null){
+					log.error("File path: " + file.getAbsolutePath());
+				}
 			}
 			/**
 			 Perhaps a way to test Liferay is to create a new "page" that has the test bench portlet.
@@ -794,7 +806,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			request.setAttribute("files", files);
 		}
 	}
-
+	
 	/** 
 	 * Debug 
 	 */

@@ -257,7 +257,7 @@ public class PortletTest {
 		download.delete();
 		directory.delete();
 	}
-
+	
 	@Test
 	public void test_renderInEditMode() throws Exception {
 		portlet.init(portletConfig);
