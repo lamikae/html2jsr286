@@ -5,13 +5,13 @@ Supports GET and POST, and reads cookies from the server and stores them to the 
 The Rails response is being processed by [HTML Parser](http://htmlparser.sourceforge.net/). Each HTML node is being traversed in the <head> and <body> sections. The title of the page is being set as the portlet title. JavaScripts and CSS links are being included onto the portlet's body HTML. In the body, the links and forms are transformed to PortletUrls and ActionRequests. Image URLs are also modified to take account the servlet.
 
 == How to compile?
-  $ ant
+  ant
 
 == How to run the tests?
-  $ ant -buildfile build_test.xml
+  ant -buildfile build_test.xml
 
 To run selective tests for individual test classes (for example):
-  $ ant -f build_test.xml runtest -Dtest=RenderFilterTest
+  ant -f build_test.xml runtest -Dtest=RenderFilterTest
 
 
 == How to set the temp directory of your portal
