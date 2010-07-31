@@ -26,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.portlet.PortletURL;
+import javax.portlet.ResourceURL;
 import javax.portlet.RenderResponse;
 
 import org.apache.commons.logging.Log;
@@ -51,6 +52,7 @@ public class BodyTagVisitor extends NodeVisitor {
 	private String       documentPath = null; // TODO, get the path to this documet
 	private PortletURL   portletUrl   = null; // needed to redirect links
 	private PortletURL   actionUrl    = null; // needed to set form actions
+	private ResourceURL  resourceUrl  = null; // needed for Ajax
 	private String       namespace    = "";
 
 	/** 
@@ -70,8 +72,11 @@ public class BodyTagVisitor extends NodeVisitor {
 		if (response != null) {
 			this.portletUrl   = response.createRenderURL();
 			this.actionUrl    = response.createActionURL();
+			this.resourceUrl  = response.createResourceURL();
 		}
 		log.debug(portletUrl);
+		log.debug(actionUrl);
+		log.debug(resourceUrl);
 	}
 
 	/** 
@@ -82,7 +87,8 @@ public class BodyTagVisitor extends NodeVisitor {
 						  String requestpath, 
 						  String namespace, 
 						  PortletURL portletUrl, 
-						  PortletURL actionURL) {
+						  PortletURL actionURL,
+						  ResourceURL resourceUrl) {
 		
 		this.baseUrl      = baseUrl;
 		this.servlet      = servlet;
@@ -91,7 +97,10 @@ public class BodyTagVisitor extends NodeVisitor {
 		this.namespace    = namespace;
 		this.portletUrl   = portletUrl;
 		this.actionUrl    = actionURL;
+		this.resourceUrl  = resourceUrl;
 		log.debug(portletUrl);
+		log.debug(actionUrl);
+		log.debug(resourceUrl);
 	}
 
 	/** 
@@ -143,11 +152,23 @@ public class BodyTagVisitor extends NodeVisitor {
 				String onclick = null;
 				String newLink = null;
 
-				// skip Ajax links with href="#"
+				// Ajax links with href="#" and onclick="new Ajax.Updater"
 				pattern = Pattern.compile("^#$");
 				matcher = pattern.matcher(href);
 				if (matcher.find()) {
-					log.debug("Ignoring Ajax link: "+href);
+					onclick = link.getAttribute("onclick");
+					log.debug(onclick);
+					Pattern ajax_pattern = Pattern.compile("Ajax.Updater\\(([^\\)]*)");
+					Matcher ajax_matcher = ajax_pattern.matcher(onclick);
+					ajax_matcher.find();
+					String[] ajax = ajax_matcher.group(1).split(", ");
+					String ajax_url = ajax[1].substring(1,ajax[1].length()-1);
+					log.debug("Ajax link: "+ajax_url);
+					resourceUrl.setParameter("railsRoute",ajax_url);
+					onclick = onclick.replaceFirst(ajax_url,resourceUrl.toString());
+					log.debug(onclick);
+					resourceUrl.setParameter("railsRoute",""); // reset
+					link.setAttribute("onclick", onclick);
 					return;
 				}
 

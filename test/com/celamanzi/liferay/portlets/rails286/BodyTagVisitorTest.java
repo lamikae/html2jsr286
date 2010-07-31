@@ -12,6 +12,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import javax.portlet.PortletURL;
+import javax.portlet.ResourceURL;
 import javax.portlet.RenderResponse;
 
 import org.htmlparser.visitors.NodeVisitor;
@@ -50,6 +51,7 @@ public class BodyTagVisitorTest {
 
     PortletURL portletURL   = null;
     PortletURL actionURL    = null; 
+    ResourceURL resourceURL    = null; 
     NodeVisitor visitor = null;
     XPath xpath = null;
     XPathExpression expr = null;
@@ -63,9 +65,11 @@ public class BodyTagVisitorTest {
 		baseUrl = new URL(host+"/"+servlet);
         
         javax.portlet.PortalContext portalContext = new MockPortalContext();
+        //javax.portlet.PortletContext portletContext = new MockPortletContext();
         
         MockPortletURL _portletURL = new MockPortletURL(portalContext,"render");
         MockPortletURL _actionURL  = new MockPortletURL(portalContext,"action");
+        MockResourceURL _resourceURL  = new MockResourceURL();
         
         portletURL = (PortletURL)_portletURL;
         assertNotNull(portletURL);
@@ -73,7 +77,11 @@ public class BodyTagVisitorTest {
         actionURL = (PortletURL)_actionURL;
         assertNotNull(actionURL);
 
-        visitor = new BodyTagVisitor(baseUrl, servlet, railsJUnitRoute, namespace, portletURL, actionURL);
+        resourceURL = (ResourceURL)_resourceURL;
+        assertNotNull(resourceURL);
+		resourceURL.setResourceID(namespace);
+
+        visitor = new BodyTagVisitor(baseUrl, servlet, railsJUnitRoute, namespace, portletURL, actionURL, resourceURL);
 		assertNotNull(visitor);
 		xpath = XPathFactory.newInstance().newXPath();
 		nodes = null;
@@ -181,8 +189,28 @@ public class BodyTagVisitorTest {
 		assertEquals("alt_txt",nodes.item(0).getNodeValue());
 	}
 
-	// skip Ajax links with href="#"
-	public void testLinkAjax() {}
+	// Ajax links with href="#"
+	@Test
+	public void testLinkAjax()
+	throws org.htmlparser.util.ParserException, Exception {
+		String html = "<html><body>"+
+			"<a onclick=\"new Ajax.Updater('result', '/caterpillar/test_bench/xhr/get_time', {asynchronous:true, evalScripts:true}); return false;\" href=\"#\">What time it is?</a>"+
+			"</body></html>";
+
+		NodeList body = TestHelpers.getBody(html);
+		body.visitAllNodesWith(visitor); // visit all nodes
+
+		//System.out.println(body.toHtml());
+
+		Pattern pattern = Pattern.compile("Ajax.Updater\\(([^\\)]*)");
+		Matcher matcher = pattern.matcher(body.toHtml());
+		matcher.find();
+		String[] ajax = matcher.group(1).split(", ");
+		String ajax_url = ajax[1].substring(1,ajax[1].length()-1);
+		//System.out.println(ajax_url);
+		//System.out.println(resourceURL);
+		assertEquals("http://localhost/mockportlet?resourceID=__TEST_PORTLET__;param_railsRoute=%2Fcaterpillar%2Ftest_bench%2Fxhr%2Fget_time", ajax_url);
+	}
 
 	// the link might be Ajax '#', or plain "some_file.htm(l)",
 	// that will raise MalformedURLException.
