@@ -668,7 +668,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				log.debug("Title: "+title);
 				
 				if (title == null || title.length() == 0) {
-					response.setTitle("&nbsp;"); // nbsp, because Liferay post-processes blank strings
+					response.setTitle("\u00A0"); // nbsp, because Liferay post-processes blank strings
 				} else { 
 					response.setTitle( title ); 
 				}
