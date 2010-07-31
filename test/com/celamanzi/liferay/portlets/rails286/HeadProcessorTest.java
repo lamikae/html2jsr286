@@ -5,6 +5,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.htmlparser.tags.*;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
@@ -14,6 +17,7 @@ import com.celamanzi.liferay.portlets.rails286.HeadProcessor;
 
 public class HeadProcessorTest {
 
+	private String host = null;
 	private String servlet = "";
 	private java.net.URL baseUrl = null;
 	private String namespace = "__TEST_PORTLET__";
@@ -23,7 +27,8 @@ public class HeadProcessorTest {
 	@Before
 	public void setTestServer()
 	throws java.net.MalformedURLException {
-		baseUrl = new java.net.URL("http://localhost:3000");
+		host = PortletTest.host;
+		baseUrl = new java.net.URL(host);
 		hp = new HeadProcessor(servlet,baseUrl,namespace);
 	}
 
@@ -60,30 +65,38 @@ public class HeadProcessorTest {
 		assertEquals("UTF-8",hp.encoding);
 	}
 
-	/** TODO: test CSS and JavaScript parsing */
+	@Test
+	public void test_process_css()
+	throws org.htmlparser.util.ParserException, Exception {
+	String html = "<html><head>"+
+	    "<link href=\"/stylesheets/portlet_test_bench/main.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />"+
+		"</head></html>";
+	
+	NodeList head = TestHelpers.getHead(html);
+	NodeList newHead = hp.process(head);
+	
+	Pattern pattern = Pattern.compile("<link href=\"([^\"]*)");
+	Matcher matcher = pattern.matcher(newHead.toHtml());
+	matcher.find();
+	String css_href = matcher.group(1);
+	assertEquals(host+"/stylesheets/portlet_test_bench/main.css", css_href);
+}
 
-// 	@Test
-// 	public void test_process_css()
-// 	throws org.htmlparser.util.ParserException, Exception
-// 	{
-// 		String html = "<html><head>"+
-// 			"</head></html>";
-// 
-// 		NodeList head = TestHelpers.getHead(html);
-//
-// 		System.out.println("TODO: test_process_css");
-// 	}
-// 
-// 	@Test
-// 	public void test_process_js()
-// 	throws org.htmlparser.util.ParserException, Exception
-// 	{
-// 		String html = "<html><head>"+
-// 			"</head></html>";
-// 
-// 		NodeList head = TestHelpers.getHead(html);
-//
-// 		System.out.println("TODO: test_process_js");
-// 	}
+	@Test
+	public void test_process_js()
+	throws org.htmlparser.util.ParserException, Exception {
+		String html = "<html><head>"+
+		    "<script src=\"/javascripts/prototype.js\" type=\"text/javascript\"></script>"+
+			"</head></html>";
+		
+		NodeList head = TestHelpers.getHead(html);
+		NodeList newHead = hp.process(head);
+		
+		Pattern pattern = Pattern.compile("<script src=\"([^\"]*)");
+		Matcher matcher = pattern.matcher(newHead.toHtml());
+		matcher.find();
+		String js_src = matcher.group(1);
+		assertEquals(host+"/javascripts/prototype.js", js_src);
+	}
 
 }

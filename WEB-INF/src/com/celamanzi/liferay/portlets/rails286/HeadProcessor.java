@@ -22,13 +22,20 @@
 
 package com.celamanzi.liferay.portlets.rails286;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.htmlparser.Parser;
 import org.htmlparser.filters.AndFilter;
 import org.htmlparser.filters.HasAttributeFilter;
 import org.htmlparser.filters.NodeClassFilter;
 import org.htmlparser.filters.TagNameFilter;
+import org.htmlparser.Node;
+import org.htmlparser.nodes.TagNode;
+import org.htmlparser.tags.LinkTag;
 import org.htmlparser.tags.MetaTag;
 import org.htmlparser.tags.ScriptTag;
 import org.htmlparser.tags.StyleTag;
@@ -45,6 +52,7 @@ public class HeadProcessor {
 	// class variables
 	private   java.net.URL baseUrl      = null;
 	private   String       servlet      = null;
+	private   String       location     = null; // baseURl + servlet
 	private   String       namespace    = "";
 
 	// the page header information is stored into these variables.
@@ -58,12 +66,15 @@ public class HeadProcessor {
 	protected HeadProcessor(String servlet, String namespace) {
 		this.servlet   = servlet;
 		this.namespace = namespace;
+		this.location  = this.servlet;
+		log.debug("Initializing HeadProcessor @: "+this.location);
 	}
-	protected HeadProcessor(String servlet, java.net.URL baseUrl,String namespace) {
+	protected HeadProcessor(String servlet, java.net.URL baseUrl, String namespace) {
 		this.servlet   = servlet;
-		this.namespace = namespace;
 		this.baseUrl   = baseUrl;
-		log.debug("Initializing HeadProcessor with baseUrl: "+baseUrl.toString());
+		this.namespace = namespace;
+		this.location  = baseUrl.getProtocol()+"://"+baseUrl.getHost()+":"+baseUrl.getPort() + servlet;
+		log.debug("Initializing HeadProcessor @: "+this.location);
 	}
 
 
@@ -106,24 +117,35 @@ public class HeadProcessor {
 
 
 		/** CSS */
-		NodeList css_link = head.extractAllNodesThatMatch(
+		NodeList css_links = head.extractAllNodesThatMatch(
 				new AndFilter(new TagNameFilter("link"),new HasAttributeFilter("rel","stylesheet")),true
 		);
-		log.debug(css_link.size() + " css link tags found");
+		log.debug(css_links.size() + " css link tags found");
+		//if (css_link.size() > 0) {
+		for (Node node : css_links.toNodeArray()) {
+			log.debug("StyleTag (href) encountered, including it to body");
+			TagNode tag = (TagNode)node;
+			String src = tag.getAttribute("href");
+			Pattern pattern = Pattern.compile("^http");
+			Matcher matcher = pattern.matcher(src);
+			if (!matcher.find()) {
+				// insert javascript host location
+				tag.setAttribute("href",location+src);
+			}
+			headString += tag.toHtml();
+		}
 
 		NodeList css_style = head.extractAllNodesThatMatch(new NodeClassFilter(StyleTag.class),true);
 		log.debug(css_style.size() + " style tags found");
-		if ( (css_link.size() > 0) || (css_style.size() > 0) ) {
+		if (css_style.size() > 0) {
 			// headString += makeInlineCSS(css_link,css_style);
 			/** Just include the original CSS.
 			 * @since 0.3.0
 			 */
-			log.debug("StyleTag encountered, including it to body");
+			log.debug("StyleTag (inline) encountered, including it to body");
 			// NOTE: breaks body {} tag
-			headString += css_link.toHtml();
 			headString += css_style.toHtml();
 		}
-
 
 		/** JavaScript */
 		NodeList scriptTags = head.extractAllNodesThatMatch(
@@ -147,6 +169,14 @@ public class HeadProcessor {
 					log.debug("Link to src - checking JavaScript blacklist");
 					if (JavaScriptBlacklistFilter(tag)) {
 						// blacklist check passed, include the original JS.
+						String src = tag.getAttribute("src");
+						Pattern pattern = Pattern.compile("^http");
+						Matcher matcher = pattern.matcher(src);
+						if (!matcher.find()) {
+							// insert javascript host location
+							tag.setAttribute("src",location+src);
+						}
+						log.debug(tag.toHtml());
 						headString += tag.toHtml();
 					}
 				}
