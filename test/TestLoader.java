@@ -19,7 +19,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	AuthorizationTest.class,
 	RemoteCookiesTest.class,
 	SessionCookiesTest.class,
-	XslTest.class,
+	XsltTest.class,
 	PageTransformerTest.class
 })
 
