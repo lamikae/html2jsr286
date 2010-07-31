@@ -16,7 +16,7 @@
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.5"/>
     <property name="source" value="1.5"/>    
-       
+
 		<!-- The Runner class -->
 		<property name="test.loader.dir" value="com.celamanzi.liferay.portlets.rails286.TestLoader"/>
                 
@@ -55,16 +55,32 @@
 	
         <echo message="${ant.project.name}: ${ant.file}"/>
 				<!-- Compile src -->
-        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+        <javac
+          debug="true"
+          debuglevel="${debuglevel}"
+          destdir="bin"
+          source="${source}"
+          target="${target}"
+          includeantruntime="false"
+          >
             <src path="WEB-INF/src"/>
             <classpath refid="test.classpath"/>
         </javac>      
                         
 				<!-- Compile test src -->
-        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+        <javac 
+          debug="true"
+          debuglevel="${debuglevel}"
+          destdir="bin"
+          source="${source}"
+          target="${target}"
+          includeantruntime="false"
+          >
             <src path="test"/>
             <classpath refid="test.classpath"/>
-        </javac>            
+        </javac>           
+         
+        <copy file="test/log4j.properties" tofile="bin/log4j.properties" />
 
     </target>
 
