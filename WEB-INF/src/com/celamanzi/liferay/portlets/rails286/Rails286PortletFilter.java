@@ -175,8 +175,10 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 			/** Set the HTTP Referer from session */
 			if (session.getAttribute("railsRoute") != null) {
 				String oldRoute = (String)session.getAttribute("railsRoute");
-				httpReferer = Rails286PortletFunctions.getRequestURL(railsBaseUrl, servlet, oldRoute);
-				log.debug("Set HTTP referer: "+httpReferer.toString());
+				if (oldRoute != null) {
+					httpReferer = Rails286PortletFunctions.getRequestURL(railsBaseUrl, servlet, oldRoute);
+					log.debug("Set HTTP referer: "+httpReferer.toString());
+				}
 			}
 		}
 
