@@ -249,6 +249,15 @@ public class BodyTagVisitor extends NodeVisitor {
 					//if (!RouteAnalyzer.isAbsolutePath(route) && portletUrl != null) {
 					if (portletUrl != null) {
 						if (route != null) {
+							
+							//Clear scheme + location
+							Pattern url_pattern = Pattern.compile("^https?://[^/]*");
+							Matcher url_matcher = url_pattern.matcher(route);
+							if (url_matcher.find()) {
+								log.debug("absolute url - reverting to default host");
+								route = url_matcher.replaceFirst("");
+							}
+							
 							newHref.setParameter("railsRoute",route);
 							log.debug("Added parameter railsRoute to the PortletURL: " + route);
 							newLink = newHref.toString();

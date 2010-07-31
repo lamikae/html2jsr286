@@ -233,7 +233,7 @@ public class RenderFilterTest {
     }
   
     @Test
-    /** 
+    /**
      */
     public void test_fullUrlRoute()
     throws PortletException, IOException, MalformedURLException
@@ -256,6 +256,8 @@ public class RenderFilterTest {
       String _route = (String)session.getAttribute("railsRoute");
       assertNotNull(_route);
       // host should not be passed to route!
-      assertEquals(PortletTest.railsJUnitRoute,_route);
+      //assertEquals(PortletTest.railsJUnitRoute,_route);
+      // host *should* be passed to route!
+      assertEquals(route,_route);
     }
 }

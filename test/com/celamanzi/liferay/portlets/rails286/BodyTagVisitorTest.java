@@ -1,6 +1,10 @@
 package com.celamanzi.liferay.portlets.rails286;
 
 import java.net.URL;
+import java.net.URLEncoder;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -149,7 +153,7 @@ public class BodyTagVisitorTest {
 	public void testLinkHTTP()
 	throws Exception, XPathExpressionException
 	{
-		String url = railsJUnitURL;
+		String url = railsJUnitURL; // full url
 		String html = "<html><body>"+
 			"<a href=\""+url+"\" alt=\"alt_txt\">Link text</a>"+
 			"</body></html>";
@@ -162,16 +166,19 @@ public class BodyTagVisitorTest {
 		expr = xpath.compile("//a/@href");
 		nodes = TestHelpers.evalExpr(expr, doc);
 		assertEquals(1,nodes.getLength());
+		// host should not be passed to route!
+		
 		//System.out.println(nodes.item(0).getNodeValue());
+		Pattern pattern = Pattern.compile("railsRoute=(.*)");
+		Matcher matcher = pattern.matcher(nodes.item(0).getNodeValue());
+		matcher.find();
+		String _route = matcher.group(1);
+		assertEquals(URLEncoder.encode(PortletTest.railsJUnitRoute, "UTF-8"), _route);
 
 		expr = xpath.compile("//a/@alt");
 		nodes = TestHelpers.evalExpr(expr, doc);
 		assertEquals(1,nodes.getLength());
 		assertEquals("alt_txt",nodes.item(0).getNodeValue());
-
-// 		for (int i = 0; i < nodes.getLength(); i++) {
-// 			System.out.println(nodes.item(i).getNodeValue());
-// 		}
 	}
 
 	// skip Ajax links with href="#"

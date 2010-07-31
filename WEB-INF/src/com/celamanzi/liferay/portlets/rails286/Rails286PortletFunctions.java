@@ -320,14 +320,6 @@ public class Rails286PortletFunctions {
 			}
 		} // end iterate
 
-		//Clear scheme + location
-		pattern = Pattern.compile("^https?://[^/]*");
-		matcher = pattern.matcher(path);
-		if (matcher.find()) {
-			log.debug("absolute url - reverting to default host");
-			path = matcher.replaceFirst("");
-		}
-		
 		//After replaced the runtime variables we need to clear the unused Rails wildcards
 		path = clearRailsWildcards(path);
 		
