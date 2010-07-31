@@ -97,16 +97,16 @@ import com.liferay.util.servlet.PortletResponseUtil;
  * @author Mikael Lammentausta
  */
 public class Rails286Portlet extends GenericPortlet implements PreferencesAttributes, PublicRenderParameterAttributes {
-
+	
 	/** 
 	 * Class variables and the logger.
 	 */
 	private final Log log = LogFactory.getLog(getClass().getName());
-
+	
 	private String sessionKey    = null;
 	private String sessionSecret = null;
 	protected int responseStatusCode = -1;
-
+	
 	/** 
 	 * Base + Request URLs are set in the RenderFilter 
 	 * and are read from the PortletSession.
@@ -114,7 +114,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	private URL      railsBaseUrl  = null;
 	private String   servlet       = null;
 	private String   railsRoute    = null;
-
+	
 	private OnlineClient client  = null;
 	
 	/** 
@@ -127,7 +127,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		// store session secret to private instance variable
 		sessionKey    = config.getInitParameter("session_key");
 		sessionSecret = config.getInitParameter("secret");
-
+		
 		if (sessionSecret == null) {
 			log.info("Session security not established");
 		} else {
@@ -137,7 +137,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		
 		super.init(config);
 	}
-
+	
 	/**
 	 * Main method, render(). Other portlet modes are not supported.
 	 *
@@ -156,35 +156,34 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	 */
 	public void render(RenderRequest request, RenderResponse response)
 	throws PortletException, IOException {
-
+		
 		loggerInfo(request, response); 
-
+		
 		byte[] railsBytes = callRails(request, response);
 		String outputHTML = processResponseBody(response, new String(railsBytes));
-
+		
 		log.debug("Response status code: " + responseStatusCode);
 		
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
 		out.println(outputHTML);
 	}
-
+	
 	/**
 	 * Used to download files
 	 */
 	@Override
 	public void serveResource(ResourceRequest request, ResourceResponse response)
 	throws PortletException, IOException {
-		super.serveResource(request, response);
-
 		log.debug("serveResource has been called");
+		super.serveResource(request, response);
 		
 		// Retrieve parameters
 		Map<String, String[]> params = Rails286PortletFunctions.mapRequestParameters(request);
 		NameValuePair[] parametersBody = Rails286PortletFunctions.paramsToNameValuePairs(params);
-
+		
 		String actionMethod = (params.containsKey("originalActionMethod") ? 
-				params.remove("originalActionMethod")[0] : "post"
+			params.remove("originalActionMethod")[0] : "post"
 		);
 		
 		// Adding the parameters to request for callRails
@@ -192,21 +191,23 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		request.setAttribute("parametersBody", parametersBody);
 		
 		byte[] railsBytes = callRails(request, response);
+		
+		/**
+		When we write the bytes directly to the output of the portlet,
+		we obtained corrupted files (pdf, png, zip, tar).
+		- tulios
+		*/
 		String filename = getFilename();
-
 		if (filename != null && !filename.equals("")) {
-			
 			File file = null;
 			try {
-				
 				file = new File(Rails286PortletFunctions.getTempPath() + "/" + filename);
 				
 				FileOutputStream fos = new FileOutputStream(file);
 				fos.write(railsBytes);
-				
 				fos.flush();
 				fos.close();
-	
+				
 				// This "if" is to avoid this call when in a test environment, because liferay test environment is too
 				// heavy and dirty to be implemented =[ (sorry...)
 				if (FileUtil.getFile() != null) {
@@ -216,19 +217,15 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				if (!file.delete()){
 					log.error("Failed to delete file " + file.getAbsolutePath());
 				}
-			
 			} catch(IOException e) {
 				log.error("Exception: " + e.getMessage());
 				if (file != null){
 					log.error("File path: " + file.getAbsolutePath());
 				}
 			}
-			/**
-			 Perhaps a way to test Liferay is to create a new "page" that has the test bench portlet.
-			 */
 		}
 	}
-
+	
 	/** 
 	 * Handles POST requests.
 	 */
@@ -239,19 +236,19 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		log.debug("http.protocol.content-charset: " + System.getProperty("http.protocol.content-charset"));
 		// request may be UTF-8, but the form data may be in different
 		// encoding, set by <form accept-charset="..">
-
+		
 		String actionUrl    = null;
 		String actionMethod = null;
-
+		
 		// In case of a multipart request, retrieve the files
 		if (PortletFileUpload.isMultipartContent(request)){
 			log.debug("Multipart request");
 			retrieveFiles(request);
 		}
-
+		
 		// retrieve parameters
 		Map<String,String[]> params = Rails286PortletFunctions.mapRequestParameters(request);
-
+		
 		/** 
 		 * Process an action from the web page.
 		 * This can be a classic HTML form or a JavaScript-generator form POST.
@@ -264,11 +261,11 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		if (params.containsKey("originalActionUrl")) {
 			actionUrl = params.remove("originalActionUrl")[0];
 			log.debug("Received a form action: " + actionUrl);
-
+			
 			// formulate NameValuePair[]
 			NameValuePair[] parametersBody = Rails286PortletFunctions.paramsToNameValuePairs(params);
 			debugParams(parametersBody);
-
+			
 			// Retrieving preference parameters and store them on liferay
 			if(request.getPortletMode().equals(PortletMode.EDIT)){
 				savePreferences(request, parametersBody);
@@ -276,68 +273,68 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			
 			// Sending public render parameters
 			publishRenderParameters(response, parametersBody);
-
+			
 			// save the attributes to the RenderRequest (set custom parameters now..)
 			request.setAttribute("parametersBody", parametersBody);
-
+			
 		} else {
 			log.warn("No action URL given! Halting action.");
 			actionUrl = (String) request.getParameter("railsRoute");
 			actionMethod = "get";
 		}
-
+		
 		request.setAttribute("requestMethod",actionMethod);
 		request.setAttribute("railsRoute",actionUrl);
 	}
-
+	
 	public Map<String, String[]> getContainerRuntimeOptions() {
 		return this.getPortletConfig().getContainerRuntimeOptions();
 	}
-
+	
 	public URL getRailsBaseUrl() {
 		return railsBaseUrl;
 	}
-
+	
 	public void setRailsBaseUrl(URL railsBaseUrl) {
 		this.railsBaseUrl = railsBaseUrl;
 	}
-
+	
 	public void setRailsBaseUrl(PortletSession session) {
 		setRailsBaseUrl((java.net.URL)session.getAttribute("railsBaseUrl"));
 	}
-
+	
 	public String getServlet() {
 		return servlet;
 	}
-
+	
 	public void setServlet(String servlet) {
 		this.servlet = servlet;
 	}
-
+	
 	public void setServlet(PortletSession session) {
 		setServlet((String)session.getAttribute("servlet"));
 	}
-
+	
 	public String getRailsRoute() {
 		return railsRoute;
 	}
-
+	
 	public void setRailsRoute(String railsRoute) {
 		this.railsRoute = railsRoute;
 	}
-
+	
 	public void setRailsRoute(PortletSession session) {
 		setRailsRoute((String)session.getAttribute("railsRoute"));
 	}
-
+	
 	public OnlineClient getClient() {
 		return client;
 	}
-
+	
 	public void setClient(OnlineClient client) {
 		this.client = client;
 	}
-
+	
 	/**
 	 *	Cookie with session secret.
 	 */
@@ -346,14 +343,14 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		URL base = (java.net.URL)session.getAttribute("railsBaseUrl");
 		String host = base.getHost();
 		return new Cookie(
-				host,
-				"session_secret",
-				sessionSecret, // instance variable
-				"/",
-				null,
-				false);
+			host,
+			"session_secret",
+			sessionSecret, // instance variable
+			"/",
+			null,
+			false);
 	}
-
+	
 	/**
 	 * Cookie with UID.
 	 */
@@ -362,26 +359,26 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		URL base = (java.net.URL)session.getAttribute("railsBaseUrl");
 		String host = base.getHost();
 		return new Cookie(
-				host,
-				"Liferay_UID",
-				(String) session.getAttribute("uid"),
-				"/",
-				null,
-				false);
+			host,
+			"Liferay_UID",
+			(String) session.getAttribute("uid"),
+			"/",
+			null,
+			false);
 	}
-
+	
 	protected Cookie resourceUrlCookie(PortletSession session, String value){
 		URL base = (java.net.URL) session.getAttribute("railsBaseUrl");
 		String host = base.getHost();
-
+		
 		// Adding the resource url generated by liferay to achieve the serveResource method
 		return new Cookie(
-				host,
-				"Liferay_resourceUrl",
-				value,
-				"/",
-				null,
-				false);
+			host,
+			"Liferay_resourceUrl",
+			value,
+			"/",
+			null,
+			false);
 	}
 	
 	/**
@@ -397,7 +394,6 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	private Cookie preferencesCookie(PortletSession session, PortletRequest request){
 		URL base = (java.net.URL) session.getAttribute("railsBaseUrl");
 		String host = base.getHost();
-
 		String value = preferencesToString(request.getPreferences());
 		try {
 			// Cookies do not accept space, brackets, parentheses, equals signs, commas, and a lot of chars, so the only
@@ -407,18 +403,19 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		} catch (UnsupportedEncodingException e) {
 			log.error("preferencesCookie: " + e.getMessage());
 		}
-
+		
 		return new Cookie(
-				host,
-				"Liferay_preferences",
-				value,
-				"/",
-				null,
-				false);
+			host,
+			"Liferay_preferences",
+			value,
+			"/",
+			null,
+			false);
 	}
 	
-	private byte[] callRails(PortletRequest request, PortletResponse response) throws PortletException{
-
+	private byte[] callRails(PortletRequest request, PortletResponse response)
+	throws PortletException {
+		
 		/**
 		 * Session storage.
 		 *
@@ -433,7 +430,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		 *
 		 */
 		PortletSession session = request.getPortletSession(true);
-
+		
 		/**
 		 * Host and route.
 		 *
@@ -442,11 +439,11 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		setRailsBaseUrl(session);
 		setRailsRoute(session);
 		setServlet(session);
-
+		
 		String railsHost = getRailsBaseUrl().getHost();
-
+		
 		byte[] railsBytes = new byte[]{};
-
+		
 		// check the server and route
 		if (railsHost == null) {
 			throw new PortletException("The host is undefined!");
@@ -467,50 +464,50 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		//if () {
 		//  throw new PortletException("The server " + railsHost + " was unreachable.");
 		//}
-
+		
 		try {
 			java.net.URL requestUrl = getRequestURL();
 			Map<String,Cookie> cookies = getCookies(session,request);
-
+			
+			/*
 			// Retrieve servlet cookies.
 			// Author Reinaldo Silva
 			// Needs tests!
-			/*
-	      Cookie[] servletCookies = OnlineUtils.getRequestCookies(request, requestUrl);
-	      for (int i = 0; i < servletCookies.length; i++) {
-	        if (!cookies.containsKey(servletCookies[i].getName()))
-	          cookies.put((String)servletCookies[i].getName(), (Cookie)servletCookies[i]);
-	      }
-			 */
-
+			Cookie[] servletCookies = OnlineUtils.getRequestCookies(request, requestUrl);
+			for (int i = 0; i < servletCookies.length; i++) {
+				if (!cookies.containsKey(servletCookies[i].getName()))
+					cookies.put((String)servletCookies[i].getName(), (Cookie)servletCookies[i]);
+			}
+			*/
+			
 			String requestMethod = getRequestMethod(session);
 			URL httpReferer = getHttpReferer(session);
 			java.util.Locale locale = request.getLocale();
-
+			
 			/**
 			 * Execute the request
 			 */
 			setClient(new OnlineClient(requestUrl,cookies,httpReferer,locale));
-
+			
 			/**
 			 * GET
 			 */
 			if (requestMethod.equals("get")) {			
 				railsBytes = executeGet(session, getClient());
 			}
-
+			
 			/**
 			 * POST, PUT (PUT is sent as POST)
 			 */
 			else if (requestMethod.equals("post") || requestMethod.equals("put")) {
 				railsBytes = executePost(request, httpReferer, session, getClient());
 			}
-
+			
 			// OPTIONS, HEAD, DELETE, TRACE, CONNECT
 			else {
 				throw new PortletException("Unsupported HTTP method: "+requestMethod);
 			}
-
+			
 		} catch(HttpException e) {
 			log.error("callRails: HttpException: " + e.getMessage() + "\n" + new String(railsBytes));
 			railsBytes = e.getMessage().getBytes();
@@ -518,12 +515,12 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			log.error("callRails: IOException: " + e.getMessage() + "\n" + new String(railsBytes));
 			railsBytes = e.getMessage().getBytes();
 		}
-
+		
 		// set the response status code (for tests)
 		responseStatusCode = client.getStatusCode();
 		return railsBytes;
 	}
-
+	
 	/**
 	 * Gets parameters with {@link PreferencesAttributes}#PREFERENCES_SUFIX from the request and saves.
 	 * @param request
@@ -532,7 +529,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	 */
 	private void savePreferences(PortletRequest request, NameValuePair[] parametersBody) throws IOException {
 		PortletPreferences preferences = request.getPreferences();
-
+		
 		for (NameValuePair nameValue : parametersBody) {
 			if (nameValue.getName().endsWith(PREFERENCES_SUFIX)){
 				try {
@@ -542,7 +539,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				}
 			}
 		}
-
+		
 		try {
 			preferences.store();
 		} catch (ValidatorException e) {
@@ -563,18 +560,18 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			}
 		}
 	}
-
+	
 	/**
 	 * Changes the railsRoute attribute to ensure that the preference method will be called.
 	 */
 	private void definePreferencesURL(PortletSession session) {
 		setRailsRoute((String) session.getAttribute(PREFERENCES_ROUTE));
 	}
-
+	
 	private java.net.URL getRequestURL(){
 		return Rails286PortletFunctions.getRequestURL(getRailsBaseUrl(), getServlet(), getRailsRoute());
 	}
-
+	
 	/**
 	 * Retrieve the filename of contentDisposition. Return empty string ("")
 	 * if the matcher didn't find the group (filename=\"([^\"]+)\").
@@ -593,68 +590,63 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		Matcher matcher = p.matcher(contentDisposition);
 		return matcher.find() ? matcher.group(1) : "";
 	}
-
+	
 	/** 
 	 * Executes a POST request.
 	 */
 	@SuppressWarnings("unchecked")
 	private byte[] executePost(PortletRequest request, URL httpReferer, PortletSession session, OnlineClient client) 
 	throws HttpException,IOException {
-
+		
 		// retrieve POST parameters        
 		NameValuePair[] parametersBody = (NameValuePair[]) request.getAttribute("parametersBody");
-
+		
 		if (parametersBody == null) {
 			log.warn("Empty parametersBody in the request, no POST data?");
-
 		} else if (log.isDebugEnabled()) {
 			debugParams(parametersBody);
 		}
-
+		
 		// retrieve files
 		Map<String, Object[]> files = (Map<String, Object[]>) request.getAttribute("files");
-
+		
 		// POST the parametersBody
 		// OnlineClient handles cases where POST redirects.
 		byte[] railsBytes = client.post(parametersBody, files);
-
+		
 		// store new cookies into PortletSession.
 		session.setAttribute("cookies", client.getCookies(), PortletSession.PORTLET_SCOPE);
-
+		
 		// do not leave the POST method hanging around in the session.
 		session.setAttribute("requestMethod", "get", PortletSession.PORTLET_SCOPE);
-
+		
 		// ???
 		if (session.getAttribute("httpReferer") != null) {
 			log.debug("Saving route from httpReferer: "+httpReferer.toString());
 			session.setAttribute("railsRoute", httpReferer.toString(), PortletSession.PORTLET_SCOPE);
 		}
-
+		
 		return railsBytes; 
 	}
-
+	
 	/**
 	 *  Executes a GET request.
+		TODO: get responseHeader and responseBody
 	 */
 	private byte[] executeGet(PortletSession session, OnlineClient client)
 	throws HttpException, IOException {
-
-		// TODO: get responseHeader and responseBody
-
-		// save/update client Cookie[] into cookies HashMap
 		/*
+		// save/update client Cookie[] into cookies HashMap
 		for (Cookie c : client.cookies)
 		  cookies.put((String)c.getName(), (Cookie)c);
 		 */
-
+		
 		// should servlet cookies be stored to the session? here they are not.
-
 		byte[] railsBytes = client.get();
 		session.setAttribute("cookies", client.getCookies(), PortletSession.PORTLET_SCOPE);
-
 		return railsBytes;
 	}
-
+	
 	/**
 	 * Create the {@link PageProcessor} and process the railsRoute.
 	 * 
@@ -663,34 +655,33 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	 * @return outputHTML - {@link String}
 	 */
 	private String processResponseBody(RenderResponse response, String railsResponse) {
-
+		
 		String outputHTML = "";
 		if ( (railsResponse != null ) && (railsResponse.length() > 1) ) {
 			try {
 				// PageProcessor => HeadProcessor, BodyTagVisitor (uses RouteAnalyzer)
 				PageProcessor p = new PageProcessor(railsResponse, getServlet(), response);
 				outputHTML   = p.process(getRailsBaseUrl(), getRailsRoute());
-
+				
 				/** Set the portlet title by HTML title */
 				String title = p.getTitle();
 				log.debug("Title: "+title);
-
+				
 				if (title == null || title.length() == 0) {
 					response.setTitle("&nbsp;"); // nbsp, because Liferay post-processes blank strings
-
 				} else { 
 					response.setTitle( title ); 
 				}
 			} catch (ParserException e) {
 				log.error(e.getMessage());
-
+				
 			} catch (IllegalStateException e) {
 				log.error(e.getMessage());
 			}
 		}
 		return outputHTML;
 	}
-
+	
 	/**
 	 * Select the request method (GET or POST).
 	 *
@@ -701,14 +692,14 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		log.debug("Request method: "+requestMethod);
 		return requestMethod;
 	}
-
+	
 	private URL getHttpReferer(PortletSession session) {
 		if (session.getAttribute("httpReferer") != null) {
 			return (java.net.URL) session.getAttribute("httpReferer");
 		}
 		return null; // otherwise
 	}
-
+	
 	/** Cookie handling.
 	 *
 	 * If session cookies were found in the PortletSession,
@@ -729,10 +720,10 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				cookies.put((String)cookie.getName(), cookie);
 			}
 		}
-
+		
 		// Add dynamic session cookies.
 		// These should not be saved to the database and the portlet session.
-
+		
 		// Create the secret cookie.
 		// This is a weak symmetry-key algorithm.
 		// Security could be boosted by using private and public key pairs.
@@ -741,29 +732,29 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			Cookie _secretCookie = secretCookie(session);
 			cookies.put((String)_secretCookie.getName(), _secretCookie);
 		}
-
+		
 		// UID cookie
 		if (session.getAttribute("uid") != null) {
 			Cookie _uidCookie = uidCookie(session);
 			cookies.put((String)_uidCookie.getName(), _uidCookie);
 		}
-
+		
 		// ResourceURL cookie
 		String resourceUrlValue = (String) session.getAttribute("resourceURL");
 		if (resourceUrlValue != null) {
 			Cookie resourceUrlCookie = resourceUrlCookie(session, resourceUrlValue);
 			cookies.put(resourceUrlCookie.getName(), resourceUrlCookie);
 		}
-
+		
 		// Stores preferences in a cookie
 		Cookie preferencesCookie = preferencesCookie(session, request);
 		cookies.put(preferencesCookie.getName(), preferencesCookie);
-
+		
 		log.debug(cookies.size() + " cookies");
-
+		
 		return cookies;
 	}
-
+	
 	/**
 	 * Generates a string with all the preferences values, using the patter:
 	 * key=value;key=value; and so on.
@@ -773,25 +764,24 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	 */
 	private String preferencesToString(PortletPreferences portletPreferences){
 		Enumeration<String> names = portletPreferences.getNames();
-
+		
 		StringBuilder builder = new StringBuilder();
-
+		
 		while (names.hasMoreElements()) {
 			String key = (String) names.nextElement();
 			builder.append(key+"="+portletPreferences.getValue(key, null)+";");
 		}
-
+		
 		return builder.toString();
 	}
 	
 	private void retrieveFiles(ActionRequest request) throws IOException {
 		UploadPortletRequest uploadRequest = PortalUtil.getUploadPortletRequest(request);
 		Map<String, Object[]> files = new HashMap<String, Object[]>();
-
+		
 		// Try to discover the file parameters
 		for (Object key : uploadRequest.getParameterMap().keySet()){
 			File file = uploadRequest.getFile(key.toString());
-
 			if (file != null && file.length() > 0){
 				// I need to store the bytes because the file will be deleted
 				// after the method execution, so when OnlineClient request the
@@ -801,7 +791,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				files.put(key.toString(), new Object[]{file, bytes});
 			}
 		}
-
+		
 		if (files.size() > 0){
 			request.setAttribute("files", files);
 		}
@@ -814,14 +804,14 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		if (log.isDebugEnabled()) {
 			log.debug("View "+response.getNamespace());
 			log.debug("Remote user: "+request.getRemoteUser());
-
+			
 			if (request.getUserPrincipal() != null) {
 				// user principal is null in pre-prod
 				log.debug("User principal name: "+request.getUserPrincipal().getName());
 			}
 		}
 	}
-
+	
 	private void debugParams(NameValuePair[] parametersBody) {
 		log.debug(parametersBody.length + " parameters: --------------------");
 		for (int x=0 ; x<parametersBody.length ; x++) {
@@ -829,5 +819,4 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		}
 		log.debug("----------------------------------");
 	}
-
 }
