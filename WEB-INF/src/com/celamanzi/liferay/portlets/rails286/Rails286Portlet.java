@@ -170,7 +170,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	}
 	
 	/**
-	 * Used to download files
+	 * Used to download files and serve Ajax requests.
 	 */
 	@Override
 	public void serveResource(ResourceRequest request, ResourceResponse response)
@@ -202,7 +202,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			File file = null;
 			try {
 				file = new File(Rails286PortletFunctions.getTempPath() + "/" + filename);
-				
+				log.debug("downloading contents to "+ file.toString());
 				FileOutputStream fos = new FileOutputStream(file);
 				fos.write(railsBytes);
 				fos.flush();
@@ -215,7 +215,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				}
 				
 				if (!file.delete()){
-					log.error("Failed to delete file " + file.getAbsolutePath());
+					log.error("Failed to delete temporary file " + file.getAbsolutePath());
 				}
 			} catch(IOException e) {
 				log.error("Exception: " + e.getMessage());
