@@ -26,6 +26,7 @@
     <pathelement location="WEB-INF/lib/commons-httpclient-3.1.jar"/>
     <pathelement location="WEB-INF/lib/commons-logging.jar"/>
     <pathelement location="WEB-INF/lib/commons-fileupload-1.2.1.jar"/>
+    <pathelement location="WEB-INF/lib/commons-lang-2.4.jar"/>
     <pathelement location="WEB-INF/lib/htmlparser-1.6.jar"/>
     <pathelement location="WEB-INF/lib/junit-4.6.jar"/>
     <pathelement location="WEB-INF/lib/log4j-1.2.15.jar"/>
