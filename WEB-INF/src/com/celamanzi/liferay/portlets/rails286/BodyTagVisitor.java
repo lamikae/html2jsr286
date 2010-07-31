@@ -65,12 +65,13 @@ public class BodyTagVisitor extends NodeVisitor {
 		this.baseUrl      = baseUrl;
 		this.servlet      = servlet;
 		this.requestPath  = requestPath;
-		documentPath = "/";
+		this.documentPath = "/";
 		this.namespace    = namespace;
 		if (response != null) {
-			portletUrl   = response.createRenderURL();
-			actionUrl    = response.createActionURL();
+			this.portletUrl   = response.createRenderURL();
+			this.actionUrl    = response.createActionURL();
 		}
+		log.debug(portletUrl);
 	}
 
 	/** 
@@ -86,10 +87,11 @@ public class BodyTagVisitor extends NodeVisitor {
 		this.baseUrl      = baseUrl;
 		this.servlet      = servlet;
 		this.requestPath  = requestpath;
-		documentPath = "/";
+		this.documentPath = "/";
 		this.namespace    = namespace;
 		this.portletUrl   = portletUrl;
 		this.actionUrl    = actionURL;
+		log.debug(portletUrl);
 	}
 
 	/** 
@@ -240,15 +242,19 @@ public class BodyTagVisitor extends NodeVisitor {
 						link.removeAttribute("target");
 					}
 
-					/** Change the link */
-					if (!RouteAnalyzer.isAbsolutePath(route) && portletUrl != null) {
+					/** Change the link
+					XXX: was absolute path checking made for download feature?
+					Rails can also have a hard link...
+					 */
+					//if (!RouteAnalyzer.isAbsolutePath(route) && portletUrl != null) {
+					if (portletUrl != null) {
 						if (route != null) {
 							newHref.setParameter("railsRoute",route);
 							log.debug("Added parameter railsRoute to the PortletURL: " + route);
 							newLink = newHref.toString();
 						}
 
-						log.debug("Replacing the original link tag");
+						log.debug("Replacing the original link tag to: "+newLink);
 						link.setLink(newLink);
 
 					} else {
