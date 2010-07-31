@@ -232,5 +232,30 @@ public class RenderFilterTest {
       assertNull(session.getAttribute("httpReferer"));
     }
   
+    @Test
+    /** 
+     */
+    public void test_fullUrlRoute()
+    throws PortletException, IOException, MalformedURLException
+    {
+      filter.init(filterConfig);
+      MockRenderRequest _request = new MockRenderRequest(PortletMode.VIEW);
 
+      String route = "http://some-other-host" + PortletTest.railsJUnitRoute;
+      _request.setSession(session);
+      _request.addParameter("railsRoute", route);
+
+      RenderRequest request = (RenderRequest)_request;
+      RenderResponse response = new MockRenderResponse();
+      assertNotNull(response);
+      FilterChain chain = new MockFilterChain();
+      assertNotNull(chain);
+
+      filter.doFilter(request,response,chain);
+
+      String _route = (String)session.getAttribute("railsRoute");
+      assertNotNull(_route);
+      // host should not be passed to route!
+      assertEquals(PortletTest.railsJUnitRoute,_route);
+    }
 }
