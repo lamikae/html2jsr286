@@ -104,4 +104,22 @@
     </junitreport>
   </target>
 
+  <!-- Run just a single test class, or a single test method -->
+  <target name="ensure-test-name" unless="test">
+      <fail message="You must run this target with -Dtest=TestName"/>
+  </target>
+
+  <target name="runtest" description="Runs the test you specify on the command 
+      line with -Dtest=" depends="compile, ensure-test-name">
+    <junit printsummary="true" fork="yes">
+      <classpath refid="test.classpath" />
+      <formatter type="plain" usefile="false"/>
+      <batchtest>
+        <fileset dir="test">
+          <include name="**/${test}.java"/>
+        </fileset>
+      </batchtest>
+    </junit>
+  </target>
+
 </project>
