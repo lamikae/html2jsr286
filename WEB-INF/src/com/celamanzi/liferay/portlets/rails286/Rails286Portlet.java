@@ -66,7 +66,11 @@ import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.util.servlet.PortletResponseUtil;
-
+/*
+1  ThemeDisplay themeDisplay= (ThemeDisplay)renderRequest.getAttribute(WebKeys.THEME_DISPLAY);
+2  PortletDisplay portletDisplay= themeDisplay.getPortletDisplay();
+3  String portletId= portletDisplay.getId();
+*/
 
 /**
  * Presents a web application in a JSR286 portlet.
@@ -413,6 +417,35 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			false);
 	}
 	
+	/**
+	 * Creates the namespace cookie (Portlet_namespace) with the value of response.getNamespace().
+	 * It will encode the generated value with UTF-8.
+	 * 
+	 * @param session - {@link PortletSession}
+	 * @param request - {@link PortletRequest}
+	 * @return {@link Cookie}
+	 */
+	private Cookie namespaceCookie(PortletSession session, PortletResponse response){
+		URL base = (java.net.URL) session.getAttribute("railsBaseUrl");
+		String host = base.getHost();
+		String value = response.getNamespace();
+		try {
+			// Cookies do not accept space, brackets, parentheses, equals signs, commas, and a lot of chars, so the only
+			// solution was encoding the content. UTF-8 was suggested as the better character encoding for this, 
+			// but if something goes wrong we will send the raw value.
+			value = URLEncoder.encode(value, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			log.error("namespaceCookie: " + e.getMessage());
+		}
+		return new Cookie(
+			host,
+			"Portlet_namespace",
+			value,
+			"/",
+			null,
+			false);
+	}
+	
 	private byte[] callRails(PortletRequest request, PortletResponse response)
 	throws PortletException {
 		
@@ -467,7 +500,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		
 		try {
 			java.net.URL requestUrl = getRequestURL();
-			Map<String,Cookie> cookies = getCookies(session,request);
+			Map<String,Cookie> cookies = getCookies(session,request,response);
 			
 			/*
 			// Retrieve servlet cookies.
@@ -711,7 +744,11 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	 * In this method they are handled in HashMap.
 	 *
 	 */
-	private Map<String, Cookie> getCookies(PortletSession session, PortletRequest request) {
+	private Map<String, Cookie> getCookies(
+		PortletSession session,
+		PortletRequest request,
+		PortletResponse response
+		) {
 		Map<String, Cookie> cookies = new HashMap<String, Cookie>();
 		// get cookies from PortletSession to HashMap
 		if (session.getAttribute("cookies") != null) {
@@ -750,8 +787,11 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		Cookie preferencesCookie = preferencesCookie(session, request);
 		cookies.put(preferencesCookie.getName(), preferencesCookie);
 		
-		log.debug(cookies.size() + " cookies");
+		// Store portlet namespace to cookie
+		Cookie namespaceCookie = namespaceCookie(session, response);
+		cookies.put(namespaceCookie.getName(), namespaceCookie);
 		
+		log.debug(cookies.size() + " cookies");
 		return cookies;
 	}
 	
@@ -802,7 +842,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	 */
 	private void loggerInfo(RenderRequest request, RenderResponse response) {
 		if (log.isDebugEnabled()) {
-			log.debug("View "+response.getNamespace());
+			log.debug("Portlet namespace: "+response.getNamespace());
 			log.debug("Remote user: "+request.getRemoteUser());
 			
 			if (request.getUserPrincipal() != null) {
