@@ -161,24 +161,26 @@ public class BodyTagVisitor extends NodeVisitor {
 					/* Prototype:
 					<a onclick="new Ajax.Updater('result', '/caterpillar/test_bench/xhr/get_time', {asynchronous:true, evalScripts:true}); return false;" href="#">
 					*/
-					onclick = link.getAttribute("onclick");
-					log.debug(onclick);
-					Pattern ajax_pattern = Pattern.compile("Ajax.Updater\\(([^\\)]*)");
-					Matcher ajax_matcher = ajax_pattern.matcher(onclick);
-					if (ajax_matcher.find()) {
-						// 'result', '/caterpillar/test_bench/xhr/get_time', {asynchronous:true, evalScripts:true}
-						String[] ajax = ajax_matcher.group(1).split(", ");
-						// /caterpillar/test_bench/xhr/get_time
-						String ajax_url = ajax[1].substring(1,ajax[1].length()-1);
-						log.debug("Ajax link: "+ajax_url);
-						resourceUrl.setParameter("railsRoute",ajax_url);
-						// <a onclick="new Ajax.Updater('result', 'http://liferay-resource-url?route=/ajax_url', ....
-						onclick = onclick.replaceFirst(ajax_url,resourceUrl.toString());
-						log.debug(onclick);
-						link.setAttribute("onclick", onclick);
+					onclick = (String)link.getAttribute("onclick");
+					if (onclick != null) {
+						log.debug("onclick: "+onclick);
+						Pattern ajax_pattern = Pattern.compile("Ajax.Updater\\(([^\\)]*)");
+						Matcher ajax_matcher = ajax_pattern.matcher(onclick);
+						if (ajax_matcher.find()) {
+							// 'result', '/caterpillar/test_bench/xhr/get_time', {asynchronous:true, evalScripts:true}
+							String[] ajax = ajax_matcher.group(1).split(", ");
+							// /caterpillar/test_bench/xhr/get_time
+							String ajax_url = ajax[1].substring(1,ajax[1].length()-1);
+							log.debug("Ajax url: "+ajax_url);
+							resourceUrl.setParameter("railsRoute",ajax_url);
+							// <a onclick="new Ajax.Updater('result', 'http://liferay-resource-url?route=/ajax_url', ....
+							onclick = onclick.replaceFirst(ajax_url,resourceUrl.toString());
+							log.debug("new onclick: "+onclick);
+							link.setAttribute("onclick", onclick);
+						}
 					}
 					else {
-						log.warn("Unknown type JavaScript link passed.");
+						log.warn("Unknown type JavaScript link passed: "+link.toHtml());
 					}
 					return;
 				}
