@@ -152,23 +152,34 @@ public class BodyTagVisitor extends NodeVisitor {
 				String onclick = null;
 				String newLink = null;
 
-				// Ajax links with href="#" and onclick="new Ajax.Updater"
+				/** Ajax 
+				  */
+				// links with href="#" and onclick="new Ajax.Updater"
 				pattern = Pattern.compile("^#$");
 				matcher = pattern.matcher(href);
 				if (matcher.find()) {
+					/* Prototype:
+					<a onclick="new Ajax.Updater('result', '/caterpillar/test_bench/xhr/get_time', {asynchronous:true, evalScripts:true}); return false;" href="#">
+					*/
 					onclick = link.getAttribute("onclick");
 					log.debug(onclick);
 					Pattern ajax_pattern = Pattern.compile("Ajax.Updater\\(([^\\)]*)");
 					Matcher ajax_matcher = ajax_pattern.matcher(onclick);
-					ajax_matcher.find();
-					String[] ajax = ajax_matcher.group(1).split(", ");
-					String ajax_url = ajax[1].substring(1,ajax[1].length()-1);
-					log.debug("Ajax link: "+ajax_url);
-					resourceUrl.setParameter("railsRoute",ajax_url);
-					onclick = onclick.replaceFirst(ajax_url,resourceUrl.toString());
-					log.debug(onclick);
-					resourceUrl.setParameter("railsRoute",""); // reset
-					link.setAttribute("onclick", onclick);
+					if (ajax_matcher.find()) {
+						// 'result', '/caterpillar/test_bench/xhr/get_time', {asynchronous:true, evalScripts:true}
+						String[] ajax = ajax_matcher.group(1).split(", ");
+						// /caterpillar/test_bench/xhr/get_time
+						String ajax_url = ajax[1].substring(1,ajax[1].length()-1);
+						log.debug("Ajax link: "+ajax_url);
+						resourceUrl.setParameter("railsRoute",ajax_url);
+						// <a onclick="new Ajax.Updater('result', 'http://liferay-resource-url?route=/ajax_url', ....
+						onclick = onclick.replaceFirst(ajax_url,resourceUrl.toString());
+						log.debug(onclick);
+						link.setAttribute("onclick", onclick);
+					}
+					else {
+						log.warn("Unknown type JavaScript link passed.");
+					}
 					return;
 				}
 
