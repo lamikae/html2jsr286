@@ -70,19 +70,26 @@ public class OnlineClient {
 	private Cookie[] cookies     = null;
 	private URL      httpReferer = null;
 	private Locale   locale      = null;
+	
+	private boolean  ajax        = false;
 
-	public OnlineClient(URL _requestURL) {
-		requestURL  = _requestURL;
-		cookies     = null;
-		httpReferer = null;
-		locale      = null;
+	public OnlineClient(URL requestURL) {
+		this.requestURL = requestURL;
 	}
 
-	public OnlineClient(URL _requestURL, Map<String,Cookie> _cookies, URL _httpReferer, Locale _locale) {
-		requestURL  = _requestURL;
-		cookies     = _cookies.values().toArray(new Cookie[0]);
-		httpReferer = _httpReferer;
-		locale      = _locale;
+	public OnlineClient(
+		URL requestURL, 
+		Map<String,Cookie> cookies,
+		URL httpReferer,
+		Locale locale,
+		boolean ajax
+		) {
+		this.requestURL  = requestURL;
+		if (cookies != null)
+			this.cookies     = cookies.values().toArray(new Cookie[0]);
+		this.httpReferer = httpReferer;
+		this.locale      = locale;
+		this.ajax        = ajax;
 	}
 
 	public int getStatusCode() {
@@ -179,10 +186,20 @@ public class OnlineClient {
 		HttpClient client = preparedClient();
 
 		// Create a method instance.
-		log.debug("POST action request URL: " + requestURL.toString());
-
 		PostMethod method = new PostMethod(requestURL.toString());
 		HttpMethod _method = (HttpMethod) method;
+
+		String action = "POST action request URL: " + requestURL.toString();
+		if (ajax) {
+			log.debug("Ajax "+action);
+			_method.setRequestHeader("X_REQUESTED_WITH","XMLHttpRequest");
+			_method.setRequestHeader("ACCEPT","text/javascript, text/html, application/xml, text/xml, */*");
+			_method.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+		}
+		else
+			log.debug(action);
+		
+		// finalize method
 		method = (PostMethod) prepareMethodHeaders(_method);
 
 		if (files != null && files.size() > 0){

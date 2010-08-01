@@ -195,7 +195,7 @@ public class OnlineClientTest {
 		assertEquals(2,cookies.size());
 
 		client = new OnlineClient(new URL(railsJUnitURL+"/post_cookies"),
-				cookies,null,null);
+				cookies,null,null,false);
 		assertNotNull(client);
 
 		NameValuePair[] params = {};
@@ -249,6 +249,23 @@ public class OnlineClientTest {
 		assertEquals(200,client.getStatusCode());
 
 		assertEquals("", new String(body));
+	}
+
+	@Test
+	public void test_xhr()
+	throws MalformedURLException, HttpException, IOException{
+
+		client = new OnlineClient(new URL(railsJUnitURL+"/check_xhr"),null,null,null,true);
+		assertNotNull(client);
+
+		NameValuePair[] params = {
+				new NameValuePair("normal_param", "importância") //require UTF-8 encode
+		};
+
+		byte[] body = client.post(params,null);
+		assertEquals(200,client.getStatusCode());
+
+		assertEquals("true", new String(body));
 	}
 
 	public static byte[] getBytes(File file) throws IOException {

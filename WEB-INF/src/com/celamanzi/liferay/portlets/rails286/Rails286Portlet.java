@@ -193,9 +193,29 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		// Adding the parameters to request for callRails
 		request.getPortletSession(true).setAttribute("requestMethod", actionMethod);
 		request.setAttribute("parametersBody", parametersBody);
-		
+		request.setAttribute("X_REQUESTED_WITH", "XMLHttpRequest");
 		byte[] railsBytes = callRails(request, response);
 		
+		/* is this Ajax?
+		request headers are not accessible..
+		*/
+		//__headers['X_REQUESTED_WITH'] = 'XMLHttpRequest'
+		//__headers['ACCEPT'] = 'text/javascript, text/html, application/xml, text/xml, */*'
+		//__content_type = 'application/x-www-form-urlencoded; charset=UTF-8'
+		/* .. so this is the best I could find..
+		*/
+		if (request.getResponseContentType().equals("text/html")) {
+			// .. this is Ajax.
+			log.debug("Ajax (text/html)");
+			try {
+				PortletResponseUtil.write(response, railsBytes);
+			} catch(IOException e) {
+				log.error("Exception: " + e.getMessage());
+			}
+			return;
+		}
+		
+		// else .. download
 		/**
 		When we write the bytes directly to the output of the portlet,
 		we obtained corrupted files (pdf, png, zip, tar).
@@ -517,10 +537,12 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			URL httpReferer = getHttpReferer(session);
 			java.util.Locale locale = request.getLocale();
 			
+			boolean ajax = request.getAttribute("X_REQUESTED_WITH").equals("XMLHttpRequest");
+			
 			/**
 			 * Execute the request
 			 */
-			setClient(new OnlineClient(requestUrl,cookies,httpReferer,locale));
+			setClient(new OnlineClient(requestUrl,cookies,httpReferer,locale,ajax));
 			
 			/**
 			 * GET
