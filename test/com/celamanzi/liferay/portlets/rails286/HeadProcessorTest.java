@@ -68,19 +68,19 @@ public class HeadProcessorTest {
 	@Test
 	public void test_process_css()
 	throws org.htmlparser.util.ParserException, Exception {
-	String html = "<html><head>"+
-	    "<link href=\"/stylesheets/portlet_test_bench/main.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />"+
-		"</head></html>";
+		String html = "<html><head>"+
+		    "<link href=\"/stylesheets/portlet_test_bench/main.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />"+
+			"</head></html>";
 	
-	NodeList head = TestHelpers.getHead(html);
-	NodeList newHead = hp.process(head);
+		NodeList head = TestHelpers.getHead(html);
+		NodeList newHead = hp.process(head);
 	
-	Pattern pattern = Pattern.compile("<link href=\"([^\"]*)");
-	Matcher matcher = pattern.matcher(newHead.toHtml());
-	matcher.find();
-	String css_href = matcher.group(1);
-	assertEquals(host+"/stylesheets/portlet_test_bench/main.css", css_href);
-}
+		Pattern pattern = Pattern.compile("<link href=\"([^\"]*)");
+		Matcher matcher = pattern.matcher(newHead.toHtml());
+		matcher.find();
+		String css_href = matcher.group(1);
+		assertEquals(host+"/stylesheets/portlet_test_bench/main.css", css_href);
+	}
 
 	@Test
 	public void test_process_js()
