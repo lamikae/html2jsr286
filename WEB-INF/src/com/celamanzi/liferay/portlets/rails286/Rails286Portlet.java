@@ -193,8 +193,6 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		// Adding the parameters to request for callRails
 		request.getPortletSession(true).setAttribute("requestMethod", actionMethod);
 		request.setAttribute("parametersBody", parametersBody);
-		request.setAttribute("X_REQUESTED_WITH", "XMLHttpRequest");
-		byte[] railsBytes = callRails(request, response);
 		
 		/* is this Ajax?
 		request headers are not accessible..
@@ -207,6 +205,8 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		if (request.getResponseContentType().equals("text/html")) {
 			// .. this is Ajax.
 			log.debug("Ajax (text/html)");
+			request.setAttribute("X_REQUESTED_WITH", "XMLHttpRequest");
+			byte[] railsBytes = callRails(request, response);
 			try {
 				PortletResponseUtil.write(response, railsBytes);
 			} catch(IOException e) {
@@ -216,6 +216,8 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		}
 		
 		// else .. download
+		byte[] railsBytes = callRails(request, response);
+
 		/**
 		When we write the bytes directly to the output of the portlet,
 		we obtained corrupted files (pdf, png, zip, tar).
