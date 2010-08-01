@@ -80,6 +80,8 @@ public class BodyTagVisitorTest {
         resourceURL = (ResourceURL)_resourceURL;
         assertNotNull(resourceURL);
 		resourceURL.setResourceID(namespace);
+		resourceURL.setParameter("railsRoute",railsJUnitRoute);
+		
 
         visitor = new BodyTagVisitor(baseUrl, servlet, railsJUnitRoute, namespace, portletURL, actionURL, resourceURL);
 		assertNotNull(visitor);
@@ -196,12 +198,12 @@ public class BodyTagVisitorTest {
 		String html = "<html><body>"+
 			"<a onclick=\"new Ajax.Updater('result', '/caterpillar/test_bench/xhr/get_time', {asynchronous:true, evalScripts:true}); return false;\" href=\"#\">What time it is?</a>"+
 			"</body></html>";
-
+		
 		NodeList body = TestHelpers.getBody(html);
 		body.visitAllNodesWith(visitor); // visit all nodes
-
+		
 		//System.out.println(body.toHtml());
-
+		
 		Pattern pattern = Pattern.compile("Ajax.Updater\\(([^\\)]*)");
 		Matcher matcher = pattern.matcher(body.toHtml());
 		matcher.find();
