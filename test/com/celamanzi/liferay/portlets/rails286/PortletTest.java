@@ -219,7 +219,23 @@ public class PortletTest {
 	}
 
 	@Test
-	public void test_serveResource() throws Exception {
+	public void test_serveResource_Ajax() throws Exception {
+		portlet.init(portletConfig);
+
+		session.setAttribute("railsBaseUrl",new URL(host));
+		session.setAttribute("servlet",servlet);
+		session.setAttribute("railsRoute",railsJUnitRoute+"/check_xhr");
+
+		MockResourceRequest request = new MockResourceRequest();
+		request.setSession(session);
+		MockResourceResponse response = new MockResourceResponse();
+
+		portlet.serveResource(request, response);
+		assertEquals("true", response.getContentAsString());
+	}
+
+	@Test
+	public void test_serveResource_download() throws Exception {
 		File original = new File("test/resources/jake_sully.jpg");
 		
 		File directory = new File("../temp/");
@@ -227,7 +243,8 @@ public class PortletTest {
 			directory.mkdirs();
 		}
 		
-		File download = new File("../temp/jake_sully.jpg");
+		String tempFilename = "../temp/jake_sully.jpg";
+		File download = new File(tempFilename);
 		if (download.exists()){
 			download.delete();
 		}
@@ -245,7 +262,7 @@ public class PortletTest {
 
 		portlet.serveResource(request, response);
 
-		download = new File("../temp/jake_sully.jpg");
+		download = new File(tempFilename);
 		InputStream isOriginal = new FileInputStream(original);
 		InputStream isDownload = new FileInputStream(download);
 

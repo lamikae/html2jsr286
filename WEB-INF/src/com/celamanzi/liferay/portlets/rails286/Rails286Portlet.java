@@ -537,7 +537,10 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			URL httpReferer = getHttpReferer(session);
 			java.util.Locale locale = request.getLocale();
 			
-			boolean ajax = request.getAttribute("X_REQUESTED_WITH").equals("XMLHttpRequest");
+			String x_request = (String)request.getAttribute("X_REQUESTED_WITH");
+			boolean ajax = false;
+			if ((x_request != null) && x_request.equals("XMLHttpRequest"))
+				ajax = true;
 			
 			/**
 			 * Execute the request
