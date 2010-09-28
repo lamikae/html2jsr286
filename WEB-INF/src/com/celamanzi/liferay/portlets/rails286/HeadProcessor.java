@@ -166,8 +166,9 @@ public class HeadProcessor {
 					headString += tag.toHtml();
 				}
 				else {
-					log.debug("Link to src - checking JavaScript blacklist");
-					if (JavaScriptBlacklistFilter(tag)) {
+					//log.debug("Link to src - checking JavaScript blacklist");
+					//if (JavaScriptBlacklistFilter(tag)) {
+					/** @since 0.11.1 - do not check JavaScript blacklist */
 						// blacklist check passed, include the original JS.
 						String src = tag.getAttribute("src");
 						Pattern pattern = Pattern.compile("^http");
@@ -178,7 +179,7 @@ public class HeadProcessor {
 						}
 						log.debug(tag.toHtml());
 						headString += tag.toHtml();
-					}
+					//}
 				}
 			} // iterator
 		} // JS tags
