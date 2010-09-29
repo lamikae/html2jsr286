@@ -1,5 +1,7 @@
-= 0.11.1
+= 0.11.2
+  - check for NullPointerException at HeadProcessor, from Boris
   - do not blacklist any JavaScript
+  - fix for javascript link without onclick
 
 = 0.11.0
   - fixed problems with linking to external CSS and JavaScript
