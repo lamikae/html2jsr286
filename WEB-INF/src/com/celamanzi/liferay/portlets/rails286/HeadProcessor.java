@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2008 Mikael Lammentausta
+ *               2010 Boris Kirillov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -103,7 +104,8 @@ public class HeadProcessor {
 		log.debug(meta.size() + " meta tags found");
 		for (SimpleNodeIterator i = meta.elements(); i.hasMoreNodes();) {
 			MetaTag n = (MetaTag)i.nextNode();
-			if (n.getHttpEquiv().equals("content-type")) {
+			String nCheck = n.getHttpEquiv();
+			if (nCheck!=null && nCheck.equals("content-type")) {
 				log.debug("Parsing meta content-type");
 				String c = n.getMetaContent();
 				//<meta http-equiv="content-type" content="text/html; charset=UTF-8"></meta>
