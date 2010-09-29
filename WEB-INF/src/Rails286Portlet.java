@@ -24,6 +24,7 @@
 package com.celamanzi.liferay.portlets.rails286;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -39,6 +40,7 @@ import javax.portlet.PortletMode;
 import javax.portlet.PortletSession;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
+import javax.xml.transform.TransformerException;
 
 import org.apache.commons.fileupload.portlet.PortletFileUpload;
 import org.apache.commons.httpclient.Cookie;
@@ -481,8 +483,19 @@ public class Rails286Portlet extends GenericPortlet {
 				// instantiate the PageProcessor
 				// PageProcessor => HeadProcessor, BodyTagVisitor (uses RouteAnalyzer)
 				PageProcessor p = new PageProcessor(railsResponse,servlet,response);
-				outputHTML   = p.process(railsBaseUrl,railsRoute);
-				
+				//outputHTML   = p.process(railsBaseUrl,railsRoute);
+
+                try{
+                    TransformImpl tri = new TransformImpl(p.process(railsBaseUrl,railsRoute));
+                    outputHTML = tri.getResult();
+                } catch(FileNotFoundException fe) {
+                    fe.printStackTrace();
+                } catch(TransformerException te) {
+                    te.printStackTrace();
+                } catch(IOException ie) {
+                    ie.printStackTrace();
+                }
+
 				/** Set the portlet title by HTML title */
 				String title = p.title;
 				log.debug("Title: "+title);
