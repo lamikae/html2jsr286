@@ -38,6 +38,8 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PropsUtil;
 
 
@@ -109,7 +111,7 @@ public class Rails286PortletFunctions {
 	 * These are set in BodyTagVisitor.
 	 * The returned parameters are "x-www-form-urlencoded" decoded.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public static Map<String,String[]> mapRequestParameters(PortletRequest request) {
 		/** Proprietary _encoding_ hack.
 		 * Caterpillar will be able to set a hidden form parameter
@@ -158,7 +160,7 @@ public class Rails286PortletFunctions {
 	/** 
 	 * Transforms parameter Map to NameValuePair. 
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected static NameValuePair[] paramsToNameValuePairs(Map<String,String[]> params) {
 
 		// create a new dynamic ArrayList
@@ -300,11 +302,19 @@ public class Rails286PortletFunctions {
 						String gid = null;
 
 						try {
+							
+							long scopeGroupId = 0;
+							try {
+								scopeGroupId = com.liferay.portal.util.PortalUtil.getScopeGroupId(request);
+							} catch (PortalException e) {
+								log.error("decipherPath: " + e.getMessage());
+							} catch (SystemException e) {
+								log.error("decipherPath: " + e.getMessage());
+							}
+							
 							// Liferay 5 +
 							/*if (isMinimumLiferayVersionMet(new int[] {5})) { */
-							gid = new Long(
-									com.liferay.portal.util.PortalUtil.getScopeGroupId(request)
-							).toString();
+							gid = new Long(scopeGroupId).toString();
 						}
 						catch (NullPointerException e) {
 							log.error(e.getMessage());

@@ -124,7 +124,7 @@ public class OnlineClientTest {
 
 	@Test
 	public void test_post_redirect()
-	throws MalformedURLException, HttpException, IOException
+	throws MalformedURLException, HttpException, IOException, RailsAppException
 	{
 		client = new OnlineClient(new URL(railsJUnitURL+"/post_redirect_get"));
 		assertNotNull(client);
@@ -227,7 +227,7 @@ public class OnlineClientTest {
 
 	@Test
 	public void test_multipart_post()
-	throws MalformedURLException, HttpException, IOException{
+	throws MalformedURLException, HttpException, IOException, RailsAppException{
 
 		client = new OnlineClient(new URL(railsJUnitURL+"/upload_image"));
 		assertNotNull(client);

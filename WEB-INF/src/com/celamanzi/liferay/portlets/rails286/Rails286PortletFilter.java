@@ -277,7 +277,7 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 	}
 
 	/** Debug */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	private void debugRequest(PortletRequest request) {
 		log.debug("Request attributes -------v");
 		for (Enumeration e = request.getAttributeNames() ; e.hasMoreElements();) {
@@ -293,7 +293,7 @@ public class Rails286PortletFilter implements RenderFilter, ResourceFilter {
 	}
 
 	/** Debug */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	private void debugSession(PortletSession session) {
 		log.debug("Session attributes -------v");
 		for (Enumeration e = session.getAttributeNames() ; e.hasMoreElements();) {

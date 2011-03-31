@@ -20,7 +20,7 @@
   					value="WEB-INF/src/com/celamanzi/liferay/portlets/rails286/PortletVersion.java" />
     <property name="readme.path" value="README.rdoc" />
 	<!-- The liferay version -->
-	<property name="liferay" value="5.2.3" />
+	<property name="liferay" value="6.0.5" />
 
 	<!--
 		################################################################################################################
@@ -39,7 +39,9 @@
 		<fileset dir="${lib.dir}" includes="commons-fileupload-1.2.1.jar"/>    
 		<fileset dir="${lib.dir}" includes="commons-io-1.4.jar"/>
 		<fileset dir="${lib.dir}" includes="portal-impl.jar"/>
+		<!--
 		<fileset dir="${lib.dir}" includes="portal-kernel.jar" />
+		-->
 		<fileset dir="${lib.dir}" includes="commons-httpclient-3.1.jar"/>
 		<fileset dir="${lib.dir}" includes="servlet-api-2.4.jar"/>
 		<fileset dir="${lib.dir}" includes="htmlparser-1.6.jar"/>

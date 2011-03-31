@@ -113,11 +113,12 @@ public class OnlineClient {
 	 *
 	 * Instantiates HttpClient, prepares it with session cookies,
 	 * executes the request and returns the response body.
+	 * @throws RailsAppException 
 	 *
 	 * @since 0.8.0
 	 */
 	protected byte[] get()
-	throws HttpException, IOException {
+	throws HttpException, IOException, RailsAppException {
 		
 		// Response body from the web server
 		byte[] responseBody = null ;
@@ -139,8 +140,9 @@ public class OnlineClient {
 
 			// log the status
 			if (statusCode != HttpStatus.SC_OK) {
-				log.error("Request failed: " + method.getStatusLine());
-				throw new HttpException(method.getStatusLine().toString());
+				String errorMessage = "Request failed: " + method.getStatusLine();
+				log.error(errorMessage);
+				throw new RailsAppException(errorMessage, new String(method.getResponseBody()));
 			
 			} else {
 				log.debug("Status code: " + method.getStatusLine());
@@ -167,9 +169,10 @@ public class OnlineClient {
 	 * POST
 	 * 
 	 * Posts the parametersBody
+	 * @throws RailsAppException 
 	 */
 	protected byte[] post(NameValuePair[] parametersBody, Map<String, Object[]> files)
-	throws HttpException, IOException{
+	throws HttpException, IOException, RailsAppException{
 		// Response body from the web server
 		byte[] responseBody = null;
 		statusCode = -1;
@@ -228,9 +231,10 @@ public class OnlineClient {
 				// the original POST method was OK, pass
 				// No more redirects! Response should be 200 OK
 				if (statusCode != HttpStatus.SC_OK) {
-					log.error("Method failed: " + method.getStatusLine());
-					throw new HttpException(method.getStatusLine().toString());
-				
+					String errorMessage = "Method failed: " + method.getStatusLine();
+					log.error(errorMessage);
+					throw new RailsAppException(errorMessage, new String(method.getResponseBody())); 
+					
 				} else {
 					log.debug("POST status code: " + method.getStatusLine());
 				}

@@ -62,6 +62,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.htmlparser.util.ParserException;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.util.PortalUtil;
@@ -210,7 +212,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				// This "if" is to avoid this call when in a test environment, because liferay test environment is too
 				// heavy and dirty to be implemented =[ (sorry...)
 				if (FileUtil.getFile() != null) {
-					PortletResponseUtil.sendFile(response, filename, new FileInputStream(file));
+					PortletResponseUtil.sendFile(request, response, filename, new FileInputStream(file));
 				}
 				
 				if (!file.delete()){
@@ -368,6 +370,29 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				"/",
 				null,
 				false);
+	}
+	
+	/**
+	 * Cookie with GID.
+	 */
+	protected Cookie gidCookie(PortletSession session, PortletRequest request){
+		URL base = (java.net.URL)session.getAttribute("railsBaseUrl");
+		String host = base.getHost();
+		Cookie cookie = null;
+		try {
+			cookie = new Cookie(
+					host,
+					"Liferay_GID",
+					PortalUtil.getScopeGroupId(request) + "",
+					"/",
+					null,
+					false);
+		} catch (PortalException e) {
+			log.error("gitCookie: " + e.getMessage());
+		} catch (SystemException e) {
+			log.error("gitCookie: " + e.getMessage());
+		}
+		return cookie;
 	}
 
 	protected Cookie resourceUrlCookie(PortletSession session, String value){
@@ -599,7 +624,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 	 */
 	@SuppressWarnings("unchecked")
 	private byte[] executePost(PortletRequest request, URL httpReferer, PortletSession session, OnlineClient client) 
-	throws HttpException,IOException {
+	throws HttpException, IOException {
 
 		// retrieve POST parameters        
 		NameValuePair[] parametersBody = (NameValuePair[]) request.getAttribute("parametersBody");
@@ -616,7 +641,13 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 
 		// POST the parametersBody
 		// OnlineClient handles cases where POST redirects.
-		byte[] railsBytes = client.post(parametersBody, files);
+		byte[] railsBytes = null;
+		try {
+			railsBytes = client.post(parametersBody, files);
+		} catch (RailsAppException e) {
+			log.error("executePost: "+ e.getMessage());
+			railsBytes = e.getHtml().getBytes();
+		}
 
 		// store new cookies into PortletSession.
 		session.setAttribute("cookies", client.getCookies(), PortletSession.PORTLET_SCOPE);
@@ -649,7 +680,14 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 
 		// should servlet cookies be stored to the session? here they are not.
 
-		byte[] railsBytes = client.get();
+		byte[] railsBytes = null;
+		try {
+			railsBytes = client.get();
+		} catch (RailsAppException e) {
+			log.error("executeGet: " + e.getMessage());
+			railsBytes = e.getHtml().getBytes();
+		}
+		
 		session.setAttribute("cookies", client.getCookies(), PortletSession.PORTLET_SCOPE);
 
 		return railsBytes;
@@ -747,6 +785,10 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			Cookie _uidCookie = uidCookie(session);
 			cookies.put((String)_uidCookie.getName(), _uidCookie);
 		}
+		
+		// GID cookie
+		Cookie gidCookie = gidCookie(session, request); 
+		cookies.put(gidCookie.getName(), gidCookie);
 
 		// ResourceURL cookie
 		String resourceUrlValue = (String) session.getAttribute("resourceURL");
