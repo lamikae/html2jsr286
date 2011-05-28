@@ -410,10 +410,17 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 					"/",
 					null,
 					false);
+		/*
+		 exception com.liferay.portal.kernel.exception.PortalException is never thrown in body of corresponding try statement
+		 exception com.liferay.portal.kernel.exception.SystemException is never thrown in body of corresponding try statement
 		} catch (PortalException e) {
 			log.error("gitCookie: " + e.getMessage());
 		} catch (SystemException e) {
 			log.error("gitCookie: " + e.getMessage());
+		}
+		*/
+		} catch (Exception e) {
+			log.error("gidCookie: " + e.getMessage());
 		}
 		return cookie;
 	}

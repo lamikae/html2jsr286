@@ -31,7 +31,7 @@
     <pathelement location="WEB-INF/lib/junit-4.6.jar"/>
     <pathelement location="WEB-INF/lib/log4j-1.2.15.jar"/>
     <pathelement location="WEB-INF/lib/portal-service-5.2.3.jar"/>
-    <pathelement location="WEB-INF/lib/portal-kernel.jar"/>
+    <pathelement location="WEB-INF/lib/portal-service-6.0.5.jar"/>
     <pathelement location="WEB-INF/lib/portlet-2.0.jar"/>
     <pathelement location="WEB-INF/lib/servlet-api-2.4.jar"/>
     <pathelement location="WEB-INF/lib/spring-core-3.0.2.jar"/>

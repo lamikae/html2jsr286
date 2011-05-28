@@ -254,7 +254,7 @@ public class OnlineClientTest {
 	@Test
 	/** Test that Ajax request is received as XHR by Rails. **/
 	public void test_xhr()
-	throws MalformedURLException, HttpException, IOException{
+	throws MalformedURLException, HttpException, IOException, RailsAppException {
 		client = new OnlineClient(new URL(railsJUnitURL+"/check_xhr"),null,null,null,true);
 		assertNotNull(client);
 		byte[] body = client.post(null,null);

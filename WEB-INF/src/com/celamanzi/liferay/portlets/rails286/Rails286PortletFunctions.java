@@ -306,9 +306,16 @@ public class Rails286PortletFunctions {
 							long scopeGroupId = 0;
 							try {
 								scopeGroupId = com.liferay.portal.util.PortalUtil.getScopeGroupId(request);
+							/*
+							 exception com.liferay.portal.kernel.exception.PortalException is never thrown in body of corresponding try statement
+							 exception com.liferay.portal.kernel.exception.SystemException is never thrown in body of corresponding try statement
 							} catch (PortalException e) {
 								log.error("decipherPath: " + e.getMessage());
 							} catch (SystemException e) {
+								log.error("decipherPath: " + e.getMessage());
+							}
+							*/
+							} catch (Exception e) {
 								log.error("decipherPath: " + e.getMessage());
 							}
 							
