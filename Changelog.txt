@@ -7,9 +7,16 @@
   - fixed problems with linking to external CSS and JavaScript
   - introduced XHR serving by serveResource -- works only with Ajax.Updater
 
+= 0.10.4
+  - Support for liferay 6
+  - Better error presentation
+  
 = 0.10.3
   - IE / CP1252 encoding hack
   - Support for parameters in the serveResource method
+  
+= 0.10.2
+  (version tag for internal testing in production environment - next version contains fixes for discovered issues))
 
 = 0.10.1
   - Changed the preferences route implementation. Requires gem caterpillar version 1.3.2.
