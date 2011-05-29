@@ -211,6 +211,10 @@ public class OnlineClient {
 			createMultipartRequest(parametersBody, files, method, tempFiles); 
 
 		}else{
+			// Array of parameters may not be null, so init empty NameValuePair[]
+			if (parametersBody == null) {
+				parametersBody = new NameValuePair[0];
+			}
 			method.setRequestBody(parametersBody);
 
 			// Provide custom retry handler is necessary
