@@ -260,6 +260,9 @@ public class PortletTest {
 
 		MockResourceResponse response = new MockResourceResponse();
 
+		// set request.getResponseContentType to be != text/html
+		request.addPreferredResponseContentType("image/png");
+
 		portlet.serveResource(request, response);
 
 		download = new File(tempFilename);
@@ -287,6 +290,9 @@ public class PortletTest {
 
 		RenderResponse response = new MockRenderResponse();
 		assertNotNull(response);
+
+		// set preferences route to session attributes
+		session.setAttribute(PreferencesAttributes.PREFERENCES_ROUTE, railsJUnitRoute+"/preferences");
 
 		portlet.render(request,response);
 
@@ -322,7 +328,9 @@ public class PortletTest {
 
 		request.addParameter("originalActionUrl", railsJUnitRoute+"/preferences");
 		request.addParameter("originalActionMethod", "post");
-		
+		// set preferences route to session attributes
+		session.setAttribute(PreferencesAttributes.PREFERENCES_ROUTE, railsJUnitRoute+"/preferences");
+
 		portlet.processAction(request,response);
 		
 		MockRenderRequest renderRequest = new MockRenderRequest(PortletMode.EDIT);
