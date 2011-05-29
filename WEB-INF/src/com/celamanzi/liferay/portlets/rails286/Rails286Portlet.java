@@ -848,8 +848,10 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		}
 		
 		// GID cookie
-		Cookie gidCookie = gidCookie(session, request); 
-		cookies.put(gidCookie.getName(), gidCookie);
+		Cookie gidCookie = gidCookie(session, request);
+		if (gidCookie != null) {
+			cookies.put(gidCookie.getName(), gidCookie);
+		}
 
 		// ResourceURL cookie
 		String resourceUrlValue = (String) session.getAttribute("resourceURL");
