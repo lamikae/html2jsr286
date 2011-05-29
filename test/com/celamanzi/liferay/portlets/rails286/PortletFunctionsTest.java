@@ -105,6 +105,9 @@ public class PortletFunctionsTest {
     	
     	path = Rails286PortletFunctions.decipherPath("/otters/index", request);
     	assertEquals("/otters/index", path);
+
+    	path = Rails286PortletFunctions.decipherPath("http://host/otters/index", request);
+    	assertEquals("http://host/otters/index", path);
     }
   
 }

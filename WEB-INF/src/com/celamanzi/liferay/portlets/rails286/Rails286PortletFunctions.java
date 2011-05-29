@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2008,2009 Mikael Lammentausta
- *               2010 Mikael Lammentausta, Tulio Ornelas dos Santos
+ * Copyright (c) 2008 - 2011 Mikael Lammentausta
+ *               2010 Tulio Ornelas dos Santos
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -243,9 +243,14 @@ public class Rails286PortletFunctions {
 
 	/** Processes the request path.
 	 * Replaces variables with runtime user/portlet values.
+	 *
+	 * DEPRECATED since version 0.12.
+	 * The correct way to pass this information is via cookie.
 	 */
 	protected static String decipherPath(String path, PortletRequest request)
 	{
+		String deprecationMsg = "DEPRECATION WARNING: You are using a deprecated method for passing Liferay UID/GID values to Rails in URL. This data is now passed in a session cookie. Please do not use :uid or :gid in your routes.";
+
 		if (path == null) {
 			log.debug("Path is null, cannot extract variables");
 			return path;
@@ -272,8 +277,8 @@ public class Rails286PortletFunctions {
 					 * UID - User ID
 					 */
 					if (var.equals("%UID%")) {
+						log.warn(deprecationMsg);
 						log.debug("Matched variable: "+var);
-						log.warn("Formulating unsecure URL with UID .. plz fixme");
 						String uid = null;
 
 						try {
@@ -298,6 +303,7 @@ public class Rails286PortletFunctions {
 					 * GID - Group ID
 					 */
 					if (var.equals("%GID%")) {
+						log.warn(deprecationMsg);
 						log.debug("Matched variable: "+var);
 						String gid = null;
 
@@ -346,18 +352,26 @@ public class Rails286PortletFunctions {
 
 	/**
 	 * 
-	 * Clear unused Rails wildcards
+	 * Clear unused Rails wildcards.
+	 *
+	 * DEPRECATED since 0.12 with decipherPath().
 	 *
 	 **/
 	private static String clearRailsWildcards(String path) {
+		log.warn("DEPRECATION WARNING: custom path parameters are deprecated");
 		log.debug("Original path (with Rails wildcards): " + path);
 
 		String newPath = path.replaceAll("(:[a-zA-Z]*/?)", "");
 		if (newPath.endsWith("/")){
 			newPath = newPath.substring(0, newPath.length() - 1); //cut the last char
 		}
+		
+		// Since the portlet filter may now call this function with a full route,
+		// this breaks the "http://" to "http/".
+		// Custom path parameters are deprecated, so this is fixed with a hack:
+		newPath = newPath.replaceAll("http/", "http://");
 
-		log.debug("Path after cleanup (withour Rails wildcards): " + newPath);
+		log.debug("Path after cleanup (without Rails wildcards): " + newPath);
 
 		return newPath;
 	}
