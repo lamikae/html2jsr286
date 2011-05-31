@@ -235,15 +235,15 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				fos.write(railsBytes);
 				fos.flush();
 				fos.close();
-				
+
 				// This "if" is to avoid this call when in a test environment, because liferay test environment is too
 				// heavy and dirty to be implemented =[ (sorry...)
 				if (FileUtil.getFile() != null) {
 					PortletResponseUtil.sendFile(request, response, filename, new FileInputStream(file));
-				}
-				
-				if (!file.delete()){
-					log.error("Failed to delete temporary file " + file.getAbsolutePath());
+					// only delete the temporary file in live environment, not during test
+					if (!file.delete()){
+						log.error("Failed to delete temporary file " + file.getAbsolutePath());
+					}
 				}
 			} catch(IOException e) {
 				log.error("Exception: " + e.getMessage());

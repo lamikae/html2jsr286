@@ -53,7 +53,7 @@ public class Rails286PortletFunctions {
 	private static String tempPath;
 	
 	static {
-		// Inicializing singleton tempPath
+		// Initializing singleton tempPath
 		getTempPath();
 	}
 	
@@ -89,6 +89,7 @@ public class Rails286PortletFunctions {
 		}
 		
 		// default one
+		// XXX: maybe use /tmp ?
 		tempPath = "../temp";
 		log.info("Using '../temp' as tempPath, this is a not very good aproach. Be aware");
 		return tempPath;
