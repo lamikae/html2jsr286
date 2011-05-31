@@ -2,6 +2,11 @@ package com.celamanzi.liferay.portlets.rails286;
 
 import static org.junit.Assert.*;
 
+import org.apache.commons.httpclient.Cookie;
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.Parser;
@@ -30,6 +35,8 @@ import java.io.StringReader;
 
 /** Helpers */
 public class TestHelpers {
+
+	private static final Log log = LogFactory.getLog(TestHelpers.class);
 
 	protected static void assertPageRegexp(String page, String regexp)
 	{
@@ -79,5 +86,46 @@ public class TestHelpers {
 		return (org.w3c.dom.NodeList) result;
 	}
 
+	/** Log request headers.
+	
+	If "name" is given, just that header is printed. Otherwise all.
+	*/
+	protected static void debugHeaders(Header[] headers, String name) {
+		log.debug(String.format("%s: %s", name, getHeaderValue(name, headers)));
+	}
+	protected static void debugHeaders(Header[] headers) {
+		for (Header header : headers) {
+			log.debug(String.format("%s: %s", header.getName(), header.getValue()));
+		}
+	}
+
+	protected static String getHeaderValue(String name, Header[] headers) {
+		for (Header header : headers) {
+			if (header.getName().equals(name)){
+				return header.getValue();
+			}
+		}
+		return null;
+	}
+	
+	protected static Cookie getCookie(String name, Cookie[] cookies) {
+		for (Cookie cookie : cookies) {
+			if (cookie.toString().matches("^"+name+"=.*")) {
+				return cookie;
+			}
+		}
+		return null;
+	}
+
+	protected static void debugCookies(Cookie[] cookies) {
+		log.debug( "Cookie inspector found "+cookies.length+" cookies ------v");
+		for (Cookie cookie : cookies)
+			log.debug(cookie.toString()
+					+ ", domain=" + cookie.getDomain()
+					+ ", path=" + cookie.getPath()
+					+ ", max-age=" + cookie.getExpiryDate()
+					+ ", secure=" + cookie.getSecure());
+		log.debug( "----------------------------");
+	}
 
 }

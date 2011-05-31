@@ -55,7 +55,7 @@ public class OnlineClientTest {
 
 	@Test
 	public void test_get() throws Exception {
-		client = new OnlineClient(new URL(railsJUnitURL));
+		client = new OnlineClient(new URL(railsJUnitURL+"/empty"));
 		assertNotNull(client);
 
 		byte[] body = client.get();

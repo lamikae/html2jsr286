@@ -16,6 +16,8 @@ import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.params.*;
 import org.apache.commons.httpclient.cookie.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.mock.web.portlet.*;
 
@@ -26,6 +28,8 @@ import com.celamanzi.liferay.portlets.rails286.Rails286Portlet;
 /** Test portlet cookies that carry authorization and Liferay UID.
  */ 
 public class SessionCookiesTest {
+
+	private static final Log log = LogFactory.getLog(SessionCookiesTest.class);
 
 	private final String host    = PortletTest.host;
 	private final String servlet = PortletTest.servlet;
@@ -107,7 +111,7 @@ public class SessionCookiesTest {
 		sessionCookies[0] = portlet.uidCookie(session);
 		assertEquals(uid, sessionCookies[0].getValue());
 
-		String url =  host+servlet+railsJUnitRoute+"/liferay_uid";
+		String url =  host+servlet+railsJUnitRoute+"/liferay_uid_auth";
 
 		GetMethod method = new GetMethod(url);
 		assertNotNull(method);
@@ -181,7 +185,14 @@ public class SessionCookiesTest {
 		// 3 from Rails, 1 with session_secret
 		Cookie[] cookies = (Cookie[])session.getAttribute("cookies");
 		assertNotNull(cookies);
-		assertEquals(5,cookies.length);
+		TestHelpers.debugCookies(cookies);
+		assertEquals(6,cookies.length);
+		assertNotNull(TestHelpers.getCookie("session_secret", cookies));
+		assertNotNull(TestHelpers.getCookie("Liferay_preferences", cookies));
+		assertNotNull(TestHelpers.getCookie("Portlet_namespace", cookies));
+		assertNotNull(TestHelpers.getCookie("foo", cookies));
+		assertNotNull(TestHelpers.getCookie("bar", cookies));
+		assertNotNull(TestHelpers.getCookie("baz", cookies));
 
 		HttpClient client = new HttpClient();
 		assertNotNull(client);

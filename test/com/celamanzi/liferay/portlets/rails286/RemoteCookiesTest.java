@@ -8,6 +8,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,6 +29,8 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.portlet.MockPortletConfig;
@@ -41,6 +44,8 @@ import org.w3c.dom.NodeList;
 /** Tests handling of cookies set by Rails and how they mix with portlet cookies.
  */ 
 public class RemoteCookiesTest {
+
+	private static final Log log = LogFactory.getLog(RemoteCookiesTest.class);
 
 	private final String host    = PortletTest.host;
 	private final String servlet = PortletTest.servlet;
@@ -134,8 +139,12 @@ public class RemoteCookiesTest {
 		// assert that cookies were stored
 		Cookie[] cookies = (Cookie[])session.getAttribute("cookies");
 		assertNotNull(cookies);
-		// session_secret + _example_session + preferences cookie
-		assertEquals(3, cookies.length); // security cookie not added
+		//TestHelpers.debugCookies(cookies);
+		assertEquals(4, cookies.length);
+		assertNotNull(TestHelpers.getCookie("session_secret", cookies));
+		assertNotNull(TestHelpers.getCookie("_example_session", cookies));
+		assertNotNull(TestHelpers.getCookie("Liferay_preferences", cookies));
+		assertNotNull(TestHelpers.getCookie("Portlet_namespace", cookies));
 
 		// re-cast
 		MockRenderResponse _response = (MockRenderResponse)response;
@@ -203,10 +212,13 @@ public class RemoteCookiesTest {
 			assertEquals(200,statusCode);
 
 			Header[] responseHeaders = method.getResponseHeaders();
-			assertEquals(9, responseHeaders.length);
+			TestHelpers.debugHeaders(responseHeaders, "Set-Cookie");
+			assertNotNull(TestHelpers.getHeaderValue("Set-Cookie", responseHeaders));
 
 			sessionCookies = client.getState().getCookies();
+			TestHelpers.debugCookies(sessionCookies);
 			assertEquals(1, sessionCookies.length);
+			assertNotNull(TestHelpers.getCookie("_example_session", sessionCookies));
 
 			/** Read session data from response body (example):
 
@@ -333,8 +345,8 @@ public class RemoteCookiesTest {
 			assertEquals(200,statusCode);
 
 			Header[] responseHeaders = method.getResponseHeaders();
-			//debugHeaders(responseHeaders);
-			assertEquals(9, responseHeaders.length);
+			TestHelpers.debugHeaders(responseHeaders, "Set-Cookie");
+			assertNotNull(TestHelpers.getHeaderValue("Set-Cookie", responseHeaders));
 
 			sessionCookies = client.getState().getCookies();
 			assertEquals(1,sessionCookies.length);
@@ -449,7 +461,14 @@ public class RemoteCookiesTest {
 		// assert that cookies were stored
 		Cookie[] cookies = (Cookie[])session.getAttribute("cookies");
 		assertNotNull(cookies);
-		assertEquals(5,cookies.length); //session_secret + preferences + foo + bar + baz
+		TestHelpers.debugCookies(cookies);
+		assertEquals(6, cookies.length);
+		assertNotNull(TestHelpers.getCookie("session_secret", cookies));
+		assertNotNull(TestHelpers.getCookie("Liferay_preferences", cookies));
+		assertNotNull(TestHelpers.getCookie("Portlet_namespace", cookies));
+		assertNotNull(TestHelpers.getCookie("foo", cookies));
+		assertNotNull(TestHelpers.getCookie("bar", cookies));
+		assertNotNull(TestHelpers.getCookie("baz", cookies));
 
 		session.setAttribute("railsRoute",railsJUnitRoute+"/foobarcookiestxt");
 		_request.setSession(session);
@@ -507,7 +526,14 @@ public class RemoteCookiesTest {
 		// assert that cookies were stored
 		Cookie[] cookies = (Cookie[])session.getAttribute("cookies");
 		assertNotNull(cookies);
-		assertEquals(5,cookies.length);
+		TestHelpers.debugCookies(cookies);
+		assertEquals(6, cookies.length);
+		assertNotNull(TestHelpers.getCookie("session_secret", cookies));
+		assertNotNull(TestHelpers.getCookie("Liferay_preferences", cookies));
+		assertNotNull(TestHelpers.getCookie("Portlet_namespace", cookies));
+		assertNotNull(TestHelpers.getCookie("foo", cookies));
+		assertNotNull(TestHelpers.getCookie("bar", cookies));
+		assertNotNull(TestHelpers.getCookie("baz", cookies));
 
 		session.setAttribute("railsRoute",railsJUnitRoute+"/foobarcookiestxt_auth");
 		_request.setSession(session);

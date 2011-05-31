@@ -15,9 +15,8 @@ public class PortletFunctionsTest {
 
 	@Test
 	public void test_LiferayVersion() {
-		// version 5.2
-		assertEquals(5,PortletVersion.LIFERAY_VERSION[0]);
-		assertEquals(2,PortletVersion.LIFERAY_VERSION[1]);
+		// supports Liferay 6
+		assertEquals(6,PortletVersion.LIFERAY_VERSION[0]);
 	}
 
 	@Test
@@ -34,7 +33,7 @@ public class PortletFunctionsTest {
 		assertFalse( Rails286PortletFunctions.isMinimumLiferayVersionMet(version) );
 
 		version = new int[] {5};
-		assertTrue( Rails286PortletFunctions.isMinimumLiferayVersionMet(version) );
+		assertFalse( Rails286PortletFunctions.isMinimumLiferayVersionMet(version) );
 
 		version = new int[] {5,0};
 		assertFalse( Rails286PortletFunctions.isMinimumLiferayVersionMet(version) );
@@ -43,11 +42,10 @@ public class PortletFunctionsTest {
 		assertFalse( Rails286PortletFunctions.isMinimumLiferayVersionMet(version) );
 
 		version = new int[] {5,2};
-		assertTrue( Rails286PortletFunctions.isMinimumLiferayVersionMet(version) );
+		assertFalse( Rails286PortletFunctions.isMinimumLiferayVersionMet(version) );
 
-		// upcoming..
 		version = new int[] {5,3};
-		assertTrue( Rails286PortletFunctions.isMinimumLiferayVersionMet(version) );
+		assertFalse( Rails286PortletFunctions.isMinimumLiferayVersionMet(version) );
 
 		version = new int[] {6};
 		assertTrue( Rails286PortletFunctions.isMinimumLiferayVersionMet(version) );
@@ -71,19 +69,15 @@ public class PortletFunctionsTest {
 		assertFalse( Rails286PortletFunctions.isLiferayVersionEqual(version) );
 
 		version = new int[] {5,2};
-		assertTrue( Rails286PortletFunctions.isLiferayVersionEqual(version) );
+		assertFalse( Rails286PortletFunctions.isLiferayVersionEqual(version) );
 
-		// upcoming..
 		version = new int[] {5,3};
 		assertFalse( Rails286PortletFunctions.isLiferayVersionEqual(version) );
+
+		version = new int[] {6,0};
+		assertTrue( Rails286PortletFunctions.isLiferayVersionEqual(version) );
 	}
   
-	// This would be very important to test
-// 	@Test
-	public void test_decipherPath() {
-		fail( "Needs to instantiate RenderRequest request" );
-	}
-
 	/**
      * Should clean unused Rails wildcards, like:
      * 	/10145/10136/otters/:action/ => /10145/10136/otters/ 

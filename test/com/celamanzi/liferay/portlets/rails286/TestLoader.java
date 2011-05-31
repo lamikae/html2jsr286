@@ -7,7 +7,7 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
- 	PortletTest.class,
+	PortletTest.class,
 	OnlineClientTest.class,
 	RenderFilterTest.class,
 	PageProcessorTest.class,
