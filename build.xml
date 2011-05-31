@@ -91,7 +91,12 @@
 			<attribute name="Built-Date" value="${TODAY}"/>
 		</manifest>
 
-		<loadfile property="version_number" srcFile="${build.dir}/VERSION"/>
+		<loadfile property="version_number" srcFile="${build.dir}/VERSION">
+		  <filterchain>
+		    <striplinebreaks/>
+		  </filterchain>
+		</loadfile>
+		
 		<jar destfile="${build.dir}/${package.name}-${version_number}.jar"
 				 basedir="${build.dir}"
 				 manifest="MANIFEST.MF">
