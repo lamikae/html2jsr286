@@ -64,6 +64,7 @@
       source="${source}"
       target="${target}"
       includeantruntime="false"
+      encoding="UTF-8"
       >
         <src path="WEB-INF/src"/>
         <classpath refid="test.classpath"/>
@@ -77,6 +78,7 @@
       source="${source}"
       target="${target}"
       includeantruntime="false"
+      encoding="UTF-8"
       >
         <src path="test"/>
         <classpath refid="test.classpath"/>

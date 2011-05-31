@@ -226,6 +226,9 @@ public class OnlineClientTest {
 	}
 
 	@Test
+	/*
+	NOTE: JVM needs to be configured to use UTF8 encoding for this test to succeed.
+	*/
 	public void test_multipart_post()
 	throws MalformedURLException, HttpException, IOException, RailsAppException{
 
@@ -248,7 +251,7 @@ public class OnlineClientTest {
 		byte[] body = client.post(params, files);
 		assertEquals(200,client.getStatusCode());
 
-		assertEquals("", new String(body));
+		assertEquals("PARAMETER ENCODING FAILURE", "", new String(body));
 	}
 
 	@Test
