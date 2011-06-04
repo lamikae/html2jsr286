@@ -1,3 +1,12 @@
+= 0.12
+Moving towards 1.0.0. This upgrade contains merges from tulios topped with some minor fixes.
+  - Liferay 6 compatibility
+  - improving Rails error visibility
+  - deprecated :uid and :gid path parameters, now using cookie-based variable passing
+  - fix jar "package" ant task
+  - fixed a number of test cases, all tests pass
+  - some other minor fixes, see git log for details
+
 = 0.11.2
   - check for NullPointerException at HeadProcessor, from Boris
   - do not blacklist any JavaScript
